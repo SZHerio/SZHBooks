@@ -9,6 +9,9 @@ Popup {
     required property var settingsStore
     property bool textSettingsAvailable: true
 
+    signal backupRequested
+    signal restoreRequested
+
     readonly property var fontOptions: [
         { value: "serif", label: qsTr("Serif") },
         { value: "sans", label: qsTr("Sans") },
@@ -343,6 +346,57 @@ Popup {
                     model: root.themeOptions
                     value: root.settingsStore.colorTheme
                     onValueSelected: value => root.settingsStore.colorTheme = value
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.topMargin: Theme.spaceXs
+                implicitHeight: 1
+                color: Theme.borderColor
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spaceXs
+
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("Local data")
+                    color: Theme.textColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.bodyFontSize
+                    font.weight: Font.DemiBold
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("Back up settings, library, positions and notes. Book files stay on this device.")
+                    color: Theme.mutedTextColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.captionFontSize
+                    wrapMode: Text.Wrap
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spaceXs
+
+                    SZHButton {
+                        Layout.fillWidth: true
+                        text: qsTr("Back up")
+                        symbol: "\u2193"
+                        variant: "secondary"
+                        onClicked: root.backupRequested()
+                    }
+
+                    SZHButton {
+                        Layout.fillWidth: true
+                        text: qsTr("Restore")
+                        symbol: "\u2191"
+                        variant: "secondary"
+                        onClicked: root.restoreRequested()
+                    }
                 }
             }
 

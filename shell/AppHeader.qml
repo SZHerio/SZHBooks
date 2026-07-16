@@ -19,6 +19,8 @@ Rectangle {
     signal libraryRequested
     signal darkModeToggled(bool darkMode)
     signal focusModeRequested
+    signal backupProfileRequested
+    signal restoreProfileRequested
 
     function closeReaderPopups() {
         searchPopup.close()
@@ -315,6 +317,8 @@ Rectangle {
         y: root.height + Theme.spaceXs
         settingsStore: root.settingsStore
         textSettingsAvailable: root.readerWorkspace.showingText
+        onBackupRequested: root.backupProfileRequested()
+        onRestoreRequested: root.restoreProfileRequested()
     }
 
     SearchPopup {

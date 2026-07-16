@@ -41,6 +41,8 @@ target_include_directories(szhbooks_miniz
 qt_add_executable(appSZHBooks
     archive/ziparchivereader.cpp
     archive/ziparchivereader.h
+    archive/ziparchivewriter.cpp
+    archive/ziparchivewriter.h
     archive/zippathutils.cpp
     archive/zippathutils.h
     document/docxcontentrenderer.cpp
@@ -82,6 +84,9 @@ qt_add_executable(appSZHBooks
     storage/documentstoragekey.h
     storage/localstatestore.cpp
     storage/localstatestore.h
+    storage/profilearchiveservice.cpp
+    storage/profilearchiveservice.h
+    storage/profilestorage.h
     storage/readingannotationstore.cpp
     storage/readingannotationstore.h
 )
@@ -107,6 +112,7 @@ qt_add_qml_module(appSZHBooks
         reader/TextNavigationControl.qml
         reader/TextDocumentView.qml
         shell/AppHeader.qml
+        shell/ProfileRestoreDialog.qml
         shell/ReaderToolsPopup.qml
         shell/ReadingSettingsPopup.qml
         shell/ReaderStatusBar.qml
@@ -163,6 +169,10 @@ target_link_libraries(appSZHBooks
         Qt6::QuickControls2
         Qt6::QuickDialogs2
         Qt6::Xml
+)
+
+target_compile_definitions(appSZHBooks PRIVATE
+    SZHBOOKS_VERSION="${PROJECT_VERSION}"
 )
 
 if(WIN32)
@@ -226,6 +236,38 @@ if(BUILD_TESTING)
 
         add_test(NAME localstatestore COMMAND tst_localstatestore)
         set_tests_properties(localstatestore PROPERTIES
+            ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+        )
+
+        qt_add_executable(tst_profilearchive
+            archive/ziparchivereader.cpp
+            archive/ziparchivereader.h
+            archive/ziparchivewriter.cpp
+            archive/ziparchivewriter.h
+            library/librarybook.h
+            reader/readingannotation.h
+            storage/documentstoragekey.cpp
+            storage/documentstoragekey.h
+            storage/localstatestore.cpp
+            storage/localstatestore.h
+            storage/profilearchiveservice.cpp
+            storage/profilearchiveservice.h
+            storage/profilestorage.h
+            storage/readingannotationstore.cpp
+            storage/readingannotationstore.h
+            tests/profilearchiveservicetest.cpp
+        )
+
+        target_link_libraries(tst_profilearchive
+            PRIVATE
+                szhbooks_miniz
+                Qt6::Core
+                Qt6::Test
+        )
+
+        add_test(NAME profilearchive COMMAND tst_profilearchive)
+        set_tests_properties(profilearchive PROPERTIES
             ENVIRONMENT_MODIFICATION
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
         )

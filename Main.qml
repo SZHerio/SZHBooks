@@ -8,6 +8,7 @@ ApplicationWindow {
 
     required property var readerController
     required property var localStateStore
+    required property var profileArchiveService
     required property var libraryModel
     required property var readingDocumentFormatter
     required property var readingSearchController
@@ -17,6 +18,10 @@ ApplicationWindow {
     property bool focusMode: false
     property int visibilityBeforeFocus: Window.Windowed
     property url relinkSourceUrl
+    property url pendingProfileRestoreUrl
+    property bool profileNoticeShown: false
+    property string profileNoticeHeading
+    property string profileNoticeMessage
     readonly property bool readingNavigationEnabled: !root.showingLibrary
                                                       && readerWorkspace.hasDocument
                                                       && !appHeader.readerPopupOpen
@@ -94,6 +99,18 @@ ApplicationWindow {
         root.libraryModel.clearError()
         root.relinkSourceUrl = sourceUrl
         relinkDialog.open()
+    }
+
+    function flushLocalProfile() {
+        readerWorkspace.flushReadingState()
+        root.readingAnnotationStore.sync()
+        root.localStateStore.sync()
+    }
+
+    function showProfileNotice(heading, message) {
+        root.profileNoticeHeading = heading
+        root.profileNoticeMessage = message
+        root.profileNoticeShown = true
     }
 
     onClosing: {
@@ -216,6 +233,63 @@ ApplicationWindow {
         onRejected: root.relinkSourceUrl = ""
     }
 
+    FileDialog {
+        id: profileBackupDialog
+
+        title: qsTr("Back up local profile")
+        fileMode: FileDialog.SaveFile
+        defaultSuffix: "szhbackup"
+        nameFilters: [qsTr("SZHBooks profile (*.szhbackup)")]
+        onAccepted: {
+            root.flushLocalProfile()
+            root.profileArchiveService.exportProfile(selectedFile)
+        }
+    }
+
+    FileDialog {
+        id: profileRestoreFileDialog
+
+        title: qsTr("Restore local profile")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [qsTr("SZHBooks profile (*.szhbackup)")]
+        onAccepted: {
+            root.pendingProfileRestoreUrl = selectedFile
+            profileRestoreDialog.open()
+        }
+    }
+
+    ProfileRestoreDialog {
+        id: profileRestoreDialog
+
+        backupUrl: root.pendingProfileRestoreUrl
+        onRestoreConfirmed: {
+            root.flushLocalProfile()
+            root.profileArchiveService.importProfile(root.pendingProfileRestoreUrl)
+        }
+        onClosed: root.pendingProfileRestoreUrl = ""
+    }
+
+    Connections {
+        target: root.profileArchiveService
+
+        function onProfileExported() {
+            root.showProfileNotice(qsTr("Backup saved"),
+                                   qsTr("Settings, library, positions and notes were saved."))
+        }
+
+        function onProfileImported() {
+            if (readerWorkspace.hasDocument) {
+                Qt.callLater(readerWorkspace.restoreReadingState)
+            }
+            root.showProfileNotice(qsTr("Profile restored"),
+                                   qsTr("Your local reading data is ready."))
+        }
+
+        function onOperationFailed(errorMessage) {
+            root.showProfileNotice(qsTr("Profile operation failed"), errorMessage)
+        }
+    }
+
     header: AppHeader {
         id: appHeader
         objectName: "appHeader"
@@ -230,6 +304,8 @@ ApplicationWindow {
         onLibraryRequested: root.showLibrary()
         onDarkModeToggled: root.localStateStore.darkMode = darkMode
         onFocusModeRequested: root.toggleFocusMode()
+        onBackupProfileRequested: profileBackupDialog.open()
+        onRestoreProfileRequested: profileRestoreFileDialog.open()
     }
 
     footer: ReaderStatusBar {
@@ -317,6 +393,8 @@ ApplicationWindow {
     }
 
     SZHNotification {
+        id: libraryErrorNotification
+
         z: 101
         anchors.top: parent.top
         anchors.right: parent.right
@@ -332,5 +410,24 @@ ApplicationWindow {
         actionText: qsTr("Choose another")
         onActionRequested: relinkDialog.open()
         onDismissed: root.libraryModel.clearError()
+    }
+
+    SZHNotification {
+        z: 102
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: Theme.spaceMd
+                           + (readerErrorNotification.visible
+                              ? readerErrorNotification.height + Theme.spaceSm
+                              : 0)
+                           + (libraryErrorNotification.visible
+                              ? libraryErrorNotification.height + Theme.spaceSm
+                              : 0)
+        anchors.rightMargin: Theme.spaceMd
+        width: Math.min(480, Math.max(320, root.width - Theme.spaceXl))
+        shown: root.profileNoticeShown
+        heading: root.profileNoticeHeading
+        message: root.profileNoticeMessage
+        onDismissed: root.profileNoticeShown = false
     }
 }

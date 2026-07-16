@@ -189,6 +189,13 @@ void ReadingAnnotationStore::removeAnnotation(const QString &annotationId)
     emit annotationsChanged();
 }
 
+void ReadingAnnotationStore::reload()
+{
+    m_settings.sync();
+    loadAnnotations();
+    emit annotationsChanged();
+}
+
 void ReadingAnnotationStore::sync()
 {
     m_settings.sync();

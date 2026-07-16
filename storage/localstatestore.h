@@ -1,13 +1,14 @@
 #pragma once
 
 #include "../library/librarybook.h"
+#include "profilestorage.h"
 
 #include <QObject>
 #include <QSettings>
 #include <QUrl>
 #include <QVector>
 
-class LocalStateStore final : public QObject
+class LocalStateStore final : public QObject, public ProfileStorage
 {
     Q_OBJECT
     Q_PROPERTY(bool darkMode READ darkMode WRITE setDarkMode NOTIFY darkModeChanged)
@@ -40,6 +41,9 @@ public:
     QString librarySortMode() const;
     QString libraryViewMode() const;
     QString settingsFilePath() const;
+    QVariantMap profileValues() const override;
+    bool replaceProfileValues(const QVariantMap &values,
+                              QString *errorMessage = nullptr) override;
 
     void setDarkMode(bool darkMode);
     void setColorTheme(const QString &colorTheme);
@@ -95,10 +99,13 @@ signals:
     void lastBookUrlChanged();
     void libraryChanged();
     void documentProgressChanged(const QUrl &documentUrl, qreal progress);
+    void profileReplaced();
 
 private:
     static QString defaultSettingsFilePath();
     static QString documentKey(const QUrl &documentUrl, const QString &name);
+    void loadCachedState();
+    void emitProfileSignals();
     void rememberDocumentUrl(const QUrl &documentUrl);
 
     mutable QSettings m_settings;

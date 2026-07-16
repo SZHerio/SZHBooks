@@ -182,6 +182,24 @@ LocalStateStore::LocalStateStore(const QString &settingsFilePath, QObject *paren
     : QObject(parent)
     , m_settings(settingsFilePath, QSettings::IniFormat)
 {
+    loadCachedState();
+}
+
+void LocalStateStore::loadCachedState()
+{
+    m_colorTheme = defaultColorTheme;
+    m_readingFont = defaultReadingFont;
+    m_textFontSize = 18;
+    m_lineHeight = 1.5;
+    m_paragraphSpacing = 10;
+    m_firstLineIndent = 24;
+    m_textAlignment = defaultTextAlignment;
+    m_pageWidth = 820;
+    m_scrollSpeed = 100;
+    m_lastBookUrl = {};
+    m_librarySortMode = QStringLiteral("recent");
+    m_libraryViewMode = QStringLiteral("grid");
+
     const QString colorThemeKey = QStringLiteral("appearance/colorTheme");
     const QString legacyDarkModeKey = QStringLiteral("appearance/darkMode");
     if (m_settings.contains(colorThemeKey)) {
@@ -305,6 +323,45 @@ QString LocalStateStore::libraryViewMode() const
 QString LocalStateStore::settingsFilePath() const
 {
     return m_settings.fileName();
+}
+
+QVariantMap LocalStateStore::profileValues() const
+{
+    m_settings.sync();
+    QVariantMap values;
+    for (const QString &key : m_settings.allKeys()) {
+        values.insert(key, m_settings.value(key));
+    }
+    return values;
+}
+
+bool LocalStateStore::replaceProfileValues(const QVariantMap &values,
+                                           QString *errorMessage)
+{
+    const QVariantMap previousValues = profileValues();
+    const auto writeValues = [this](const QVariantMap &profileValues) {
+        m_settings.clear();
+        for (auto value = profileValues.cbegin(); value != profileValues.cend(); ++value) {
+            m_settings.setValue(value.key(), value.value());
+        }
+        m_settings.sync();
+        return m_settings.status() == QSettings::NoError;
+    };
+
+    if (!writeValues(values)) {
+        writeValues(previousValues);
+        if (errorMessage) {
+            *errorMessage = tr("The settings file could not be updated.");
+        }
+        return false;
+    }
+
+    loadCachedState();
+    emitProfileSignals();
+    if (errorMessage) {
+        errorMessage->clear();
+    }
+    return true;
 }
 
 void LocalStateStore::setDarkMode(bool darkMode)
@@ -734,4 +791,21 @@ void LocalStateStore::rememberDocumentUrl(const QUrl &documentUrl)
 {
     m_settings.setValue(documentKey(documentUrl, QStringLiteral("sourceUrl")),
                         serializedUrl(documentUrl));
+}
+
+void LocalStateStore::emitProfileSignals()
+{
+    emit colorThemeChanged();
+    emit darkModeChanged();
+    emit readingFontChanged();
+    emit textFontSizeChanged();
+    emit lineHeightChanged();
+    emit paragraphSpacingChanged();
+    emit firstLineIndentChanged();
+    emit textAlignmentChanged();
+    emit pageWidthChanged();
+    emit scrollSpeedChanged();
+    emit lastBookUrlChanged();
+    emit libraryChanged();
+    emit profileReplaced();
 }

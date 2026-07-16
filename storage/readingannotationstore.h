@@ -36,6 +36,7 @@ public:
                                      int page);
     Q_INVOKABLE void updateNote(const QString &annotationId, const QString &note);
     Q_INVOKABLE void removeAnnotation(const QString &annotationId);
+    Q_INVOKABLE void reload();
     Q_INVOKABLE void sync();
 
 signals:

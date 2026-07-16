@@ -15,6 +15,7 @@
 #include "reader/readingdocumentformatter.h"
 #include "readercontroller.h"
 #include "storage/localstatestore.h"
+#include "storage/profilearchiveservice.h"
 #include "storage/readingannotationstore.h"
 
 namespace {
@@ -34,12 +35,14 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName(QStringLiteral("SZHBooks"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("szhbooks.local"));
     QCoreApplication::setApplicationName(QStringLiteral("SZHBooks"));
+    QCoreApplication::setApplicationVersion(QStringLiteral(SZHBOOKS_VERSION));
 
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon(QStringLiteral(
         ":/qt/qml/SZHBooks/assets/branding/szhbooks-icon.png")));
 
     LocalStateStore localState;
+    ProfileArchiveService profileArchiveService(&localState);
     const auto applyScrollSpeed = [&app, &localState]() {
         // This hint is shared by every Qt Quick scroll view, including the PDF table view.
         app.styleHints()->setWheelScrollLines(wheelScrollLinesForSpeed(localState.scrollSpeed()));
@@ -57,6 +60,11 @@ int main(int argc, char *argv[])
     ReadingDocumentFormatter documentFormatter;
     ReadingSearchController searchController;
     ReadingAnnotationStore annotationStore(localState.settingsFilePath());
+
+    QObject::connect(&localState,
+                     &LocalStateStore::profileReplaced,
+                     &annotationStore,
+                     &ReadingAnnotationStore::reload);
 
     QObject::connect(&reader,
                      &ReaderController::documentOpened,
@@ -78,6 +86,8 @@ int main(int argc, char *argv[])
          QVariant::fromValue(static_cast<QObject *>(&reader))},
         {QStringLiteral("localStateStore"),
          QVariant::fromValue(static_cast<QObject *>(&localState))},
+        {QStringLiteral("profileArchiveService"),
+         QVariant::fromValue(static_cast<QObject *>(&profileArchiveService))},
         {QStringLiteral("libraryModel"),
          QVariant::fromValue(static_cast<QObject *>(&libraryModel))},
         {QStringLiteral("readingDocumentFormatter"),

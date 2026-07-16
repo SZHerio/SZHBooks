@@ -225,6 +225,16 @@ void LibraryModel::setViewMode(const QString &viewMode)
 void LibraryModel::refresh()
 {
     const int previousTotalCount = m_allBooks.size();
+    const QString storedSortMode = m_repository->sortMode();
+    const QString storedViewMode = m_repository->viewMode();
+    if (m_sortMode != storedSortMode) {
+        m_sortMode = storedSortMode;
+        emit sortModeChanged();
+    }
+    if (m_viewMode != storedViewMode) {
+        m_viewMode = storedViewMode;
+        emit viewModeChanged();
+    }
     m_allBooks = m_repository->books();
 
     rebuildAvailableFormats();
