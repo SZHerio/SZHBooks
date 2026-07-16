@@ -25,9 +25,9 @@ int wheelScrollLinesForSpeed(int scrollSpeed)
 int main(int argc, char *argv[])
 {
     QQuickStyle::setStyle(QStringLiteral("Basic"));
-    QCoreApplication::setOrganizationName(QStringLiteral("Leaflit"));
-    QCoreApplication::setOrganizationDomain(QStringLiteral("leaflit.local"));
-    QCoreApplication::setApplicationName(QStringLiteral("Leaflit"));
+    QCoreApplication::setOrganizationName(QStringLiteral("SZHBooks"));
+    QCoreApplication::setOrganizationDomain(QStringLiteral("szhbooks.local"));
+    QCoreApplication::setApplicationName(QStringLiteral("SZHBooks"));
 
     QGuiApplication app(argc, argv);
 
@@ -59,10 +59,6 @@ int main(int argc, char *argv[])
                      });
     QObject::connect(&app, &QCoreApplication::aboutToQuit, &localState, &LocalStateStore::sync);
 
-    if (!localState.lastBookUrl().isEmpty()) {
-        reader.openFile(localState.lastBookUrl());
-    }
-
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         {QStringLiteral("readerController"),
@@ -81,7 +77,7 @@ int main(int argc, char *argv[])
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    engine.loadFromModule("Leaflit", "Main");
+    engine.loadFromModule("SZHBooks", "Main");
 
     return app.exec();
 }

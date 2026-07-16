@@ -16,7 +16,6 @@ Popup {
     ]
     readonly property var themeOptions: [
         { value: "light", label: qsTr("Light") },
-        { value: "sepia", label: qsTr("Sepia") },
         { value: "dark", label: qsTr("Dark") }
     ]
     readonly property real hostWindowHeight: root.parent && root.parent.Window.window
@@ -51,7 +50,7 @@ Popup {
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.VerticalFlick
-        ScrollBar.vertical: LeaflitScrollBar {
+        ScrollBar.vertical: SZHScrollBar {
         }
 
         ColumnLayout {
@@ -84,7 +83,7 @@ Popup {
                     font.pixelSize: Theme.bodyFontSize
                 }
 
-                LeaflitSegmentedControl {
+                SZHSegmentedControl {
                     Layout.fillWidth: true
                     model: root.fontOptions
                     value: root.settingsStore.readingFont
@@ -105,7 +104,7 @@ Popup {
                     font.pixelSize: Theme.bodyFontSize
                 }
 
-                LeaflitIconButton {
+                SZHIconButton {
                     symbol: "-"
                     toolTip: qsTr("Decrease font size")
                     enabled: root.settingsStore.textFontSize > 12
@@ -122,7 +121,7 @@ Popup {
                     horizontalAlignment: Text.AlignHCenter
                 }
 
-                LeaflitIconButton {
+                SZHIconButton {
                     symbol: "+"
                     toolTip: qsTr("Increase font size")
                     enabled: root.settingsStore.textFontSize < 36
@@ -155,7 +154,7 @@ Popup {
                     }
                 }
 
-                LeaflitSlider {
+                SZHSlider {
                     Layout.fillWidth: true
                     from: 1.2
                     to: 2.0
@@ -190,7 +189,7 @@ Popup {
                     }
                 }
 
-                LeaflitSlider {
+                SZHSlider {
                     Layout.fillWidth: true
                     from: 560
                     to: 1040
@@ -224,7 +223,7 @@ Popup {
                     }
                 }
 
-                LeaflitSlider {
+                SZHSlider {
                     Layout.fillWidth: true
                     from: 50
                     to: 200
@@ -245,7 +244,7 @@ Popup {
                     font.pixelSize: Theme.bodyFontSize
                 }
 
-                LeaflitSegmentedControl {
+                SZHSegmentedControl {
                     Layout.fillWidth: true
                     model: root.themeOptions
                     value: root.settingsStore.colorTheme
@@ -253,7 +252,7 @@ Popup {
                 }
             }
 
-            LeaflitButton {
+            SZHButton {
                 Layout.fillWidth: true
                 text: qsTr("Restore defaults")
                 variant: "secondary"

@@ -114,7 +114,7 @@ Item {
         contentHeight: readerContainer.height
         flickableDirection: Flickable.VerticalFlick
         boundsBehavior: Flickable.StopAtBounds
-        ScrollBar.vertical: LeaflitScrollBar {
+        ScrollBar.vertical: SZHScrollBar {
         }
 
         Item {
@@ -123,7 +123,7 @@ Item {
             width: textFlickable.width
             height: readerPage.height + root.horizontalGutter * 2
 
-            LeaflitSurface {
+            SZHSurface {
                 id: readerPage
 
                 anchors.top: parent.top

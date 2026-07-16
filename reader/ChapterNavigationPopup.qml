@@ -46,7 +46,7 @@ Popup {
             boundsBehavior: Flickable.StopAtBounds
             currentIndex: root.readerWorkspace.currentChapterIndex
             model: root.readerWorkspace.chapters
-            ScrollBar.vertical: LeaflitScrollBar {
+            ScrollBar.vertical: SZHScrollBar {
             }
 
             delegate: Item {

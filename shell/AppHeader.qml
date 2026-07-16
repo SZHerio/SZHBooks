@@ -47,16 +47,15 @@ Rectangle {
         anchors.rightMargin: Theme.spaceLg
         spacing: Theme.spaceSm
 
-        Label {
-            text: qsTr("Leaflit")
-            color: Theme.chromeTextColor
-            font.family: Theme.readingFontFamily
-            font.pixelSize: Theme.titleFontSize
-            font.weight: Font.DemiBold
-            Layout.rightMargin: Theme.spaceSm
+        SZHBrandLogo {
+            iconOnly: root.width < 940
+            darkVariant: Theme.darkMode
+            Layout.preferredWidth: iconOnly ? 42 : 176
+            Layout.preferredHeight: 42
+            Layout.rightMargin: Theme.spaceXs
         }
 
-        LeaflitIconButton {
+        SZHIconButton {
             symbol: "\u25a6"
             toolTip: qsTr("Library")
             onChrome: true
@@ -64,7 +63,7 @@ Rectangle {
             onClicked: root.libraryRequested()
         }
 
-        LeaflitButton {
+        SZHButton {
             text: root.showingLibrary ? qsTr("Add book") : qsTr("Open book")
             variant: "chrome"
             onClicked: root.openRequested()
@@ -97,7 +96,7 @@ Rectangle {
             color: Theme.chromeBorderColor
         }
 
-        LeaflitIconButton {
+        SZHIconButton {
             visible: !root.showingLibrary && root.readerWorkspace.hasDocument
             symbol: "-"
             toolTip: root.readerWorkspace.showingPdf
@@ -119,7 +118,7 @@ Rectangle {
             Layout.preferredWidth: 58
         }
 
-        LeaflitIconButton {
+        SZHIconButton {
             visible: !root.showingLibrary && root.readerWorkspace.hasDocument
             symbol: "+"
             toolTip: root.readerWorkspace.showingPdf
@@ -130,7 +129,7 @@ Rectangle {
             onClicked: root.readerWorkspace.increaseScale()
         }
 
-        LeaflitIconButton {
+        SZHIconButton {
             visible: !root.showingLibrary && root.readerWorkspace.showingPdf
             symbol: "\u2922"
             toolTip: qsTr("Fit page to width")
@@ -138,7 +137,7 @@ Rectangle {
             onClicked: root.readerWorkspace.fitPdfToWidth()
         }
 
-        LeaflitIconButton {
+        SZHIconButton {
             id: chapterButton
 
             visible: !root.showingLibrary && root.readerWorkspace.hasChapters
@@ -154,7 +153,7 @@ Rectangle {
             }
         }
 
-        LeaflitIconButton {
+        SZHIconButton {
             visible: !root.showingLibrary
             symbol: "\u2699"
             symbolPixelSize: Theme.bodyLargeFontSize
@@ -169,13 +168,21 @@ Rectangle {
             }
         }
 
-        LeaflitIconButton {
+        SZHIconButton {
             symbol: root.darkMode ? "\u2600" : "\u263e"
             symbolPixelSize: Theme.bodyLargeFontSize
             toolTip: root.darkMode ? qsTr("Use light theme") : qsTr("Use dark theme")
             onChrome: true
             onClicked: root.darkModeToggled(!root.darkMode)
         }
+    }
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 1
+        color: Theme.chromeBorderColor
     }
 
     ReadingSettingsPopup {

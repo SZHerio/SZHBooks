@@ -1,8 +1,10 @@
 #include "localstatestore.h"
 
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
 
@@ -42,10 +44,58 @@ QString normalizedColorTheme(const QString &colorTheme)
     const QString normalized = colorTheme.trimmed().toLower();
     static const QStringList supportedThemes = {
         QStringLiteral("light"),
-        QStringLiteral("sepia"),
         QStringLiteral("dark")
     };
     return supportedThemes.contains(normalized) ? normalized : defaultColorTheme;
+}
+
+QString configDirectoryForIdentity(const QString &organizationName,
+                                   const QString &organizationDomain,
+                                   const QString &applicationName)
+{
+    const QString currentOrganizationName = QCoreApplication::organizationName();
+    const QString currentOrganizationDomain = QCoreApplication::organizationDomain();
+    const QString currentApplicationName = QCoreApplication::applicationName();
+
+    QCoreApplication::setOrganizationName(organizationName);
+    QCoreApplication::setOrganizationDomain(organizationDomain);
+    QCoreApplication::setApplicationName(applicationName);
+    const QString directory = QStandardPaths::writableLocation(
+        QStandardPaths::AppConfigLocation);
+
+    QCoreApplication::setOrganizationName(currentOrganizationName);
+    QCoreApplication::setOrganizationDomain(currentOrganizationDomain);
+    QCoreApplication::setApplicationName(currentApplicationName);
+    return directory;
+}
+
+QString migratedDefaultSettingsFilePath()
+{
+    QString directory = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    if (directory.isEmpty()) {
+        directory = QDir::home().filePath(QStringLiteral(".szhbooks"));
+    }
+
+    QDir().mkpath(directory);
+    const QString settingsPath = QDir(directory).filePath(QStringLiteral("settings.ini"));
+    if (QFileInfo::exists(settingsPath)) {
+        return settingsPath;
+    }
+
+    QString legacyDirectory = configDirectoryForIdentity(QStringLiteral("Leaflit"),
+                                                         QStringLiteral("leaflit.local"),
+                                                         QStringLiteral("Leaflit"));
+    if (legacyDirectory.isEmpty()) {
+        legacyDirectory = QDir::home().filePath(QStringLiteral(".leaflit"));
+    }
+
+    const QString legacySettingsPath = QDir(legacyDirectory).filePath(
+        QStringLiteral("settings.ini"));
+    if (QFileInfo::exists(legacySettingsPath)
+        && !QFile::copy(legacySettingsPath, settingsPath)) {
+        return legacySettingsPath;
+    }
+    return settingsPath;
 }
 
 QString normalizedReadingFont(const QString &readingFont)
@@ -73,7 +123,11 @@ LocalStateStore::LocalStateStore(const QString &settingsFilePath, QObject *paren
     const QString colorThemeKey = QStringLiteral("appearance/colorTheme");
     const QString legacyDarkModeKey = QStringLiteral("appearance/darkMode");
     if (m_settings.contains(colorThemeKey)) {
-        m_colorTheme = normalizedColorTheme(m_settings.value(colorThemeKey).toString());
+        const QString storedColorTheme = m_settings.value(colorThemeKey).toString();
+        m_colorTheme = normalizedColorTheme(storedColorTheme);
+        if (storedColorTheme != m_colorTheme) {
+            m_settings.setValue(colorThemeKey, m_colorTheme);
+        }
     } else if (m_settings.contains(legacyDarkModeKey)) {
         m_colorTheme = m_settings.value(legacyDarkModeKey).toBool()
                            ? QStringLiteral("dark")
@@ -402,20 +456,17 @@ void LocalStateStore::sync()
 
 QString LocalStateStore::defaultSettingsFilePath()
 {
-    const QString overriddenPath = qEnvironmentVariable("LEAFLIT_SETTINGS_FILE");
+    QString overriddenPath = qEnvironmentVariable("SZHBOOKS_SETTINGS_FILE");
+    if (overriddenPath.isEmpty()) {
+        overriddenPath = qEnvironmentVariable("LEAFLIT_SETTINGS_FILE");
+    }
     if (!overriddenPath.isEmpty()) {
         const QFileInfo fileInfo(overriddenPath);
         QDir().mkpath(fileInfo.absolutePath());
         return fileInfo.absoluteFilePath();
     }
 
-    QString directory = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-    if (directory.isEmpty()) {
-        directory = QDir::home().filePath(QStringLiteral(".leaflit"));
-    }
-
-    QDir().mkpath(directory);
-    return QDir(directory).filePath(QStringLiteral("settings.ini"));
+    return migratedDefaultSettingsFilePath();
 }
 
 QString LocalStateStore::documentId(const QUrl &documentUrl)

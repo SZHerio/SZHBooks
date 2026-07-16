@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Leaflit VERSION 0.1 LANGUAGES C CXX)
+project(SZHBooks VERSION 0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,7 +13,7 @@ set_source_files_properties(ui/Theme.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
 
-add_library(leaflit_miniz STATIC
+add_library(szhbooks_miniz STATIC
     third_party/miniz/miniz.c
     third_party/miniz/miniz_tdef.c
     third_party/miniz/miniz_tinfl.c
@@ -21,18 +21,18 @@ add_library(leaflit_miniz STATIC
 )
 
 include(GenerateExportHeader)
-generate_export_header(leaflit_miniz
+generate_export_header(szhbooks_miniz
     BASE_NAME miniz
     EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/miniz_export.h
 )
 
-target_include_directories(leaflit_miniz
+target_include_directories(szhbooks_miniz
     PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/miniz
 )
 
-qt_add_executable(appLeaflit
+qt_add_executable(appSZHBooks
     archive/ziparchivereader.cpp
     archive/ziparchivereader.h
     documentloadresult.h
@@ -53,8 +53,8 @@ qt_add_executable(appLeaflit
     storage/localstatestore.h
 )
 
-qt_add_qml_module(appLeaflit
-    URI Leaflit
+qt_add_qml_module(appSZHBooks
+    URI SZHBooks
     QML_FILES
         Main.qml
         library/LibraryBookDelegate.qml
@@ -69,32 +69,36 @@ qt_add_qml_module(appLeaflit
         shell/AppHeader.qml
         shell/ReadingSettingsPopup.qml
         shell/ReaderStatusBar.qml
-        ui/LeaflitButton.qml
-        ui/LeaflitIconButton.qml
-        ui/LeaflitProgressBar.qml
-        ui/LeaflitScrollBar.qml
-        ui/LeaflitSegmentedControl.qml
-        ui/LeaflitSlider.qml
-        ui/LeaflitSurface.qml
-        ui/LeaflitSwitch.qml
-        ui/LeaflitTextField.qml
+        ui/SZHBrandLogo.qml
+        ui/SZHButton.qml
+        ui/SZHIconButton.qml
+        ui/SZHProgressBar.qml
+        ui/SZHScrollBar.qml
+        ui/SZHSegmentedControl.qml
+        ui/SZHSlider.qml
+        ui/SZHSurface.qml
+        ui/SZHSwitch.qml
+        ui/SZHTextField.qml
         ui/Theme.qml
+    RESOURCES
+        assets/branding/szhbooks-logo-sheet.png
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
-set_target_properties(appLeaflit PROPERTIES
-#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appLeafit
+set_target_properties(appSZHBooks PROPERTIES
+    MACOSX_BUNDLE_GUI_IDENTIFIER com.szhbooks.reader
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
+    OUTPUT_NAME SZHBooks
     WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(appLeaflit
+target_link_libraries(appSZHBooks
     PRIVATE
-        leaflit_miniz
+        szhbooks_miniz
         Qt6::Gui
         Qt6::Pdf
         Qt6::PdfQuick
@@ -105,7 +109,7 @@ target_link_libraries(appLeaflit
 )
 
 include(GNUInstallDirs)
-install(TARGETS appLeaflit
+install(TARGETS appSZHBooks
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -150,7 +154,7 @@ if(BUILD_TESTING)
 
         target_link_libraries(tst_documentreaders
             PRIVATE
-                leaflit_miniz
+                szhbooks_miniz
                 Qt6::Gui
                 Qt6::Pdf
                 Qt6::Test

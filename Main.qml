@@ -18,10 +18,10 @@ ApplicationWindow {
     minimumHeight: 560
     visible: true
     title: showingLibrary
-               ? qsTr("Library - Leaflit")
+               ? qsTr("Library - SZHBooks")
                : readerController.title.length > 0
-                 ? readerController.title + qsTr(" - Leaflit")
-                 : qsTr("Leaflit")
+                 ? readerController.title + qsTr(" - SZHBooks")
+                 : qsTr("SZHBooks")
 
     color: Theme.windowColor
 

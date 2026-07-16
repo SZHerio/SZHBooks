@@ -145,14 +145,14 @@ Item {
                 font.weight: Font.DemiBold
             }
 
-            LeaflitProgressBar {
+            SZHProgressBar {
                 Layout.fillWidth: true
                 value: root.progress
             }
         }
     }
 
-    LeaflitIconButton {
+    SZHIconButton {
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.margins: Theme.spaceSm

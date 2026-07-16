@@ -14,6 +14,7 @@ class LocalStateStoreTest final : public QObject
 private slots:
     void persistsPreferencesAndLastBook();
     void migratesLegacyTheme();
+    void migratesRemovedSepiaTheme();
     void migratesLegacyScrollSpeed();
     void resetsReadingPreferences();
     void keepsIndependentDocumentPositions();
@@ -31,7 +32,7 @@ void LocalStateStoreTest::persistsPreferencesAndLastBook()
 
     {
         LocalStateStore store(settingsPath);
-        store.setColorTheme(QStringLiteral("sepia"));
+        store.setColorTheme(QStringLiteral("dark"));
         store.setReadingFont(QStringLiteral("sans"));
         store.setTextFontSize(99);
         store.setLineHeight(9.0);
@@ -42,9 +43,9 @@ void LocalStateStoreTest::persistsPreferencesAndLastBook()
     }
 
     LocalStateStore restored(settingsPath);
-    QCOMPARE(restored.colorTheme(), QStringLiteral("sepia"));
+    QCOMPARE(restored.colorTheme(), QStringLiteral("dark"));
     QCOMPARE(restored.readingFont(), QStringLiteral("sans"));
-    QVERIFY(!restored.darkMode());
+    QVERIFY(restored.darkMode());
     QCOMPARE(restored.textFontSize(), 36);
     QCOMPARE(restored.lineHeight(), 2.0);
     QCOMPARE(restored.pageWidth(), 560);
@@ -72,6 +73,27 @@ void LocalStateStoreTest::migratesLegacyTheme()
     QCOMPARE(migratedSettings.value(QStringLiteral("appearance/colorTheme")).toString(),
              QStringLiteral("dark"));
     QVERIFY(!migratedSettings.contains(QStringLiteral("appearance/darkMode")));
+}
+
+void LocalStateStoreTest::migratesRemovedSepiaTheme()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString settingsPath = directory.filePath(QStringLiteral("settings.ini"));
+    {
+        QSettings settings(settingsPath, QSettings::IniFormat);
+        settings.setValue(QStringLiteral("appearance/colorTheme"), QStringLiteral("sepia"));
+    }
+
+    LocalStateStore store(settingsPath);
+    QCOMPARE(store.colorTheme(), QStringLiteral("light"));
+    QVERIFY(!store.darkMode());
+    store.sync();
+
+    QSettings migratedSettings(settingsPath, QSettings::IniFormat);
+    QCOMPARE(migratedSettings.value(QStringLiteral("appearance/colorTheme")).toString(),
+             QStringLiteral("light"));
 }
 
 void LocalStateStoreTest::migratesLegacyScrollSpeed()

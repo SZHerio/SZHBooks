@@ -41,7 +41,7 @@ RowLayout {
         }
     }
 
-    LeaflitIconButton {
+    SZHIconButton {
         symbol: "\u2039"
         symbolPixelSize: Theme.titleFontSize
         toolTip: qsTr("Previous page")
@@ -49,7 +49,7 @@ RowLayout {
         onClicked: root.readerWorkspace.previousPage()
     }
 
-    LeaflitTextField {
+    SZHTextField {
         id: pageField
 
         Layout.preferredWidth: 48
@@ -74,7 +74,7 @@ RowLayout {
         verticalAlignment: Text.AlignVCenter
     }
 
-    LeaflitIconButton {
+    SZHIconButton {
         symbol: "\u203a"
         symbolPixelSize: Theme.titleFontSize
         toolTip: qsTr("Next page")

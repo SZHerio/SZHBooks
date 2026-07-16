@@ -40,6 +40,8 @@ Button {
     hoverEnabled: true
     focusPolicy: Qt.StrongFocus
 
+    Accessible.name: control.toolTip
+
     ToolTip.text: toolTip
     ToolTip.visible: hovered && toolTip.length > 0
     ToolTip.delay: Theme.tooltipDelay

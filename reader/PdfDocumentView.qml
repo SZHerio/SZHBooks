@@ -94,7 +94,7 @@ Item {
         color: Theme.windowColor
     }
 
-    LeaflitSurface {
+    SZHSurface {
         id: pdfHost
 
         anchors.fill: parent

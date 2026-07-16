@@ -89,7 +89,7 @@ void DocumentReadersTest::extractsFb2MetadataAndChapters()
     <title-info>
       <book-title>Sample Book</book-title>
       <author><first-name>Ada</first-name><last-name>Lovelace</last-name></author>
-      <author><nickname>Leaflit Author</nickname></author>
+      <author><nickname>SZHBooks Author</nickname></author>
     </title-info>
   </description>
   <body>
@@ -102,7 +102,7 @@ void DocumentReadersTest::extractsFb2MetadataAndChapters()
     const DocumentLoadResult result = Fb2DocumentReader().load(QFileInfo(filePath));
     QVERIFY(result.isSuccess());
     QCOMPARE(result.title, QStringLiteral("Sample Book"));
-    QCOMPARE(result.author, QStringLiteral("Ada Lovelace, Leaflit Author"));
+    QCOMPARE(result.author, QStringLiteral("Ada Lovelace, SZHBooks Author"));
     QCOMPARE(result.chapters.size(), 2);
     QCOMPARE(result.chapters.at(0).title, QStringLiteral("Chapter One"));
     QCOMPARE(result.chapters.at(0).progress, 0.0);

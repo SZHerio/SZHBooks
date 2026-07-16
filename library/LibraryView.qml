@@ -14,7 +14,7 @@ Item {
     signal openRequested(url sourceUrl)
 
     function coverColor(row) {
-        const colors = ["#315f43", "#914a3b", "#9a7225", "#536b85", "#6f5b7d", "#57705a"]
+        const colors = ["#111111", "#2b2b2b", "#444444", "#5d5d5d", "#242424", "#505050"]
         return colors[row % colors.length]
     }
 
@@ -60,14 +60,14 @@ Item {
             }
         }
 
-        LeaflitTextField {
+        SZHTextField {
             Layout.preferredWidth: root.width < 900 ? 220 : 300
             placeholderText: qsTr("Search library")
             text: root.libraryModel.filterText
             onTextEdited: root.libraryModel.filterText = text
         }
 
-        LeaflitButton {
+        SZHButton {
             text: qsTr("Add book")
             symbol: "+"
             onClicked: root.addRequested()
@@ -109,7 +109,7 @@ Item {
         cellHeight: 286
         boundsBehavior: Flickable.StopAtBounds
         visible: root.libraryModel.count > 0
-        ScrollBar.vertical: LeaflitScrollBar {
+        ScrollBar.vertical: SZHScrollBar {
         }
 
         header: Item {
@@ -203,13 +203,13 @@ Item {
                                 font.pixelSize: Theme.captionFontSize
                             }
 
-                            LeaflitProgressBar {
+                            SZHProgressBar {
                                 Layout.preferredWidth: Math.min(320, parent.width)
                                 value: continueCard.book.progress || 0
                             }
                         }
 
-                        LeaflitButton {
+                        SZHButton {
                             text: qsTr("Continue")
                             enabled: continueCard.book.fileAvailable || false
                             onClicked: root.openRequested(continueCard.book.sourceUrl)
@@ -253,7 +253,7 @@ Item {
             font.weight: Font.DemiBold
         }
 
-        LeaflitButton {
+        SZHButton {
             Layout.alignment: Qt.AlignHCenter
             text: qsTr("Add book")
             symbol: "+"

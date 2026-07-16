@@ -12,21 +12,12 @@ Item {
         width: Math.min(420, Math.max(0, parent.width - Theme.space2xl * 2))
         spacing: Theme.spaceMd
 
-        Rectangle {
+        SZHBrandLogo {
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 52
-            height: 52
-            radius: Theme.radiusLg
-            color: Theme.accentSoftColor
-
-            Label {
-                anchors.centerIn: parent
-                text: qsTr("L")
-                color: Theme.accentColor
-                font.family: Theme.readingFontFamily
-                font.pixelSize: 26
-                font.weight: Font.DemiBold
-            }
+            width: 84
+            height: 84
+            iconOnly: true
+            darkVariant: Theme.darkMode
         }
 
         Label {
@@ -55,7 +46,7 @@ Item {
             wrapMode: Text.Wrap
         }
 
-        LeaflitButton {
+        SZHButton {
             anchors.horizontalCenter: parent.horizontalCenter
             topPadding: 0
             variant: "primary"

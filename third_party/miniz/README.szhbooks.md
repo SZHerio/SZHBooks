@@ -1,9 +1,9 @@
 # miniz
 
-Leaflit vendors miniz 3.1.2 from the official repository:
+SZHBooks vendors miniz 3.1.2 from the official repository:
 https://github.com/richgel999/miniz/tree/3.1.2
 
-The source files are included unchanged. Leaflit's Qt-facing adapter lives in
+The source files are included unchanged. SZHBooks' Qt-facing adapter lives in
 `archive/ziparchivereader.*` so the archive implementation can be replaced
 without changing document readers.
 

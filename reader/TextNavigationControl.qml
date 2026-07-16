@@ -10,14 +10,14 @@ RowLayout {
 
     spacing: Theme.spaceXs
 
-    LeaflitIconButton {
+    SZHIconButton {
         symbol: "\u21e4"
         toolTip: qsTr("Go to beginning")
         enabled: root.readerWorkspace.canGoBackward
         onClicked: root.readerWorkspace.goToStart()
     }
 
-    LeaflitSlider {
+    SZHSlider {
         Layout.preferredWidth: root.compact ? 110 : 190
         from: 0
         to: 1
@@ -37,7 +37,7 @@ RowLayout {
         verticalAlignment: Text.AlignVCenter
     }
 
-    LeaflitIconButton {
+    SZHIconButton {
         symbol: "\u21e5"
         toolTip: qsTr("Go to end")
         enabled: root.readerWorkspace.canGoForward
