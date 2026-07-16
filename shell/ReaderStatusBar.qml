@@ -10,19 +10,6 @@ Rectangle {
 
     readonly property bool showProgress: readerController.hasDocument
                                                  && readerController.errorMessage.length === 0
-    readonly property string progressText: {
-        if (!showProgress) {
-            return ""
-        }
-        if (readerWorkspace.showingPdf) {
-            return readerWorkspace.pageCount > 0
-                    ? qsTr("Page %1 of %2")
-                        .arg(readerWorkspace.currentPage + 1)
-                        .arg(readerWorkspace.pageCount)
-                    : qsTr("Loading PDF")
-        }
-        return Math.round(readerWorkspace.readingProgress * 100) + qsTr("%")
-    }
 
     implicitHeight: Theme.statusBarHeight
     color: Theme.surfaceColor
@@ -54,9 +41,11 @@ Rectangle {
             Layout.fillWidth: true
             text: root.readerController.errorMessage.length > 0
                       ? root.readerController.errorMessage
-                      : root.readerController.sourcePath.length > 0
-                        ? root.readerController.sourcePath
-                        : qsTr("No file open")
+                      : root.readerWorkspace.currentChapterTitle.length > 0
+                        ? root.readerWorkspace.currentChapterTitle
+                        : root.readerController.sourcePath.length > 0
+                          ? root.readerController.sourcePath
+                          : qsTr("No file open")
             color: root.readerController.errorMessage.length > 0
                        ? Theme.dangerColor
                        : Theme.mutedTextColor
@@ -66,22 +55,15 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
         }
 
-        LeaflitProgressBar {
-            visible: root.showProgress
-            Layout.preferredWidth: root.width < 900 ? 120 : 220
-            value: root.readerWorkspace.readingProgress
+        TextNavigationControl {
+            visible: root.showProgress && root.readerWorkspace.showingText
+            readerWorkspace: root.readerWorkspace
+            compact: root.width < 900
         }
 
-        Label {
-            visible: root.showProgress
-            Layout.preferredWidth: root.readerWorkspace.showingPdf ? 104 : 42
-            text: root.progressText
-            color: Theme.textColor
-            font.family: Theme.uiFontFamily
-            font.pixelSize: Theme.captionFontSize
-            font.weight: Font.Medium
-            horizontalAlignment: Text.AlignRight
-            verticalAlignment: Text.AlignVCenter
+        PageNavigationControl {
+            visible: root.showProgress && root.readerWorkspace.showingPdf
+            readerWorkspace: root.readerWorkspace
         }
     }
 }

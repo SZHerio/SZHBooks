@@ -87,6 +87,18 @@ QDomElement firstElementByName(const QDomNode &root, const QString &name)
     return {};
 }
 
+QDomElement directChildElementByName(const QDomNode &root, const QString &name)
+{
+    for (QDomNode node = root.firstChild(); !node.isNull(); node = node.nextSibling()) {
+        const QDomElement element = node.toElement();
+        if (!element.isNull() && elementName(element) == name) {
+            return element;
+        }
+    }
+
+    return {};
+}
+
 QList<QDomElement> elementsByName(const QDomNode &root, const QString &name)
 {
     QList<QDomElement> elements;
@@ -176,6 +188,98 @@ QString textFromMarkdown(const QString &markdown)
     QTextDocument document;
     document.setMarkdown(markdown);
     return document.toPlainText().trimmed();
+}
+
+struct ChapterOffset final
+{
+    QString title;
+    qsizetype offset = 0;
+};
+
+QVector<DocumentChapter> normalizedChapters(const QString &text,
+                                            const QVector<ChapterOffset> &chapterOffsets)
+{
+    QVector<DocumentChapter> chapters;
+    chapters.reserve(chapterOffsets.size());
+    const qreal textLength = qMax(qsizetype(1), text.size());
+
+    for (const ChapterOffset &chapterOffset : chapterOffsets) {
+        const QString title = normalizedBlock(chapterOffset.title);
+        if (title.isEmpty()) {
+            continue;
+        }
+
+        const qreal progress = qBound(qreal(0), chapterOffset.offset / textLength, qreal(1));
+        if (!chapters.isEmpty()
+            && chapters.constLast().title == title
+            && qFuzzyCompare(chapters.constLast().progress + 1, progress + 1)) {
+            continue;
+        }
+        chapters.append({title, progress});
+    }
+
+    return chapters;
+}
+
+QVector<DocumentChapter> chaptersFromTitles(const QString &text, const QStringList &titles)
+{
+    QVector<ChapterOffset> chapterOffsets;
+    qsizetype searchOffset = 0;
+    for (const QString &title : titles) {
+        const QString normalizedTitle = normalizedBlock(title);
+        if (normalizedTitle.isEmpty()) {
+            continue;
+        }
+
+        const qsizetype titleOffset = text.indexOf(normalizedTitle,
+                                                    searchOffset,
+                                                    Qt::CaseInsensitive);
+        if (titleOffset < 0) {
+            continue;
+        }
+
+        chapterOffsets.append({normalizedTitle, titleOffset});
+        searchOffset = titleOffset + normalizedTitle.size();
+    }
+
+    return normalizedChapters(text, chapterOffsets);
+}
+
+QString chapterTitleFromHtml(const QByteArray &htmlBytes,
+                             const QString &fallbackPath,
+                             int chapterNumber)
+{
+    QDomDocument document;
+    if (document.setContent(htmlBytes)) {
+        static const QStringList headingNames = {
+            QStringLiteral("h1"),
+            QStringLiteral("h2"),
+            QStringLiteral("h3"),
+            QStringLiteral("h4"),
+            QStringLiteral("h5"),
+            QStringLiteral("h6")
+        };
+        for (const QString &headingName : headingNames) {
+            const QString heading = normalizedBlock(firstElementByName(document, headingName).text());
+            if (!heading.isEmpty()) {
+                return heading;
+            }
+        }
+
+        const QString documentTitle = normalizedBlock(
+            firstElementByName(document, QStringLiteral("title")).text());
+        if (!documentTitle.isEmpty()) {
+            return documentTitle;
+        }
+    }
+
+    QString fallbackTitle = QFileInfo(fallbackPath).completeBaseName();
+    fallbackTitle.replace(u'_', u' ');
+    fallbackTitle.replace(u'-', u' ');
+    fallbackTitle = normalizedBlock(fallbackTitle);
+    return fallbackTitle.isEmpty()
+               ? trDocument("Chapter %1").arg(chapterNumber)
+               : fallbackTitle;
 }
 
 QString cleanZipPath(const QString &path)
@@ -345,14 +449,26 @@ DocumentLoadResult Fb2DocumentReader::load(const QFileInfo &fileInfo) const
 
     const QDomElement titleElement = firstElementByName(document, QStringLiteral("book-title"));
     QStringList blocks;
+    QStringList chapterTitles;
     for (const QDomElement &body : elementsByName(document, QStringLiteral("body"))) {
         collectFb2Blocks(body, &blocks);
+        for (const QDomElement &section : elementsByName(body, QStringLiteral("section"))) {
+            const QDomElement sectionTitle = directChildElementByName(
+                section, QStringLiteral("title"));
+            const QString chapterTitle = normalizedBlock(xmlNodeText(sectionTitle));
+            if (!chapterTitle.isEmpty()) {
+                chapterTitles.append(chapterTitle);
+            }
+        }
     }
+
+    const QString text = blocks.join(QStringLiteral("\n\n")).trimmed();
 
     return DocumentLoadResult::textDocument(fileInfo,
                                             QStringLiteral("FB2"),
-                                            blocks.join(QStringLiteral("\n\n")).trimmed(),
-                                            normalizedBlock(titleElement.text()));
+                                            text,
+                                            normalizedBlock(titleElement.text()),
+                                            chaptersFromTitles(text, chapterTitles));
 }
 
 QStringList EpubDocumentReader::suffixes() const
@@ -433,7 +549,9 @@ DocumentLoadResult EpubDocumentReader::load(const QFileInfo &fileInfo) const
         }
     }
 
-    QStringList chapters;
+    QString text;
+    QVector<ChapterOffset> chapterOffsets;
+    int chapterNumber = 1;
     for (const QString &chapterPath : chapterPaths) {
         const QByteArray chapterBytes = zipFileData(&zip, chapterPath);
         if (chapterBytes.isEmpty()) {
@@ -442,19 +560,28 @@ DocumentLoadResult EpubDocumentReader::load(const QFileInfo &fileInfo) const
 
         const QString chapter = textFromHtml(decodeText(chapterBytes));
         if (!chapter.isEmpty()) {
-            chapters.append(chapter);
+            if (!text.isEmpty()) {
+                text += QStringLiteral("\n\n");
+            }
+            chapterOffsets.append({chapterTitleFromHtml(chapterBytes,
+                                                        chapterPath,
+                                                        chapterNumber),
+                                   text.size()});
+            text += chapter;
+            ++chapterNumber;
         }
     }
 
-    if (chapters.isEmpty()) {
+    if (text.isEmpty()) {
         return DocumentLoadResult::failure(trDocument("Could not extract readable text from EPUB."));
     }
 
     const QDomElement titleElement = firstElementByName(opf, QStringLiteral("title"));
     return DocumentLoadResult::textDocument(fileInfo,
                                             QStringLiteral("EPUB"),
-                                            chapters.join(QStringLiteral("\n\n")).trimmed(),
-                                            normalizedBlock(titleElement.text()));
+                                            text.trimmed(),
+                                            normalizedBlock(titleElement.text()),
+                                            normalizedChapters(text, chapterOffsets));
 }
 
 QStringList DocxDocumentReader::suffixes() const

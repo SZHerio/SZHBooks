@@ -3,10 +3,12 @@
 #include <QObject>
 #include <QString>
 #include <QUrl>
+#include <QVariantList>
 
 #include <memory>
 
 class LocalDocumentLoader;
+struct DocumentChapter;
 struct DocumentLoadResult;
 
 class ReaderController : public QObject
@@ -22,6 +24,7 @@ class ReaderController : public QObject
     Q_PROPERTY(bool textMode READ textMode NOTIFY documentKindChanged)
     Q_PROPERTY(bool pdfMode READ pdfMode NOTIFY documentKindChanged)
     Q_PROPERTY(QString formatName READ formatName NOTIFY formatNameChanged)
+    Q_PROPERTY(QVariantList chapters READ chapters NOTIFY chaptersChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
 
 public:
@@ -45,6 +48,7 @@ public:
     bool textMode() const;
     bool pdfMode() const;
     QString formatName() const;
+    QVariantList chapters() const;
     QString errorMessage() const;
 
     Q_INVOKABLE bool openFile(const QUrl &fileUrl);
@@ -60,6 +64,7 @@ signals:
     void pdfSourceChanged();
     void documentKindChanged();
     void formatNameChanged();
+    void chaptersChanged();
     void errorMessageChanged();
 
 private:
@@ -71,6 +76,7 @@ private:
     void setPdfSource(const QUrl &pdfSource);
     void setDocumentKind(DocumentKind documentKind);
     void setFormatName(const QString &formatName);
+    void setChapters(const QVector<DocumentChapter> &chapters);
     void setErrorMessage(const QString &errorMessage);
 
     QString m_text;
@@ -80,6 +86,7 @@ private:
     QUrl m_pdfSource;
     DocumentKind m_documentKind = NoDocument;
     QString m_formatName;
+    QVariantList m_chapters;
     QString m_errorMessage;
     std::unique_ptr<LocalDocumentLoader> m_loader;
 };

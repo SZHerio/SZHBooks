@@ -14,6 +14,7 @@ class LocalStateStore final : public QObject
     Q_PROPERTY(int textFontSize READ textFontSize WRITE setTextFontSize NOTIFY textFontSizeChanged)
     Q_PROPERTY(qreal lineHeight READ lineHeight WRITE setLineHeight NOTIFY lineHeightChanged)
     Q_PROPERTY(int pageWidth READ pageWidth WRITE setPageWidth NOTIFY pageWidthChanged)
+    Q_PROPERTY(int wheelScrollLines READ wheelScrollLines WRITE setWheelScrollLines NOTIFY wheelScrollLinesChanged)
     Q_PROPERTY(QUrl lastBookUrl READ lastBookUrl WRITE setLastBookUrl NOTIFY lastBookUrlChanged)
 
 public:
@@ -24,12 +25,14 @@ public:
     int textFontSize() const;
     qreal lineHeight() const;
     int pageWidth() const;
+    int wheelScrollLines() const;
     QUrl lastBookUrl() const;
 
     void setDarkMode(bool darkMode);
     void setTextFontSize(int textFontSize);
     void setLineHeight(qreal lineHeight);
     void setPageWidth(int pageWidth);
+    void setWheelScrollLines(int wheelScrollLines);
     void setLastBookUrl(const QUrl &lastBookUrl);
 
     Q_INVOKABLE qreal textPosition(const QUrl &documentUrl) const;
@@ -53,6 +56,7 @@ signals:
     void textFontSizeChanged();
     void lineHeightChanged();
     void pageWidthChanged();
+    void wheelScrollLinesChanged();
     void lastBookUrlChanged();
     void libraryChanged();
     void documentProgressChanged(const QUrl &documentUrl, qreal progress);
@@ -68,5 +72,6 @@ private:
     int m_textFontSize = 18;
     qreal m_lineHeight = 1.5;
     int m_pageWidth = 820;
+    int m_wheelScrollLines = 6;
     QUrl m_lastBookUrl;
 };

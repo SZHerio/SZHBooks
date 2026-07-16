@@ -3,6 +3,8 @@
 #include "documentloadresult.h"
 #include "localdocumentloader.h"
 
+#include <QVariantMap>
+
 #include <memory>
 
 namespace {
@@ -81,6 +83,11 @@ QString ReaderController::formatName() const
     return m_formatName;
 }
 
+QVariantList ReaderController::chapters() const
+{
+    return m_chapters;
+}
+
 QString ReaderController::errorMessage() const
 {
     return m_errorMessage;
@@ -116,6 +123,7 @@ void ReaderController::applyDocument(const DocumentLoadResult &document)
     setPdfSource(document.pdfSource);
     setDocumentKind(toControllerKind(document.viewMode));
     setFormatName(document.formatName);
+    setChapters(document.chapters);
 }
 
 void ReaderController::setText(const QString &text)
@@ -186,6 +194,25 @@ void ReaderController::setFormatName(const QString &formatName)
 
     m_formatName = formatName;
     emit formatNameChanged();
+}
+
+void ReaderController::setChapters(const QVector<DocumentChapter> &chapters)
+{
+    QVariantList chapterList;
+    chapterList.reserve(chapters.size());
+    for (const DocumentChapter &chapter : chapters) {
+        chapterList.append(QVariantMap{
+            {QStringLiteral("title"), chapter.title},
+            {QStringLiteral("progress"), chapter.progress}
+        });
+    }
+
+    if (m_chapters == chapterList) {
+        return;
+    }
+
+    m_chapters = chapterList;
+    emit chaptersChanged();
 }
 
 void ReaderController::setErrorMessage(const QString &errorMessage)

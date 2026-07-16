@@ -33,7 +33,16 @@ Item {
                                                                       / maximumContentY))
 
     function scrollToStart() {
-        textFlickable.contentY = 0
+        root.goToProgress(0)
+    }
+
+    function scrollToEnd() {
+        root.goToProgress(1)
+    }
+
+    function goToProgress(progress) {
+        root.positionRestorePending = false
+        textFlickable.contentY = root.maximumContentY * Math.max(0, Math.min(1, progress))
     }
 
     function restorePosition(progress) {

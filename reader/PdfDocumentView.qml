@@ -24,6 +24,21 @@ Item {
                                                                     / pageCount))
                                                 : 0
 
+    function goToPage(page) {
+        if (root.pageCount <= 0) {
+            return
+        }
+        pdfViewer.goToPage(Math.max(0, Math.min(root.pageCount - 1, page)))
+    }
+
+    function goToStart() {
+        root.goToPage(0)
+    }
+
+    function goToEnd() {
+        root.goToPage(root.pageCount - 1)
+    }
+
     function zoomOut() {
         pdfViewer.renderScale = Math.max(0.4, pdfViewer.renderScale - 0.1)
     }
@@ -54,7 +69,7 @@ Item {
             return
         }
 
-        pdfViewer.goToPage(Math.min(root.pendingPage, root.pageCount - 1))
+        root.goToPage(root.pendingPage)
         root.stateRestorePending = false
     }
 

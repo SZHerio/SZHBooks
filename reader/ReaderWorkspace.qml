@@ -21,6 +21,18 @@ Item {
                                                   : 0
     readonly property int currentPage: showingPdf ? pdfView.currentPage : -1
     readonly property int pageCount: showingPdf ? pdfView.pageCount : 0
+    readonly property var chapters: readerController.chapters
+    readonly property bool hasChapters: showingText && chapters.length > 0
+    readonly property int currentChapterIndex: root.chapterIndexAt(root.readingProgress)
+    readonly property string currentChapterTitle: currentChapterIndex >= 0
+                                                           ? chapters[currentChapterIndex].title
+                                                           : ""
+    readonly property bool canGoBackward: showingPdf
+                                               ? currentPage > 0
+                                               : showingText && readingProgress > 0
+    readonly property bool canGoForward: showingPdf
+                                              ? pageCount > 0 && currentPage < pageCount - 1
+                                              : showingText && readingProgress < 1
     readonly property bool canDecreaseScale: hasDocument
                                                 && (showingPdf
                                                     ? pdfView.canZoomOut
@@ -57,6 +69,66 @@ Item {
     function fitPdfToWidth() {
         if (root.showingPdf) {
             pdfView.fitToWidth()
+        }
+    }
+
+    function goToStart() {
+        if (root.showingPdf) {
+            pdfView.goToStart()
+        } else if (root.showingText) {
+            textView.scrollToStart()
+        }
+    }
+
+    function goToEnd() {
+        if (root.showingPdf) {
+            pdfView.goToEnd()
+        } else if (root.showingText) {
+            textView.scrollToEnd()
+        }
+    }
+
+    function goToProgress(progress) {
+        if (root.showingText) {
+            textView.goToProgress(progress)
+        } else if (root.showingPdf && root.pageCount > 0) {
+            root.goToPage(Math.round(Math.max(0, Math.min(1, progress))
+                                     * (root.pageCount - 1)))
+        }
+    }
+
+    function goToPage(page) {
+        if (root.showingPdf) {
+            pdfView.goToPage(page)
+        }
+    }
+
+    function previousPage() {
+        root.goToPage(root.currentPage - 1)
+    }
+
+    function nextPage() {
+        root.goToPage(root.currentPage + 1)
+    }
+
+    function chapterIndexAt(progress) {
+        if (!root.hasChapters) {
+            return -1
+        }
+
+        let currentIndex = 0
+        for (let index = 0; index < root.chapters.length; ++index) {
+            if (root.chapters[index].progress > progress + 0.0001) {
+                break
+            }
+            currentIndex = index
+        }
+        return currentIndex
+    }
+
+    function goToChapter(index) {
+        if (index >= 0 && index < root.chapters.length) {
+            root.goToProgress(root.chapters[index].progress)
         }
     }
 

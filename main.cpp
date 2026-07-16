@@ -18,9 +18,15 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(QStringLiteral("Leaflit"));
 
     QGuiApplication app(argc, argv);
-    app.styleHints()->setWheelScrollLines(6);
 
     LocalStateStore localState;
+    app.styleHints()->setWheelScrollLines(localState.wheelScrollLines());
+    QObject::connect(&localState,
+                     &LocalStateStore::wheelScrollLinesChanged,
+                     &app,
+                     [&app, &localState]() {
+                         app.styleHints()->setWheelScrollLines(localState.wheelScrollLines());
+                     });
     LibraryModel libraryModel(&localState);
     ReaderController reader;
     ReadingDocumentFormatter documentFormatter;

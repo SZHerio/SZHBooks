@@ -18,6 +18,23 @@ Rectangle {
     implicitHeight: Theme.toolbarHeight
     color: Theme.chromeColor
 
+    onShowingLibraryChanged: {
+        if (root.showingLibrary) {
+            readingSettings.close()
+            chapterNavigation.close()
+        }
+    }
+
+    Connections {
+        target: root.readerWorkspace
+
+        function onHasChaptersChanged() {
+            if (!root.readerWorkspace.hasChapters) {
+                chapterNavigation.close()
+            }
+        }
+    }
+
     Behavior on color {
         ColorAnimation {
             duration: Theme.motionNormal
@@ -117,16 +134,34 @@ Rectangle {
         }
 
         LeaflitIconButton {
+            id: chapterButton
+
+            visible: !root.showingLibrary && root.readerWorkspace.hasChapters
+            symbol: "\u2630"
+            toolTip: qsTr("Chapters")
+            onChrome: true
+            selected: chapterNavigation.opened
+            onClicked: {
+                readingSettings.close()
+                chapterNavigation.opened
+                    ? chapterNavigation.close()
+                    : chapterNavigation.open()
+            }
+        }
+
+        LeaflitIconButton {
             visible: !root.showingLibrary
-            symbol: "Aa"
-            symbolPixelSize: Theme.bodyFontSize
+            symbol: "\u2699"
+            symbolPixelSize: Theme.bodyLargeFontSize
             toolTip: qsTr("Reading settings")
             onChrome: true
             selected: readingSettings.opened
-            enabled: !root.readerWorkspace.showingPdf
-            onClicked: readingSettings.opened
-                           ? readingSettings.close()
-                           : readingSettings.open()
+            onClicked: {
+                chapterNavigation.close()
+                readingSettings.opened
+                    ? readingSettings.close()
+                    : readingSettings.open()
+            }
         }
 
         LeaflitIconButton {
@@ -145,5 +180,20 @@ Rectangle {
         x: Math.max(Theme.spaceMd, root.width - width - Theme.spaceLg)
         y: root.height + Theme.spaceXs
         settingsStore: root.settingsStore
+        textSettingsAvailable: root.readerWorkspace.showingText
+    }
+
+    ChapterNavigationPopup {
+        id: chapterNavigation
+
+        parent: root
+        x: Theme.spaceMd
+        y: root.height + Theme.spaceXs
+        readerWorkspace: root.readerWorkspace
+        onAboutToShow: {
+            const buttonPosition = chapterButton.mapToItem(root, 0, 0)
+            x = Math.max(Theme.spaceMd,
+                         buttonPosition.x + chapterButton.width - width)
+        }
     }
 }

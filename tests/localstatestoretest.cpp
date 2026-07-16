@@ -31,6 +31,7 @@ void LocalStateStoreTest::persistsPreferencesAndLastBook()
         store.setTextFontSize(99);
         store.setLineHeight(9.0);
         store.setPageWidth(1);
+        store.setWheelScrollLines(99);
         store.setLastBookUrl(bookUrl);
         store.sync();
     }
@@ -40,6 +41,7 @@ void LocalStateStoreTest::persistsPreferencesAndLastBook()
     QCOMPARE(restored.textFontSize(), 36);
     QCOMPARE(restored.lineHeight(), 2.0);
     QCOMPARE(restored.pageWidth(), 560);
+    QCOMPARE(restored.wheelScrollLines(), 12);
     QCOMPARE(restored.lastBookUrl(), bookUrl);
 }
 

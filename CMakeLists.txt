@@ -38,9 +38,12 @@ qt_add_qml_module(appLeaflit
         Main.qml
         library/LibraryBookDelegate.qml
         library/LibraryView.qml
+        reader/ChapterNavigationPopup.qml
         reader/EmptyReaderView.qml
+        reader/PageNavigationControl.qml
         reader/PdfDocumentView.qml
         reader/ReaderWorkspace.qml
+        reader/TextNavigationControl.qml
         reader/TextDocumentView.qml
         shell/AppHeader.qml
         shell/ReadingSettingsPopup.qml
@@ -109,6 +112,29 @@ if(BUILD_TESTING)
 
         add_test(NAME localstatestore COMMAND tst_localstatestore)
         set_tests_properties(localstatestore PROPERTIES
+            ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+        )
+
+        qt_add_executable(tst_documentreaders
+            documentloadresult.h
+            documentreader.h
+            documentreaders.cpp
+            documentreaders.h
+            tests/documentreaderstest.cpp
+        )
+
+        target_link_libraries(tst_documentreaders
+            PRIVATE
+                Qt6::CorePrivate
+                Qt6::Gui
+                Qt6::Pdf
+                Qt6::Test
+                Qt6::Xml
+        )
+
+        add_test(NAME documentreaders COMMAND tst_documentreaders)
+        set_tests_properties(documentreaders PROPERTIES
             ENVIRONMENT_MODIFICATION
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
         )

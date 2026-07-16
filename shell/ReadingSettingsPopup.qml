@@ -6,6 +6,7 @@ Popup {
     id: root
 
     required property var settingsStore
+    property bool textSettingsAvailable: true
 
     width: 304
     padding: Theme.spaceLg
@@ -33,6 +34,7 @@ Popup {
         }
 
         RowLayout {
+            visible: root.textSettingsAvailable
             Layout.fillWidth: true
             spacing: Theme.spaceSm
 
@@ -70,6 +72,7 @@ Popup {
         }
 
         ColumnLayout {
+            visible: root.textSettingsAvailable
             Layout.fillWidth: true
             spacing: Theme.spaceXs
 
@@ -104,6 +107,7 @@ Popup {
         }
 
         ColumnLayout {
+            visible: root.textSettingsAvailable
             Layout.fillWidth: true
             spacing: Theme.spaceXs
 
@@ -134,6 +138,40 @@ Popup {
                 stepSize: 20
                 value: root.settingsStore.pageWidth
                 onMoved: root.settingsStore.pageWidth = Math.round(value / 20) * 20
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Theme.spaceXs
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("Scroll speed")
+                    color: Theme.mutedTextColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.bodyFontSize
+                }
+
+                Label {
+                    text: qsTr("%1 lines").arg(root.settingsStore.wheelScrollLines)
+                    color: Theme.textColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.captionFontSize
+                    font.weight: Font.Medium
+                }
+            }
+
+            LeaflitSlider {
+                Layout.fillWidth: true
+                from: 1
+                to: 12
+                stepSize: 1
+                value: root.settingsStore.wheelScrollLines
+                onMoved: root.settingsStore.wheelScrollLines = Math.round(value)
             }
         }
 

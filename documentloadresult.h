@@ -3,11 +3,18 @@
 #include <QFileInfo>
 #include <QString>
 #include <QUrl>
+#include <QVector>
 
 enum class DocumentViewMode {
     None,
     Text,
     Pdf
+};
+
+struct DocumentChapter final
+{
+    QString title;
+    qreal progress = 0;
 };
 
 struct DocumentLoadResult
@@ -19,6 +26,7 @@ struct DocumentLoadResult
     QUrl sourceUrl;
     QUrl pdfSource;
     QString formatName;
+    QVector<DocumentChapter> chapters;
     QString errorMessage;
 
     bool isSuccess() const
@@ -36,7 +44,8 @@ struct DocumentLoadResult
     static DocumentLoadResult textDocument(const QFileInfo &fileInfo,
                                            const QString &formatName,
                                            const QString &text,
-                                           const QString &title = {})
+                                           const QString &title = {},
+                                           const QVector<DocumentChapter> &chapters = {})
     {
         DocumentLoadResult result;
         result.viewMode = DocumentViewMode::Text;
@@ -45,6 +54,7 @@ struct DocumentLoadResult
         result.sourcePath = fileInfo.absoluteFilePath();
         result.sourceUrl = QUrl::fromLocalFile(result.sourcePath);
         result.formatName = formatName;
+        result.chapters = chapters;
         return result;
     }
 

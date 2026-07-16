@@ -16,6 +16,8 @@ constexpr qreal minimumLineHeight = 1.2;
 constexpr qreal maximumLineHeight = 2.0;
 constexpr int minimumPageWidth = 560;
 constexpr int maximumPageWidth = 1040;
+constexpr int minimumWheelScrollLines = 1;
+constexpr int maximumWheelScrollLines = 12;
 constexpr qreal minimumPdfScale = 0.4;
 constexpr qreal maximumPdfScale = 3.0;
 
@@ -45,6 +47,10 @@ LocalStateStore::LocalStateStore(const QString &settingsFilePath, QObject *paren
     m_pageWidth = qBound(minimumPageWidth,
                          m_settings.value(QStringLiteral("reading/pageWidth"), 820).toInt(),
                          maximumPageWidth);
+    m_wheelScrollLines = qBound(
+        minimumWheelScrollLines,
+        m_settings.value(QStringLiteral("reading/wheelScrollLines"), 6).toInt(),
+        maximumWheelScrollLines);
     m_lastBookUrl = QUrl(m_settings.value(QStringLiteral("session/lastBookUrl")).toString());
 }
 
@@ -66,6 +72,11 @@ qreal LocalStateStore::lineHeight() const
 int LocalStateStore::pageWidth() const
 {
     return m_pageWidth;
+}
+
+int LocalStateStore::wheelScrollLines() const
+{
+    return m_wheelScrollLines;
 }
 
 QUrl LocalStateStore::lastBookUrl() const
@@ -118,6 +129,20 @@ void LocalStateStore::setPageWidth(int pageWidth)
     m_pageWidth = pageWidth;
     m_settings.setValue(QStringLiteral("reading/pageWidth"), pageWidth);
     emit pageWidthChanged();
+}
+
+void LocalStateStore::setWheelScrollLines(int wheelScrollLines)
+{
+    wheelScrollLines = qBound(minimumWheelScrollLines,
+                              wheelScrollLines,
+                              maximumWheelScrollLines);
+    if (m_wheelScrollLines == wheelScrollLines) {
+        return;
+    }
+
+    m_wheelScrollLines = wheelScrollLines;
+    m_settings.setValue(QStringLiteral("reading/wheelScrollLines"), wheelScrollLines);
+    emit wheelScrollLinesChanged();
 }
 
 void LocalStateStore::setLastBookUrl(const QUrl &lastBookUrl)
