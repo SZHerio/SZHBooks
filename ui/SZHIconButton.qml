@@ -41,6 +41,7 @@ Button {
     focusPolicy: Qt.StrongFocus
 
     Accessible.name: control.toolTip
+    Accessible.role: Accessible.Button
 
     ToolTip.text: toolTip
     ToolTip.visible: hovered && toolTip.length > 0

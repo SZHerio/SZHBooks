@@ -2,11 +2,19 @@
 
 #include "documentreader.h"
 #include "documentreaders.h"
+#include "document/documentlimits.h"
 
 #include <QCoreApplication>
 #include <QFileInfo>
 
 namespace {
+
+[[maybe_unused]] const char *const loaderTranslationSources[] = {
+    QT_TRANSLATE_NOOP("LocalDocumentLoader", "Only local files are supported."),
+    QT_TRANSLATE_NOOP("LocalDocumentLoader", "File not found."),
+    QT_TRANSLATE_NOOP("LocalDocumentLoader", "This book archive is too large. The limit is 2 GB."),
+    QT_TRANSLATE_NOOP("LocalDocumentLoader", "Unsupported file format: .%1")
+};
 
 QString trLoader(const char *sourceText)
 {
@@ -40,6 +48,12 @@ DocumentLoadResult LocalDocumentLoader::load(const QUrl &fileUrl) const
     }
 
     const QString suffix = fileInfo.suffix().toLower();
+    if ((suffix == QLatin1String("epub") || suffix == QLatin1String("docx"))
+        && fileInfo.size() > DocumentLimits::maximumArchiveContainerBytes) {
+        return DocumentLoadResult::failure(
+            trLoader("This book archive is too large. The limit is 2 GB."));
+    }
+
     for (const std::unique_ptr<DocumentReader> &reader : m_readers) {
         if (reader->supportsSuffix(suffix)) {
             return reader->load(fileInfo);

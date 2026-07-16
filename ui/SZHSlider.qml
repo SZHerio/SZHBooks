@@ -4,12 +4,16 @@ import QtQuick.Controls
 Slider {
     id: control
 
+    property string accessibleName: ""
+
     implicitWidth: 240
     implicitHeight: 28
     leftPadding: 0
     rightPadding: 0
     hoverEnabled: true
     focusPolicy: Qt.StrongFocus
+    Accessible.role: Accessible.Slider
+    Accessible.name: control.accessibleName
 
     background: Rectangle {
         x: control.leftPadding

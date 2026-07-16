@@ -9,6 +9,7 @@ ApplicationWindow {
     required property var readerController
     required property var localStateStore
     required property var profileArchiveService
+    required property var localizationController
     required property var libraryModel
     required property var readingDocumentFormatter
     required property var readingSearchController
@@ -22,6 +23,7 @@ ApplicationWindow {
     property bool profileNoticeShown: false
     property string profileNoticeHeading
     property string profileNoticeMessage
+    property string profileNoticeKind: "info"
     readonly property bool readingNavigationEnabled: !root.showingLibrary
                                                       && readerWorkspace.hasDocument
                                                       && !appHeader.readerPopupOpen
@@ -107,9 +109,10 @@ ApplicationWindow {
         root.localStateStore.sync()
     }
 
-    function showProfileNotice(heading, message) {
+    function showProfileNotice(heading, message, kind) {
         root.profileNoticeHeading = heading
         root.profileNoticeMessage = message
+        root.profileNoticeKind = kind || "info"
         root.profileNoticeShown = true
     }
 
@@ -124,92 +127,16 @@ ApplicationWindow {
         value: root.localStateStore.colorTheme
     }
 
-    Shortcut {
-        sequence: StandardKey.Open
-        onActivated: openDialog.open()
-    }
-
-    Shortcut {
-        enabled: !root.showingLibrary && readerWorkspace.hasDocument
-        sequence: StandardKey.Find
-        onActivated: appHeader.openSearch()
-    }
-
-    Shortcut {
-        enabled: !root.showingLibrary && readerWorkspace.hasDocument
-        sequence: StandardKey.ZoomIn
-        onActivated: readerWorkspace.increaseScale()
-    }
-
-    Shortcut {
-        enabled: !root.showingLibrary && readerWorkspace.hasDocument
-        sequence: StandardKey.ZoomOut
-        onActivated: readerWorkspace.decreaseScale()
-    }
-
-    Shortcut {
-        enabled: !root.showingLibrary && readerWorkspace.hasDocument
-        sequence: "Ctrl+B"
-        onActivated: readerWorkspace.toggleCurrentBookmark()
-    }
-
-    Shortcut {
-        enabled: !root.showingLibrary && readerWorkspace.hasDocument
-        sequence: "Ctrl+Shift+H"
-        onActivated: appHeader.openAnnotations("highlights")
-    }
-
-    Shortcut {
-        sequence: "Ctrl+Shift+D"
-        onActivated: root.toggleColorTheme()
-    }
-
-    Shortcut {
-        enabled: !root.showingLibrary && readerWorkspace.hasDocument
-        sequence: "F11"
-        onActivated: root.toggleFocusMode()
-    }
-
-    Shortcut {
-        enabled: root.focusMode
-        sequence: "Esc"
-        onActivated: root.exitFocusMode()
-    }
-
-    Shortcut {
-        enabled: root.readingNavigationEnabled
-        sequence: "PgUp"
-        onActivated: readerWorkspace.pageBackward()
-    }
-
-    Shortcut {
-        enabled: root.readingNavigationEnabled
-        sequence: "PgDown"
-        onActivated: readerWorkspace.pageForward()
-    }
-
-    Shortcut {
-        enabled: root.readingNavigationEnabled
-        sequence: "Home"
-        onActivated: readerWorkspace.goToStart()
-    }
-
-    Shortcut {
-        enabled: root.readingNavigationEnabled
-        sequence: "End"
-        onActivated: readerWorkspace.goToEnd()
-    }
-
-    Shortcut {
-        enabled: root.readingNavigationEnabled
-        sequence: "Space"
-        onActivated: readerWorkspace.pageForward()
-    }
-
-    Shortcut {
-        enabled: root.readingNavigationEnabled
-        sequence: "Shift+Space"
-        onActivated: readerWorkspace.pageBackward()
+    AppShortcuts {
+        showingLibrary: root.showingLibrary
+        focusMode: root.focusMode
+        readingNavigationEnabled: root.readingNavigationEnabled
+        readerWorkspace: readerWorkspace
+        appHeader: appHeader
+        onOpenRequested: openDialog.open()
+        onColorThemeToggleRequested: root.toggleColorTheme()
+        onFocusModeToggleRequested: root.toggleFocusMode()
+        onFocusModeExitRequested: root.exitFocusMode()
     }
 
     FileDialog {
@@ -274,7 +201,8 @@ ApplicationWindow {
 
         function onProfileExported() {
             root.showProfileNotice(qsTr("Backup saved"),
-                                   qsTr("Settings, library, positions and notes were saved."))
+                                   qsTr("Settings, library, positions and notes were saved."),
+                                   "success")
         }
 
         function onProfileImported() {
@@ -282,11 +210,12 @@ ApplicationWindow {
                 Qt.callLater(readerWorkspace.restoreReadingState)
             }
             root.showProfileNotice(qsTr("Profile restored"),
-                                   qsTr("Your local reading data is ready."))
+                                   qsTr("Your local reading data is ready."),
+                                   "success")
         }
 
         function onOperationFailed(errorMessage) {
-            root.showProfileNotice(qsTr("Profile operation failed"), errorMessage)
+            root.showProfileNotice(qsTr("Profile operation failed"), errorMessage, "error")
         }
     }
 
@@ -297,6 +226,7 @@ ApplicationWindow {
         readerController: root.readerController
         readerWorkspace: readerWorkspace
         settingsStore: root.localStateStore
+        localizationController: root.localizationController
         darkMode: root.localStateStore.darkMode
         showingLibrary: root.showingLibrary
         visible: !root.focusMode
@@ -426,6 +356,7 @@ ApplicationWindow {
         anchors.rightMargin: Theme.spaceMd
         width: Math.min(480, Math.max(320, root.width - Theme.spaceXl))
         shown: root.profileNoticeShown
+        kind: root.profileNoticeKind
         heading: root.profileNoticeHeading
         message: root.profileNoticeMessage
         onDismissed: root.profileNoticeShown = false

@@ -22,7 +22,25 @@ Rectangle {
     signal removeRequested(int row)
     signal relinkRequested(url sourceUrl)
 
+    function activate() {
+        if (root.fileAvailable) {
+            root.openRequested(root.sourceUrl)
+        } else {
+            root.relinkRequested(root.sourceUrl)
+        }
+    }
+
     activeFocusOnTab: true
+    Accessible.role: Accessible.ListItem
+    Accessible.name: root.title
+    Accessible.description: root.fileAvailable
+                                ? qsTr("%1, %2% read")
+                                    .arg(root.author.length > 0
+                                         ? root.author : root.formatName)
+                                    .arg(Math.round(root.progress * 100))
+                                : qsTr("File unavailable. Locate the book to continue.")
+    Accessible.focusable: true
+    Accessible.onPressAction: root.activate()
     color: rowMouseArea.containsMouse ? Theme.surfaceMutedColor : Theme.surfaceColor
     radius: Theme.radiusMd
     border.color: activeFocus ? Theme.focusColor : Theme.borderColor
@@ -35,20 +53,9 @@ Rectangle {
         }
     }
 
-    Keys.onReturnPressed: {
-        if (root.fileAvailable) {
-            root.openRequested(root.sourceUrl)
-        } else {
-            root.relinkRequested(root.sourceUrl)
-        }
-    }
-    Keys.onEnterPressed: {
-        if (root.fileAvailable) {
-            root.openRequested(root.sourceUrl)
-        } else {
-            root.relinkRequested(root.sourceUrl)
-        }
-    }
+    Keys.onReturnPressed: root.activate()
+    Keys.onEnterPressed: root.activate()
+    Keys.onSpacePressed: root.activate()
 
     MouseArea {
         id: rowMouseArea
@@ -58,11 +65,7 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onClicked: {
             root.forceActiveFocus()
-            if (root.fileAvailable) {
-                root.openRequested(root.sourceUrl)
-            } else {
-                root.relinkRequested(root.sourceUrl)
-            }
+            root.activate()
         }
     }
 

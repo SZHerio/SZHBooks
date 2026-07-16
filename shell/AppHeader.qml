@@ -8,6 +8,7 @@ Rectangle {
     required property var readerController
     required property var readerWorkspace
     required property var settingsStore
+    required property var localizationController
     property bool darkMode: false
     property bool showingLibrary: false
     readonly property bool compactMode: width < 1080
@@ -294,8 +295,8 @@ Rectangle {
             symbol: root.darkMode ? "\u2600" : "\u263e"
             symbolPixelSize: Theme.bodyLargeFontSize
             toolTip: root.darkMode
-                     ? qsTr("Use light theme (Ctrl+Shift+D)")
-                     : qsTr("Use dark theme (Ctrl+Shift+D)")
+                     ? qsTr("Use white theme (Ctrl+Shift+D)")
+                     : qsTr("Use black theme (Ctrl+Shift+D)")
             onChrome: true
             onClicked: root.darkModeToggled(!root.darkMode)
         }
@@ -316,6 +317,7 @@ Rectangle {
         x: Math.max(Theme.spaceMd, root.width - width - Theme.spaceLg)
         y: root.height + Theme.spaceXs
         settingsStore: root.settingsStore
+        localizationController: root.localizationController
         textSettingsAvailable: root.readerWorkspace.showingText
         onBackupRequested: root.backupProfileRequested()
         onRestoreRequested: root.restoreProfileRequested()

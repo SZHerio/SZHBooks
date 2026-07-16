@@ -59,6 +59,8 @@ Button {
     spacing: Theme.spaceXs
     hoverEnabled: true
     focusPolicy: Qt.StrongFocus
+    Accessible.role: Accessible.Button
+    Accessible.name: control.text
     palette.buttonText: resolvedForegroundColor
 
     font.family: Theme.uiFontFamily
@@ -69,6 +71,8 @@ Button {
         spacing: control.spacing
 
         Text {
+            id: symbolLabel
+
             visible: control.symbol.length > 0
             anchors.verticalCenter: parent.verticalCenter
             text: control.symbol
@@ -79,9 +83,16 @@ Button {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
+            width: Math.min(implicitWidth,
+                            Math.max(0,
+                                     control.availableWidth
+                                     - (symbolLabel.visible
+                                        ? symbolLabel.implicitWidth + parent.spacing
+                                        : 0)))
             text: control.text
             color: control.resolvedForegroundColor
             font: control.font
+            elide: Text.ElideRight
         }
     }
 

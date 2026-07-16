@@ -9,6 +9,7 @@ Rectangle {
     property string heading: ""
     property string message: ""
     property string actionText: ""
+    property string kind: "error"
 
     signal actionRequested
     signal dismissed
@@ -22,6 +23,10 @@ Rectangle {
     radius: Theme.radiusMd
     border.color: Theme.strongBorderColor
     border.width: 1
+    Accessible.role: Accessible.AlertMessage
+    Accessible.name: root.heading
+    Accessible.description: root.message
+    Accessible.ignored: !root.shown
 
     transform: Translate {
         y: root.shown ? 0 : -Theme.spaceSm
@@ -48,7 +53,8 @@ Rectangle {
         spacing: Theme.spaceSm
 
         Label {
-            text: "!"
+            text: root.kind === "success" ? "\u2713"
+                                           : root.kind === "info" ? "i" : "!"
             color: Theme.textColor
             font.family: Theme.uiFontFamily
             font.pixelSize: Theme.titleFontSize

@@ -7,6 +7,7 @@ Popup {
     id: root
 
     required property var settingsStore
+    required property var localizationController
     property bool textSettingsAvailable: true
 
     signal backupRequested
@@ -18,8 +19,13 @@ Popup {
         { value: "mono", label: qsTr("Mono") }
     ]
     readonly property var themeOptions: [
-        { value: "light", label: qsTr("Light") },
-        { value: "dark", label: qsTr("Dark") }
+        { value: "light", label: qsTr("White") },
+        { value: "dark", label: qsTr("Black") }
+    ]
+    readonly property var languageOptions: [
+        { value: "system", label: qsTr("System") },
+        { value: "en", label: qsTr("English") },
+        { value: "ru", label: qsTr("Russian") }
     ]
     readonly property var alignmentOptions: [
         { value: "left", label: qsTr("Left") },
@@ -33,7 +39,7 @@ Popup {
                                                          - root.y
                                                          - Theme.spaceMd)
 
-    width: 336
+    width: 360
     height: Math.min(settingsColumn.implicitHeight + topPadding + bottomPadding,
                      maximumPanelHeight)
     padding: Theme.spaceLg
@@ -183,6 +189,7 @@ Popup {
 
                 SZHSlider {
                     Layout.fillWidth: true
+                    accessibleName: qsTr("Paragraph spacing")
                     from: 0
                     to: 32
                     stepSize: 2
@@ -218,6 +225,7 @@ Popup {
 
                 SZHSlider {
                     Layout.fillWidth: true
+                    accessibleName: qsTr("First-line indent")
                     from: 0
                     to: 64
                     stepSize: 4
@@ -253,6 +261,7 @@ Popup {
 
                 SZHSlider {
                     Layout.fillWidth: true
+                    accessibleName: qsTr("Line spacing")
                     from: 1.2
                     to: 2.0
                     stepSize: 0.05
@@ -288,6 +297,7 @@ Popup {
 
                 SZHSlider {
                     Layout.fillWidth: true
+                    accessibleName: qsTr("Text width")
                     from: 560
                     to: 1040
                     stepSize: 20
@@ -322,6 +332,7 @@ Popup {
 
                 SZHSlider {
                     Layout.fillWidth: true
+                    accessibleName: qsTr("Scroll speed")
                     from: 50
                     to: 200
                     stepSize: 10
@@ -346,6 +357,25 @@ Popup {
                     model: root.themeOptions
                     value: root.settingsStore.colorTheme
                     onValueSelected: value => root.settingsStore.colorTheme = value
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spaceXs
+
+                Label {
+                    text: qsTr("Language")
+                    color: Theme.mutedTextColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.bodyFontSize
+                }
+
+                SZHSegmentedControl {
+                    Layout.fillWidth: true
+                    model: root.languageOptions
+                    value: root.localizationController.language
+                    onValueSelected: value => root.localizationController.language = value
                 }
             }
 

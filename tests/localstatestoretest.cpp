@@ -39,6 +39,7 @@ void LocalStateStoreTest::persistsPreferencesAndLastBook()
     {
         LocalStateStore store(settingsPath);
         store.setColorTheme(QStringLiteral("dark"));
+        store.setLanguage(QStringLiteral("ru"));
         store.setReadingFont(QStringLiteral("sans"));
         store.setTextFontSize(99);
         store.setLineHeight(9.0);
@@ -53,6 +54,7 @@ void LocalStateStoreTest::persistsPreferencesAndLastBook()
 
     LocalStateStore restored(settingsPath);
     QCOMPARE(restored.colorTheme(), QStringLiteral("dark"));
+    QCOMPARE(restored.language(), QStringLiteral("ru"));
     QCOMPARE(restored.readingFont(), QStringLiteral("sans"));
     QVERIFY(restored.darkMode());
     QCOMPARE(restored.textFontSize(), 36);
@@ -96,16 +98,20 @@ void LocalStateStoreTest::migratesRemovedSepiaTheme()
     {
         QSettings settings(settingsPath, QSettings::IniFormat);
         settings.setValue(QStringLiteral("appearance/colorTheme"), QStringLiteral("sepia"));
+        settings.setValue(QStringLiteral("appearance/language"), QStringLiteral("unsupported"));
     }
 
     LocalStateStore store(settingsPath);
     QCOMPARE(store.colorTheme(), QStringLiteral("light"));
+    QCOMPARE(store.language(), QStringLiteral("system"));
     QVERIFY(!store.darkMode());
     store.sync();
 
     QSettings migratedSettings(settingsPath, QSettings::IniFormat);
     QCOMPARE(migratedSettings.value(QStringLiteral("appearance/colorTheme")).toString(),
              QStringLiteral("light"));
+    QCOMPARE(migratedSettings.value(QStringLiteral("appearance/language")).toString(),
+             QStringLiteral("system"));
 }
 
 void LocalStateStoreTest::migratesLegacyScrollSpeed()
@@ -135,6 +141,7 @@ void LocalStateStoreTest::resetsReadingPreferences()
 
     LocalStateStore store(directory.filePath(QStringLiteral("settings.ini")));
     store.setColorTheme(QStringLiteral("dark"));
+    store.setLanguage(QStringLiteral("ru"));
     store.setReadingFont(QStringLiteral("mono"));
     store.setTextFontSize(30);
     store.setLineHeight(1.8);
@@ -147,6 +154,7 @@ void LocalStateStoreTest::resetsReadingPreferences()
     store.resetReadingPreferences();
 
     QCOMPARE(store.colorTheme(), QStringLiteral("light"));
+    QCOMPARE(store.language(), QStringLiteral("system"));
     QCOMPARE(store.readingFont(), QStringLiteral("serif"));
     QCOMPARE(store.textFontSize(), 18);
     QCOMPARE(store.lineHeight(), 1.5);

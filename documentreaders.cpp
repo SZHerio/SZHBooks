@@ -3,6 +3,7 @@
 #include "archive/ziparchivereader.h"
 #include "archive/zippathutils.h"
 #include "document/docxcontentrenderer.h"
+#include "document/documentlimits.h"
 #include "document/epubcontentrenderer.h"
 #include "document/fb2contentrenderer.h"
 #include "document/richtextprocessor.h"
@@ -21,6 +22,27 @@
 #include <memory>
 
 namespace {
+
+[[maybe_unused]] const char *const documentReaderTranslationSources[] = {
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not read the file."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "This document is too large. The limit is 128 MB."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "PDF file not found."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Invalid PDF file."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Incorrect PDF password."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "This PDF security scheme is not supported."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "PDF data is not available yet."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not open PDF."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not parse FB2: %1 at %2:%3."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not open EPUB archive."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not find EPUB package file."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not read EPUB package file."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not parse EPUB package: %1 at %2:%3."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not extract readable text from EPUB."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not open DOCX archive."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not find DOCX document body."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not parse DOCX: %1 at %2:%3."),
+    QT_TRANSLATE_NOOP("DocumentReaders", "Could not extract readable content from DOCX.")
+};
 
 using DocumentXml::attributeByName;
 using DocumentXml::directChildElementByName;
@@ -58,6 +80,10 @@ QString decodeText(const QByteArray &bytes)
 
 ByteLoadResult readBytes(const QFileInfo &fileInfo)
 {
+    if (fileInfo.size() > DocumentLimits::maximumTextSourceBytes) {
+        return {{}, trDocument("This document is too large. The limit is 128 MB.")};
+    }
+
     QFile file(fileInfo.absoluteFilePath());
     if (!file.open(QIODevice::ReadOnly)) {
         return {{}, file.errorString()};

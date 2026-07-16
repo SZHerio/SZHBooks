@@ -11,7 +11,7 @@ if(WIN32)
     set(CMAKE_INSTALL_BINDIR ".")
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Gui Pdf PdfQuick Quick QuickControls2 QuickDialogs2 Xml)
+find_package(Qt6 REQUIRED COMPONENTS Gui LinguistTools Pdf PdfQuick Quick QuickControls2 QuickDialogs2 Xml)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -38,7 +38,9 @@ target_include_directories(szhbooks_miniz
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/miniz
 )
 
-qt_add_executable(appSZHBooks
+add_subdirectory(cmake/application)
+
+target_sources(appSZHBooks PRIVATE
     archive/ziparchivereader.cpp
     archive/ziparchivereader.h
     archive/ziparchivewriter.cpp
@@ -47,6 +49,7 @@ qt_add_executable(appSZHBooks
     archive/zippathutils.h
     document/docxcontentrenderer.cpp
     document/docxcontentrenderer.h
+    document/documentlimits.h
     document/epubcontentrenderer.cpp
     document/epubcontentrenderer.h
     document/fb2contentrenderer.cpp
@@ -70,9 +73,10 @@ qt_add_executable(appSZHBooks
     library/librarymodel.h
     library/libraryrepository.cpp
     library/libraryrepository.h
+    localization/localizationcontroller.cpp
+    localization/localizationcontroller.h
     localdocumentloader.cpp
     localdocumentloader.h
-    main.cpp
     reader/readingannotation.h
     reader/readingdocumentformatter.cpp
     reader/readingdocumentformatter.h
@@ -91,8 +95,13 @@ qt_add_executable(appSZHBooks
     storage/readingannotationstore.h
 )
 
+target_include_directories(appSZHBooks PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 qt_add_qml_module(appSZHBooks
     URI SZHBooks
+    NO_GENERATE_QMLTYPES
     QML_FILES
         Main.qml
         library/LibraryBookCover.qml
@@ -112,6 +121,7 @@ qt_add_qml_module(appSZHBooks
         reader/TextNavigationControl.qml
         reader/TextDocumentView.qml
         shell/AppHeader.qml
+        shell/AppShortcuts.qml
         shell/ProfileRestoreDialog.qml
         shell/ReaderToolsPopup.qml
         shell/ReadingSettingsPopup.qml
@@ -133,6 +143,15 @@ qt_add_qml_module(appSZHBooks
     RESOURCES
         assets/branding/szhbooks-icon.png
         assets/branding/szhbooks-logo-sheet.png
+)
+
+qt_add_translations(appSZHBooks
+    TS_FILES
+        translations/SZHBooks_ru.ts
+    RESOURCE_PREFIX "/i18n"
+    LUPDATE_TARGET szhbooks_update_translations
+    LRELEASE_TARGET szhbooks_release_translations
+    LUPDATE_OPTIONS -no-obsolete
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -188,6 +207,8 @@ install(TARGETS appSZHBooks
     RUNTIME DESTINATION ${SZHBOOKS_RUNTIME_INSTALL_DIR}
 )
 
+qt_finalize_executable(appSZHBooks)
+
 qt_generate_deploy_qml_app_script(
     TARGET appSZHBooks
     OUTPUT_SCRIPT szhbooks_deploy_script
@@ -198,7 +219,7 @@ install(SCRIPT ${szhbooks_deploy_script} COMPONENT szhbooks)
 include(CTest)
 
 if(BUILD_TESTING)
-    find_package(Qt6 QUIET COMPONENTS Test)
+    find_package(Qt6 QUIET COMPONENTS QuickTest Test)
 
     if(TARGET Qt6::Test)
         qt_add_executable(tst_localstatestore
@@ -279,6 +300,7 @@ if(BUILD_TESTING)
             archive/zippathutils.h
             document/docxcontentrenderer.cpp
             document/docxcontentrenderer.h
+            document/documentlimits.h
             document/epubcontentrenderer.cpp
             document/epubcontentrenderer.h
             document/fb2contentrenderer.cpp
@@ -359,6 +381,94 @@ if(BUILD_TESTING)
             ENVIRONMENT_MODIFICATION
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
         )
+
+        qt_add_executable(tst_localizationcontroller
+            localization/localizationcontroller.cpp
+            localization/localizationcontroller.h
+            library/librarybook.h
+            storage/documentstoragekey.cpp
+            storage/documentstoragekey.h
+            storage/localstatestore.cpp
+            storage/localstatestore.h
+            storage/profilestorage.h
+            tests/localizationcontrollertest.cpp
+        )
+
+        target_link_libraries(tst_localizationcontroller
+            PRIVATE
+                Qt6::Gui
+                Qt6::Qml
+                Qt6::Test
+        )
+        target_include_directories(tst_localizationcontroller PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+
+        qt_add_resources(tst_localizationcontroller "tst_localization_translations"
+            PREFIX "/i18n"
+            BASE "${CMAKE_CURRENT_BINARY_DIR}"
+            FILES "${CMAKE_CURRENT_BINARY_DIR}/SZHBooks_ru.qm"
+        )
+        add_dependencies(tst_localizationcontroller szhbooks_release_translations)
+
+        add_test(NAME localizationcontroller COMMAND tst_localizationcontroller)
+        set_tests_properties(localizationcontroller PROPERTIES
+            ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+        )
+
+        if(TARGET Qt6::QuickTest)
+            qt_add_executable(tst_qmlui
+                tests/qmltestmain.cpp
+            )
+            set_target_properties(tst_qmlui PROPERTIES WIN32_EXECUTABLE FALSE)
+
+            qt_add_qml_module(tst_qmlui
+                URI SZHBooksUiTest
+                VERSION 1.0
+                QML_FILES
+                    library/LibraryBookCover.qml
+                    library/LibraryBookDelegate.qml
+                    shell/ProfileRestoreDialog.qml
+                    shell/AppShortcuts.qml
+                    ui/SZHButton.qml
+                    ui/SZHIconButton.qml
+                    ui/SZHProgressBar.qml
+                    ui/SZHSegmentedControl.qml
+                    ui/SZHSlider.qml
+                    ui/SZHTextField.qml
+                    ui/Theme.qml
+            )
+
+            target_link_libraries(tst_qmlui
+                PRIVATE
+                    Qt6::Gui
+                    Qt6::Quick
+                    Qt6::QuickControls2
+                    Qt6::QuickTest
+                    Qt6::Test
+            )
+
+            target_compile_definitions(tst_qmlui PRIVATE
+                QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/qml"
+            )
+
+            add_test(NAME qmlui COMMAND tst_qmlui)
+            set_tests_properties(qmlui PROPERTIES
+                ENVIRONMENT
+                    "QT_QUICK_CONTROLS_STYLE=Basic"
+                ENVIRONMENT_MODIFICATION
+                    "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+            )
+
+            add_test(NAME qmlui_hidpi COMMAND tst_qmlui)
+            set_tests_properties(qmlui_hidpi PROPERTIES
+                ENVIRONMENT
+                    "QT_QUICK_CONTROLS_STYLE=Basic;QT_SCALE_FACTOR=1.5"
+                ENVIRONMENT_MODIFICATION
+                    "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+            )
+        endif()
     endif()
 endif()
 

@@ -4,6 +4,8 @@ import QtQuick.Controls
 TextField {
     id: control
 
+    property string accessibleName: placeholderText
+
     implicitWidth: 280
     implicitHeight: Theme.controlHeight
     leftPadding: Theme.spaceSm
@@ -17,6 +19,8 @@ TextField {
     font.family: Theme.uiFontFamily
     font.pixelSize: Theme.bodyFontSize
     focusPolicy: Qt.StrongFocus
+    Accessible.role: Accessible.EditableText
+    Accessible.name: control.accessibleName
 
     background: Rectangle {
         color: Theme.surfaceColor

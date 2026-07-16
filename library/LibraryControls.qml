@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-RowLayout {
+GridLayout {
     id: root
 
     required property var libraryModel
@@ -15,10 +15,12 @@ RowLayout {
         return options
     }
 
-    spacing: Theme.spaceXs
+    columns: width < 820 ? 2 : 4
+    columnSpacing: Theme.spaceXs
+    rowSpacing: Theme.spaceXs
 
     SZHMenuButton {
-        Layout.preferredWidth: 140
+        Layout.fillWidth: true
         labelPrefix: qsTr("Sort")
         value: root.libraryModel.sortMode
         options: [
@@ -30,7 +32,7 @@ RowLayout {
     }
 
     SZHMenuButton {
-        Layout.preferredWidth: 148
+        Layout.fillWidth: true
         labelPrefix: qsTr("Format")
         value: root.libraryModel.formatFilter
         options: root.formatOptions()
@@ -38,7 +40,7 @@ RowLayout {
     }
 
     SZHMenuButton {
-        Layout.preferredWidth: 148
+        Layout.fillWidth: true
         labelPrefix: qsTr("Status")
         value: root.libraryModel.progressFilter
         options: [
@@ -50,12 +52,8 @@ RowLayout {
         onValueSelected: value => root.libraryModel.progressFilter = value
     }
 
-    Item {
-        Layout.fillWidth: true
-    }
-
     SZHSegmentedControl {
-        Layout.preferredWidth: 142
+        Layout.fillWidth: true
         model: [
             {"value": "grid", "label": qsTr("Grid")},
             {"value": "list", "label": qsTr("List")}

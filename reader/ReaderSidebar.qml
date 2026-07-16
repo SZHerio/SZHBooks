@@ -135,6 +135,18 @@ Rectangle {
 
                         width: chapterList.width
                         height: 48
+                        activeFocusOnTab: true
+                        Accessible.role: Accessible.ListItem
+                        Accessible.name: chapterRow.modelData.title
+                        Accessible.description: qsTr("%1% read").arg(
+                                                    Math.round(chapterRow.modelData.progress * 100))
+                        Accessible.selected: chapterRow.index
+                                             === root.readerWorkspace.currentChapterIndex
+                        Accessible.focusable: true
+                        Accessible.onPressAction: root.readerWorkspace.goToChapter(chapterRow.index)
+                        Keys.onReturnPressed: root.readerWorkspace.goToChapter(chapterRow.index)
+                        Keys.onEnterPressed: root.readerWorkspace.goToChapter(chapterRow.index)
+                        Keys.onSpacePressed: root.readerWorkspace.goToChapter(chapterRow.index)
 
                         Rectangle {
                             anchors.fill: parent
@@ -144,6 +156,9 @@ Rectangle {
                                      ? Theme.accentSoftColor
                                      : "transparent"
                             radius: Theme.radiusSm
+                            border.color: chapterRow.activeFocus
+                                          ? Theme.focusColor : "transparent"
+                            border.width: chapterRow.activeFocus ? 2 : 0
                         }
 
                         MouseArea {
@@ -152,7 +167,10 @@ Rectangle {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.readerWorkspace.goToChapter(chapterRow.index)
+                            onClicked: {
+                                chapterRow.forceActiveFocus()
+                                root.readerWorkspace.goToChapter(chapterRow.index)
+                            }
                         }
 
                         RowLayout {
@@ -229,12 +247,35 @@ Rectangle {
 
                         width: bookmarkList.width
                         height: 64
+                        activeFocusOnTab: true
+                        Accessible.role: Accessible.ListItem
+                        Accessible.name: bookmarkRow.modelData.label.length > 0
+                                         ? bookmarkRow.modelData.label
+                                         : qsTr("%1% read").arg(
+                                               Math.round(bookmarkRow.modelData.progress * 100))
+                        Accessible.description: bookmarkRow.modelData.page >= 0
+                                                ? qsTr("Page %1").arg(
+                                                      bookmarkRow.modelData.page + 1)
+                                                : qsTr("%1% read").arg(
+                                                      Math.round(bookmarkRow.modelData.progress * 100))
+                        Accessible.focusable: true
+                        Accessible.onPressAction: root.readerWorkspace.goToAnnotation(
+                                                      bookmarkRow.modelData)
+                        Keys.onReturnPressed: root.readerWorkspace.goToAnnotation(
+                                                  bookmarkRow.modelData)
+                        Keys.onEnterPressed: root.readerWorkspace.goToAnnotation(
+                                                 bookmarkRow.modelData)
+                        Keys.onSpacePressed: root.readerWorkspace.goToAnnotation(
+                                                 bookmarkRow.modelData)
 
                         Rectangle {
                             anchors.fill: parent
                             color: bookmarkMouse.containsMouse
                                    ? Theme.surfaceMutedColor : "transparent"
                             radius: Theme.radiusSm
+                            border.color: bookmarkRow.activeFocus
+                                          ? Theme.focusColor : "transparent"
+                            border.width: bookmarkRow.activeFocus ? 2 : 0
                         }
 
                         MouseArea {
@@ -244,7 +285,10 @@ Rectangle {
                             anchors.rightMargin: deleteBookmark.width + Theme.spaceSm
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.readerWorkspace.goToAnnotation(bookmarkRow.modelData)
+                            onClicked: {
+                                bookmarkRow.forceActiveFocus()
+                                root.readerWorkspace.goToAnnotation(bookmarkRow.modelData)
+                            }
                         }
 
                         ColumnLayout {
@@ -398,12 +442,25 @@ Rectangle {
 
                         width: noteList.width
                         height: modelData.note.length > 0 ? 112 : 88
+                        activeFocusOnTab: true
+                        Accessible.role: Accessible.ListItem
+                        Accessible.name: noteRow.modelData.excerpt
+                        Accessible.description: noteRow.modelData.note
+                        Accessible.focusable: true
+                        Accessible.onPressAction: root.readerWorkspace.goToAnnotation(
+                                                      noteRow.modelData)
+                        Keys.onReturnPressed: root.readerWorkspace.goToAnnotation(noteRow.modelData)
+                        Keys.onEnterPressed: root.readerWorkspace.goToAnnotation(noteRow.modelData)
+                        Keys.onSpacePressed: root.readerWorkspace.goToAnnotation(noteRow.modelData)
 
                         Rectangle {
                             anchors.fill: parent
                             color: noteMouse.containsMouse
                                    ? Theme.surfaceMutedColor : "transparent"
                             radius: Theme.radiusSm
+                            border.color: noteRow.activeFocus
+                                          ? Theme.focusColor : "transparent"
+                            border.width: noteRow.activeFocus ? 2 : 0
                         }
 
                         MouseArea {
@@ -413,7 +470,10 @@ Rectangle {
                             anchors.rightMargin: noteActions.width + Theme.spaceSm
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.readerWorkspace.goToAnnotation(noteRow.modelData)
+                            onClicked: {
+                                noteRow.forceActiveFocus()
+                                root.readerWorkspace.goToAnnotation(noteRow.modelData)
+                            }
                         }
 
                         ColumnLayout {

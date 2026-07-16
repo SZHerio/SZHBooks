@@ -33,6 +33,7 @@ Rectangle {
 
                 required property var modelData
 
+                objectName: "segment_" + optionButton.modelData.value
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 padding: 0
@@ -40,6 +41,10 @@ Rectangle {
                 checked: root.value === optionButton.modelData.value
                 hoverEnabled: true
                 focusPolicy: Qt.StrongFocus
+                Accessible.role: Accessible.RadioButton
+                Accessible.name: optionButton.modelData.label
+                Accessible.checkable: true
+                Accessible.checked: optionButton.checked
                 onClicked: root.valueSelected(optionButton.modelData.value)
 
                 contentItem: Text {

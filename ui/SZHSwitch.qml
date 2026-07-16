@@ -12,6 +12,10 @@ Switch {
     rightPadding: indicator.width + Theme.spaceSm
     hoverEnabled: true
     focusPolicy: Qt.StrongFocus
+    Accessible.role: Accessible.CheckBox
+    Accessible.name: control.text
+    Accessible.checkable: true
+    Accessible.checked: control.checked
 
     font.family: Theme.uiFontFamily
     font.pixelSize: Theme.bodyFontSize

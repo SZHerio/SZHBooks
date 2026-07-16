@@ -32,6 +32,7 @@ constexpr qreal minimumPdfScale = 0.4;
 constexpr qreal maximumPdfScale = 3.0;
 
 const QString defaultColorTheme = QStringLiteral("light");
+const QString defaultLanguage = QStringLiteral("system");
 const QString defaultReadingFont = QStringLiteral("serif");
 const QString defaultTextAlignment = QStringLiteral("justify");
 
@@ -54,6 +55,17 @@ QString normalizedColorTheme(const QString &colorTheme)
         QStringLiteral("dark")
     };
     return supportedThemes.contains(normalized) ? normalized : defaultColorTheme;
+}
+
+QString normalizedLanguage(const QString &language)
+{
+    const QString normalized = language.trimmed().toLower();
+    static const QStringList supportedLanguages = {
+        QStringLiteral("system"),
+        QStringLiteral("en"),
+        QStringLiteral("ru")
+    };
+    return supportedLanguages.contains(normalized) ? normalized : defaultLanguage;
 }
 
 QString normalizedTextAlignment(const QString &textAlignment)
@@ -188,6 +200,7 @@ LocalStateStore::LocalStateStore(const QString &settingsFilePath, QObject *paren
 void LocalStateStore::loadCachedState()
 {
     m_colorTheme = defaultColorTheme;
+    m_language = defaultLanguage;
     m_readingFont = defaultReadingFont;
     m_textFontSize = 18;
     m_lineHeight = 1.5;
@@ -215,6 +228,12 @@ void LocalStateStore::loadCachedState()
         m_settings.setValue(colorThemeKey, m_colorTheme);
     }
     m_settings.remove(legacyDarkModeKey);
+    const QString languageKey = QStringLiteral("appearance/language");
+    const QString storedLanguage = m_settings.value(languageKey, defaultLanguage).toString();
+    m_language = normalizedLanguage(storedLanguage);
+    if (storedLanguage != m_language) {
+        m_settings.setValue(languageKey, m_language);
+    }
     m_readingFont = normalizedReadingFont(
         m_settings.value(QStringLiteral("reading/font"), defaultReadingFont).toString());
     m_textFontSize = qBound(minimumFontSize,
@@ -263,6 +282,11 @@ bool LocalStateStore::darkMode() const
 QString LocalStateStore::colorTheme() const
 {
     return m_colorTheme;
+}
+
+QString LocalStateStore::language() const
+{
+    return m_language;
 }
 
 QString LocalStateStore::readingFont() const
@@ -383,6 +407,18 @@ void LocalStateStore::setColorTheme(const QString &colorTheme)
     if (wasDark != darkMode()) {
         emit darkModeChanged();
     }
+}
+
+void LocalStateStore::setLanguage(const QString &language)
+{
+    const QString normalized = normalizedLanguage(language);
+    if (m_language == normalized) {
+        return;
+    }
+
+    m_language = normalized;
+    m_settings.setValue(QStringLiteral("appearance/language"), normalized);
+    emit languageChanged();
 }
 
 void LocalStateStore::setReadingFont(const QString &readingFont)
@@ -573,6 +609,7 @@ void LocalStateStore::savePdfPosition(const QUrl &documentUrl,
 void LocalStateStore::resetReadingPreferences()
 {
     setColorTheme(defaultColorTheme);
+    setLanguage(defaultLanguage);
     setReadingFont(defaultReadingFont);
     setTextFontSize(18);
     setLineHeight(1.5);
@@ -797,6 +834,7 @@ void LocalStateStore::emitProfileSignals()
 {
     emit colorThemeChanged();
     emit darkModeChanged();
+    emit languageChanged();
     emit readingFontChanged();
     emit textFontSizeChanged();
     emit lineHeightChanged();

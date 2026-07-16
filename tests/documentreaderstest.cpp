@@ -1,4 +1,5 @@
 #include "../documentreaders.h"
+#include "../document/documentlimits.h"
 
 #include <QFile>
 #include <QPdfDocument>
@@ -230,6 +231,8 @@ private slots:
     void rendersEpubStylesImagesAndFootnotes();
     void rendersDocxStructuresAndImages();
     void acceptsProtectedPdfForInteractiveUnlock();
+    void loadsLargePlainTextWithinLimit();
+    void rejectsOversizedPlainTextBeforeAllocation();
 };
 
 void DocumentReadersTest::extractsFb2MetadataAndChapters()
@@ -589,6 +592,42 @@ void DocumentReadersTest::acceptsProtectedPdfForInteractiveUnlock()
         QFileInfo(invalidPath));
     QVERIFY(!invalidResult.isSuccess());
     QVERIFY(!invalidResult.errorMessage.isEmpty());
+}
+
+void DocumentReadersTest::loadsLargePlainTextWithinLimit()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString filePath = directory.filePath(QStringLiteral("large.txt"));
+    QFile file(filePath);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    const QByteArray chunk(64 * 1024, 'L');
+    constexpr int chunkCount = 128;
+    for (int index = 0; index < chunkCount; ++index) {
+        QCOMPARE(file.write(chunk), qint64(chunk.size()));
+    }
+    file.close();
+
+    const DocumentLoadResult result = PlainTextDocumentReader().load(QFileInfo(filePath));
+    QVERIFY2(result.isSuccess(), qPrintable(result.errorMessage));
+    QCOMPARE(result.text.size(), qsizetype(chunk.size() * chunkCount));
+}
+
+void DocumentReadersTest::rejectsOversizedPlainTextBeforeAllocation()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString filePath = directory.filePath(QStringLiteral("oversized.txt"));
+    QFile file(filePath);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    QVERIFY(file.resize(DocumentLimits::maximumTextSourceBytes + 1));
+    file.close();
+
+    const DocumentLoadResult result = PlainTextDocumentReader().load(QFileInfo(filePath));
+    QVERIFY(!result.isSuccess());
+    QVERIFY(result.errorMessage.contains(QStringLiteral("128 MB")));
 }
 
 QTEST_MAIN(DocumentReadersTest)

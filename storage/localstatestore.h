@@ -13,6 +13,7 @@ class LocalStateStore final : public QObject, public ProfileStorage
     Q_OBJECT
     Q_PROPERTY(bool darkMode READ darkMode WRITE setDarkMode NOTIFY darkModeChanged)
     Q_PROPERTY(QString colorTheme READ colorTheme WRITE setColorTheme NOTIFY colorThemeChanged)
+    Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
     Q_PROPERTY(QString readingFont READ readingFont WRITE setReadingFont NOTIFY readingFontChanged)
     Q_PROPERTY(int textFontSize READ textFontSize WRITE setTextFontSize NOTIFY textFontSizeChanged)
     Q_PROPERTY(qreal lineHeight READ lineHeight WRITE setLineHeight NOTIFY lineHeightChanged)
@@ -29,6 +30,7 @@ public:
 
     bool darkMode() const;
     QString colorTheme() const;
+    QString language() const;
     QString readingFont() const;
     int textFontSize() const;
     qreal lineHeight() const;
@@ -47,6 +49,7 @@ public:
 
     void setDarkMode(bool darkMode);
     void setColorTheme(const QString &colorTheme);
+    void setLanguage(const QString &language);
     void setReadingFont(const QString &readingFont);
     void setTextFontSize(int textFontSize);
     void setLineHeight(qreal lineHeight);
@@ -88,6 +91,7 @@ public:
 signals:
     void darkModeChanged();
     void colorThemeChanged();
+    void languageChanged();
     void readingFontChanged();
     void textFontSizeChanged();
     void lineHeightChanged();
@@ -110,6 +114,7 @@ private:
 
     mutable QSettings m_settings;
     QString m_colorTheme = QStringLiteral("light");
+    QString m_language = QStringLiteral("system");
     QString m_readingFont = QStringLiteral("serif");
     int m_textFontSize = 18;
     qreal m_lineHeight = 1.5;

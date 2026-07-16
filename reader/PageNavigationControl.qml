@@ -53,6 +53,7 @@ RowLayout {
         id: pageField
 
         Layout.preferredWidth: 48
+        accessibleName: qsTr("Page number")
         horizontalAlignment: Text.AlignHCenter
         inputMethodHints: Qt.ImhDigitsOnly
         validator: IntValidator {

@@ -31,6 +31,8 @@ Button {
     rightPadding: Theme.spaceSm
     hoverEnabled: true
     focusPolicy: Qt.StrongFocus
+    Accessible.role: Accessible.ButtonMenu
+    Accessible.name: control.displayText
     onClicked: optionMenu.open()
 
     contentItem: Row {
@@ -102,6 +104,9 @@ Button {
                     rightPadding: Theme.spaceSm
                     hoverEnabled: true
                     focusPolicy: Qt.StrongFocus
+                    Accessible.role: Accessible.MenuItem
+                    Accessible.name: optionButton.modelData.label
+                    Accessible.selected: control.value === optionButton.modelData.value
                     onClicked: {
                         control.valueSelected(optionButton.modelData.value)
                         optionMenu.close()

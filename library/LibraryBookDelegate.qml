@@ -22,7 +22,25 @@ Item {
     signal removeRequested(int row)
     signal relinkRequested(url sourceUrl)
 
+    function activate() {
+        if (root.fileAvailable) {
+            root.openRequested(root.sourceUrl)
+        } else {
+            root.relinkRequested(root.sourceUrl)
+        }
+    }
+
     activeFocusOnTab: true
+    Accessible.role: Accessible.ListItem
+    Accessible.name: root.title
+    Accessible.description: root.fileAvailable
+                                ? qsTr("%1, %2% read")
+                                    .arg(root.author.length > 0
+                                         ? root.author : root.formatName)
+                                    .arg(Math.round(root.progress * 100))
+                                : qsTr("File unavailable. Locate the book to continue.")
+    Accessible.focusable: true
+    Accessible.onPressAction: root.activate()
     opacity: fileAvailable ? 1 : 0.72
     scale: cardMouseArea.containsMouse ? 1.008 : 1
 
@@ -33,20 +51,9 @@ Item {
         }
     }
 
-    Keys.onReturnPressed: {
-        if (root.fileAvailable) {
-            root.openRequested(root.sourceUrl)
-        } else {
-            root.relinkRequested(root.sourceUrl)
-        }
-    }
-    Keys.onEnterPressed: {
-        if (root.fileAvailable) {
-            root.openRequested(root.sourceUrl)
-        } else {
-            root.relinkRequested(root.sourceUrl)
-        }
-    }
+    Keys.onReturnPressed: root.activate()
+    Keys.onEnterPressed: root.activate()
+    Keys.onSpacePressed: root.activate()
 
     Rectangle {
         anchors.fill: parent
@@ -71,11 +78,7 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: {
             root.forceActiveFocus()
-            if (root.fileAvailable) {
-                root.openRequested(root.sourceUrl)
-            } else {
-                root.relinkRequested(root.sourceUrl)
-            }
+            root.activate()
         }
     }
 

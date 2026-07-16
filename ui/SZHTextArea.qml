@@ -4,6 +4,8 @@ import QtQuick.Controls
 TextArea {
     id: control
 
+    property string accessibleName: placeholderText
+
     implicitWidth: 280
     implicitHeight: 84
     leftPadding: Theme.spaceSm
@@ -18,6 +20,9 @@ TextArea {
     font.pixelSize: Theme.bodyFontSize
     wrapMode: TextEdit.Wrap
     focusPolicy: Qt.StrongFocus
+    Accessible.role: Accessible.EditableText
+    Accessible.name: control.accessibleName
+    Accessible.multiLine: true
 
     background: Rectangle {
         color: Theme.surfaceColor

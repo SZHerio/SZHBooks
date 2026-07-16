@@ -19,6 +19,7 @@ RowLayout {
 
     SZHSlider {
         Layout.preferredWidth: root.compact ? 110 : 190
+        accessibleName: qsTr("Reading progress")
         from: 0
         to: 1
         stepSize: 0.001

@@ -5,6 +5,8 @@ import QtQuick.Layouts
 Popup {
     id: root
 
+    objectName: "profileRestoreDialog"
+
     property url backupUrl
 
     signal restoreConfirmed
@@ -78,12 +80,14 @@ Popup {
             SZHButton {
                 id: cancelButton
 
+                objectName: "cancelRestoreButton"
                 text: qsTr("Cancel")
                 variant: "secondary"
                 onClicked: root.close()
             }
 
             SZHButton {
+                objectName: "confirmRestoreButton"
                 text: qsTr("Restore")
                 onClicked: {
                     root.restoreConfirmed()

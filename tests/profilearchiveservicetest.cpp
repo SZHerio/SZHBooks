@@ -35,6 +35,7 @@ void ProfileArchiveServiceTest::exportsAndRestoresCompleteLocalProfile()
     LocalStateStore store(settingsPath);
     ReadingAnnotationStore annotations(settingsPath);
     store.setColorTheme(QStringLiteral("dark"));
+    store.setLanguage(QStringLiteral("ru"));
     store.setReadingFont(QStringLiteral("mono"));
     store.setTextFontSize(24);
     store.setLineHeight(1.75);
@@ -86,6 +87,7 @@ void ProfileArchiveServiceTest::exportsAndRestoresCompleteLocalProfile()
     annotations.reload();
 
     QCOMPARE(store.colorTheme(), QStringLiteral("dark"));
+    QCOMPARE(store.language(), QStringLiteral("ru"));
     QCOMPARE(store.readingFont(), QStringLiteral("mono"));
     QCOMPARE(store.textFontSize(), 24);
     QCOMPARE(store.lineHeight(), 1.75);

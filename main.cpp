@@ -11,6 +11,7 @@
 #include "library/bookmetadataservice.h"
 #include "library/librarymodel.h"
 #include "library/libraryrepository.h"
+#include "localization/localizationcontroller.h"
 #include "reader/readingsearchcontroller.h"
 #include "reader/readingdocumentformatter.h"
 #include "readercontroller.h"
@@ -31,6 +32,8 @@ int wheelScrollLinesForSpeed(int scrollSpeed)
 
 int main(int argc, char *argv[])
 {
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
+        Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
     QQuickStyle::setStyle(QStringLiteral("Basic"));
     QCoreApplication::setOrganizationName(QStringLiteral("SZHBooks"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("szhbooks.local"));
@@ -81,6 +84,7 @@ int main(int argc, char *argv[])
     QObject::connect(&app, &QCoreApplication::aboutToQuit, &localState, &LocalStateStore::sync);
 
     QQmlApplicationEngine engine;
+    LocalizationController localizationController(&localState, &engine);
     engine.setInitialProperties({
         {QStringLiteral("readerController"),
          QVariant::fromValue(static_cast<QObject *>(&reader))},
@@ -88,6 +92,8 @@ int main(int argc, char *argv[])
          QVariant::fromValue(static_cast<QObject *>(&localState))},
         {QStringLiteral("profileArchiveService"),
          QVariant::fromValue(static_cast<QObject *>(&profileArchiveService))},
+        {QStringLiteral("localizationController"),
+         QVariant::fromValue(static_cast<QObject *>(&localizationController))},
         {QStringLiteral("libraryModel"),
          QVariant::fromValue(static_cast<QObject *>(&libraryModel))},
         {QStringLiteral("readingDocumentFormatter"),
