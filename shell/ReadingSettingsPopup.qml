@@ -157,7 +157,7 @@ Popup {
                 }
 
                 Label {
-                    text: qsTr("%1 lines").arg(root.settingsStore.wheelScrollLines)
+                    text: qsTr("%1%").arg(root.settingsStore.scrollSpeed)
                     color: Theme.textColor
                     font.family: Theme.uiFontFamily
                     font.pixelSize: Theme.captionFontSize
@@ -167,11 +167,11 @@ Popup {
 
             LeaflitSlider {
                 Layout.fillWidth: true
-                from: 1
-                to: 12
-                stepSize: 1
-                value: root.settingsStore.wheelScrollLines
-                onMoved: root.settingsStore.wheelScrollLines = Math.round(value)
+                from: 50
+                to: 200
+                stepSize: 10
+                value: root.settingsStore.scrollSpeed
+                onMoved: root.settingsStore.scrollSpeed = Math.round(value / 10) * 10
             }
         }
 

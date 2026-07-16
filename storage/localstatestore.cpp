@@ -16,14 +16,22 @@ constexpr qreal minimumLineHeight = 1.2;
 constexpr qreal maximumLineHeight = 2.0;
 constexpr int minimumPageWidth = 560;
 constexpr int maximumPageWidth = 1040;
-constexpr int minimumWheelScrollLines = 1;
-constexpr int maximumWheelScrollLines = 12;
+constexpr int minimumScrollSpeed = 50;
+constexpr int maximumScrollSpeed = 200;
+constexpr int scrollSpeedStep = 10;
+constexpr int legacyNormalWheelScrollLines = 6;
 constexpr qreal minimumPdfScale = 0.4;
 constexpr qreal maximumPdfScale = 3.0;
 
 QString serializedUrl(const QUrl &url)
 {
     return url.toString(QUrl::FullyEncoded);
+}
+
+int normalizedScrollSpeed(int scrollSpeed)
+{
+    const int steppedSpeed = qRound(scrollSpeed / qreal(scrollSpeedStep)) * scrollSpeedStep;
+    return qBound(minimumScrollSpeed, steppedSpeed, maximumScrollSpeed);
 }
 
 } // namespace
@@ -47,10 +55,17 @@ LocalStateStore::LocalStateStore(const QString &settingsFilePath, QObject *paren
     m_pageWidth = qBound(minimumPageWidth,
                          m_settings.value(QStringLiteral("reading/pageWidth"), 820).toInt(),
                          maximumPageWidth);
-    m_wheelScrollLines = qBound(
-        minimumWheelScrollLines,
-        m_settings.value(QStringLiteral("reading/wheelScrollLines"), 6).toInt(),
-        maximumWheelScrollLines);
+    const QString scrollSpeedKey = QStringLiteral("reading/scrollSpeed");
+    const QString legacyScrollLinesKey = QStringLiteral("reading/wheelScrollLines");
+    if (m_settings.contains(scrollSpeedKey)) {
+        m_scrollSpeed = normalizedScrollSpeed(m_settings.value(scrollSpeedKey).toInt());
+    } else if (m_settings.contains(legacyScrollLinesKey)) {
+        const int legacyScrollLines = m_settings.value(legacyScrollLinesKey).toInt();
+        m_scrollSpeed = normalizedScrollSpeed(
+            qRound(legacyScrollLines * 100.0 / legacyNormalWheelScrollLines));
+        m_settings.setValue(scrollSpeedKey, m_scrollSpeed);
+        m_settings.remove(legacyScrollLinesKey);
+    }
     m_lastBookUrl = QUrl(m_settings.value(QStringLiteral("session/lastBookUrl")).toString());
 }
 
@@ -74,9 +89,9 @@ int LocalStateStore::pageWidth() const
     return m_pageWidth;
 }
 
-int LocalStateStore::wheelScrollLines() const
+int LocalStateStore::scrollSpeed() const
 {
-    return m_wheelScrollLines;
+    return m_scrollSpeed;
 }
 
 QUrl LocalStateStore::lastBookUrl() const
@@ -131,18 +146,16 @@ void LocalStateStore::setPageWidth(int pageWidth)
     emit pageWidthChanged();
 }
 
-void LocalStateStore::setWheelScrollLines(int wheelScrollLines)
+void LocalStateStore::setScrollSpeed(int scrollSpeed)
 {
-    wheelScrollLines = qBound(minimumWheelScrollLines,
-                              wheelScrollLines,
-                              maximumWheelScrollLines);
-    if (m_wheelScrollLines == wheelScrollLines) {
+    scrollSpeed = normalizedScrollSpeed(scrollSpeed);
+    if (m_scrollSpeed == scrollSpeed) {
         return;
     }
 
-    m_wheelScrollLines = wheelScrollLines;
-    m_settings.setValue(QStringLiteral("reading/wheelScrollLines"), wheelScrollLines);
-    emit wheelScrollLinesChanged();
+    m_scrollSpeed = scrollSpeed;
+    m_settings.setValue(QStringLiteral("reading/scrollSpeed"), scrollSpeed);
+    emit scrollSpeedChanged();
 }
 
 void LocalStateStore::setLastBookUrl(const QUrl &lastBookUrl)

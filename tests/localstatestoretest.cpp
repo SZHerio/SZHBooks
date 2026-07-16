@@ -3,6 +3,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QSettings>
 #include <QTemporaryDir>
 #include <QtTest>
 
@@ -12,6 +13,7 @@ class LocalStateStoreTest final : public QObject
 
 private slots:
     void persistsPreferencesAndLastBook();
+    void migratesLegacyScrollSpeed();
     void keepsIndependentDocumentPositions();
     void maintainsLocalLibrary();
     void filtersAndRemovesLibraryBooks();
@@ -31,7 +33,7 @@ void LocalStateStoreTest::persistsPreferencesAndLastBook()
         store.setTextFontSize(99);
         store.setLineHeight(9.0);
         store.setPageWidth(1);
-        store.setWheelScrollLines(99);
+        store.setScrollSpeed(999);
         store.setLastBookUrl(bookUrl);
         store.sync();
     }
@@ -41,8 +43,28 @@ void LocalStateStoreTest::persistsPreferencesAndLastBook()
     QCOMPARE(restored.textFontSize(), 36);
     QCOMPARE(restored.lineHeight(), 2.0);
     QCOMPARE(restored.pageWidth(), 560);
-    QCOMPARE(restored.wheelScrollLines(), 12);
+    QCOMPARE(restored.scrollSpeed(), 200);
     QCOMPARE(restored.lastBookUrl(), bookUrl);
+}
+
+void LocalStateStoreTest::migratesLegacyScrollSpeed()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString settingsPath = directory.filePath(QStringLiteral("settings.ini"));
+    {
+        QSettings settings(settingsPath, QSettings::IniFormat);
+        settings.setValue(QStringLiteral("reading/wheelScrollLines"), 9);
+    }
+
+    LocalStateStore store(settingsPath);
+    QCOMPARE(store.scrollSpeed(), 150);
+    store.sync();
+
+    QSettings migratedSettings(settingsPath, QSettings::IniFormat);
+    QCOMPARE(migratedSettings.value(QStringLiteral("reading/scrollSpeed")).toInt(), 150);
+    QVERIFY(!migratedSettings.contains(QStringLiteral("reading/wheelScrollLines")));
 }
 
 void LocalStateStoreTest::keepsIndependentDocumentPositions()

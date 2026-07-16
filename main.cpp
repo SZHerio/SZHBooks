@@ -4,11 +4,23 @@
 #include <QStyleHints>
 #include <QVariant>
 #include <QVariantMap>
+#include <QtMath>
 
 #include "library/librarymodel.h"
 #include "reader/readingdocumentformatter.h"
 #include "readercontroller.h"
 #include "storage/localstatestore.h"
+
+namespace {
+
+constexpr int normalWheelScrollLines = 6;
+
+int wheelScrollLinesForSpeed(int scrollSpeed)
+{
+    return qMax(1, qRound(normalWheelScrollLines * scrollSpeed / 100.0));
+}
+
+} // namespace
 
 int main(int argc, char *argv[])
 {
@@ -20,13 +32,15 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     LocalStateStore localState;
-    app.styleHints()->setWheelScrollLines(localState.wheelScrollLines());
+    const auto applyScrollSpeed = [&app, &localState]() {
+        // This hint is shared by every Qt Quick scroll view, including the PDF table view.
+        app.styleHints()->setWheelScrollLines(wheelScrollLinesForSpeed(localState.scrollSpeed()));
+    };
+    applyScrollSpeed();
     QObject::connect(&localState,
-                     &LocalStateStore::wheelScrollLinesChanged,
+                     &LocalStateStore::scrollSpeedChanged,
                      &app,
-                     [&app, &localState]() {
-                         app.styleHints()->setWheelScrollLines(localState.wheelScrollLines());
-                     });
+                     applyScrollSpeed);
     LibraryModel libraryModel(&localState);
     ReaderController reader;
     ReadingDocumentFormatter documentFormatter;
