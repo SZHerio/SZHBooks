@@ -11,6 +11,8 @@ struct LibraryBook final
     QString title;
     QString author;
     QString formatName;
+    QString metadataFingerprint;
+    QUrl coverUrl;
     qreal progress = 0;
     QDateTime lastOpened;
     bool fileAvailable = false;

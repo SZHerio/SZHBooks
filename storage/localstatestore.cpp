@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
+#include <QVariantMap>
 
 #include <algorithm>
 
@@ -48,6 +49,51 @@ QString normalizedColorTheme(const QString &colorTheme)
         QStringLiteral("dark")
     };
     return supportedThemes.contains(normalized) ? normalized : defaultColorTheme;
+}
+
+QString normalizedLibrarySortMode(const QString &sortMode)
+{
+    const QString normalized = sortMode.trimmed().toLower();
+    static const QStringList supportedModes = {
+        QStringLiteral("recent"),
+        QStringLiteral("title"),
+        QStringLiteral("author")
+    };
+    return supportedModes.contains(normalized) ? normalized : QStringLiteral("recent");
+}
+
+QString normalizedLibraryViewMode(const QString &viewMode)
+{
+    return viewMode.trimmed().compare(QStringLiteral("list"), Qt::CaseInsensitive) == 0
+               ? QStringLiteral("list")
+               : QStringLiteral("grid");
+}
+
+QVariantMap settingsGroupValues(QSettings *settings, const QString &group)
+{
+    QVariantMap values;
+    settings->beginGroup(group);
+    for (const QString &key : settings->allKeys()) {
+        values.insert(key, settings->value(key));
+    }
+    settings->endGroup();
+    return values;
+}
+
+void replaceSettingsGroup(QSettings *settings,
+                          const QString &group,
+                          const QVariantMap &values)
+{
+    settings->remove(group);
+    if (values.isEmpty()) {
+        return;
+    }
+
+    settings->beginGroup(group);
+    for (auto value = values.cbegin(); value != values.cend(); ++value) {
+        settings->setValue(value.key(), value.value());
+    }
+    settings->endGroup();
 }
 
 QString configDirectoryForIdentity(const QString &organizationName,
@@ -159,6 +205,10 @@ LocalStateStore::LocalStateStore(const QString &settingsFilePath, QObject *paren
         m_settings.remove(legacyScrollLinesKey);
     }
     m_lastBookUrl = QUrl(m_settings.value(QStringLiteral("session/lastBookUrl")).toString());
+    m_librarySortMode = normalizedLibrarySortMode(
+        m_settings.value(QStringLiteral("library/sortMode"), QStringLiteral("recent")).toString());
+    m_libraryViewMode = normalizedLibraryViewMode(
+        m_settings.value(QStringLiteral("library/viewMode"), QStringLiteral("grid")).toString());
 }
 
 bool LocalStateStore::darkMode() const
@@ -199,6 +249,16 @@ int LocalStateStore::scrollSpeed() const
 QUrl LocalStateStore::lastBookUrl() const
 {
     return m_lastBookUrl;
+}
+
+QString LocalStateStore::librarySortMode() const
+{
+    return m_librarySortMode;
+}
+
+QString LocalStateStore::libraryViewMode() const
+{
+    return m_libraryViewMode;
 }
 
 QString LocalStateStore::settingsFilePath() const
@@ -302,6 +362,26 @@ void LocalStateStore::setLastBookUrl(const QUrl &lastBookUrl)
     emit lastBookUrlChanged();
 }
 
+void LocalStateStore::setLibrarySortMode(const QString &sortMode)
+{
+    const QString normalizedMode = normalizedLibrarySortMode(sortMode);
+    if (m_librarySortMode == normalizedMode) {
+        return;
+    }
+    m_librarySortMode = normalizedMode;
+    m_settings.setValue(QStringLiteral("library/sortMode"), normalizedMode);
+}
+
+void LocalStateStore::setLibraryViewMode(const QString &viewMode)
+{
+    const QString normalizedMode = normalizedLibraryViewMode(viewMode);
+    if (m_libraryViewMode == normalizedMode) {
+        return;
+    }
+    m_libraryViewMode = normalizedMode;
+    m_settings.setValue(QStringLiteral("library/viewMode"), normalizedMode);
+}
+
 qreal LocalStateStore::textPosition(const QUrl &documentUrl) const
 {
     return qBound(qreal(0),
@@ -396,6 +476,9 @@ QVector<LibraryBook> LocalStateStore::libraryBooks() const
         if (book.formatName.isEmpty()) {
             book.formatName = fileInfo.suffix().toUpper();
         }
+        book.metadataFingerprint = m_settings.value(
+            QStringLiteral("metadataFingerprint")).toString();
+        book.coverUrl = QUrl(m_settings.value(QStringLiteral("coverUrl")).toString());
         book.progress = qBound(
             qreal(0),
             m_settings.value(QStringLiteral("readingProgress"),
@@ -442,6 +525,39 @@ void LocalStateStore::recordBookOpened(const QUrl &documentUrl,
     emit libraryChanged();
 }
 
+void LocalStateStore::updateBookMetadata(const QUrl &documentUrl,
+                                         const QString &title,
+                                         const QString &author,
+                                         const QString &formatName,
+                                         const QUrl &coverUrl,
+                                         const QString &metadataFingerprint)
+{
+    if (documentUrl.isEmpty()) {
+        return;
+    }
+
+    rememberDocumentUrl(documentUrl);
+    m_settings.setValue(documentKey(documentUrl, QStringLiteral("title")), title.trimmed());
+    m_settings.setValue(documentKey(documentUrl, QStringLiteral("author")), author.trimmed());
+    m_settings.setValue(documentKey(documentUrl, QStringLiteral("formatName")),
+                        formatName.trimmed());
+    m_settings.setValue(documentKey(documentUrl, QStringLiteral("metadataFingerprint")),
+                        metadataFingerprint);
+    if (coverUrl.isEmpty()) {
+        m_settings.remove(documentKey(documentUrl, QStringLiteral("coverUrl")));
+    } else {
+        m_settings.setValue(documentKey(documentUrl, QStringLiteral("coverUrl")),
+                            serializedUrl(coverUrl));
+    }
+}
+
+bool LocalStateStore::containsLibraryBook(const QUrl &documentUrl) const
+{
+    return !documentUrl.isEmpty()
+           && m_settings.value(documentKey(documentUrl, QStringLiteral("inLibrary")), false)
+                  .toBool();
+}
+
 void LocalStateStore::removeFromLibrary(const QUrl &documentUrl)
 {
     if (documentUrl.isEmpty()) {
@@ -453,6 +569,56 @@ void LocalStateStore::removeFromLibrary(const QUrl &documentUrl)
         setLastBookUrl({});
     }
     emit libraryChanged();
+}
+
+bool LocalStateStore::relinkDocument(const QUrl &oldDocumentUrl,
+                                     const QUrl &newDocumentUrl)
+{
+    if (oldDocumentUrl.isEmpty() || newDocumentUrl.isEmpty()) {
+        return false;
+    }
+
+    const QString oldId = DocumentStorageKey::id(oldDocumentUrl);
+    const QString newId = DocumentStorageKey::id(newDocumentUrl);
+    const QString oldDocumentGroup = QStringLiteral("documents/%1").arg(oldId);
+    QVariantMap documentValues = settingsGroupValues(&m_settings, oldDocumentGroup);
+    if (documentValues.isEmpty()
+        || !documentValues.value(QStringLiteral("inLibrary"), false).toBool()) {
+        return false;
+    }
+
+    documentValues.insert(QStringLiteral("sourceUrl"), serializedUrl(newDocumentUrl));
+    documentValues.remove(QStringLiteral("metadataFingerprint"));
+    documentValues.remove(QStringLiteral("coverUrl"));
+
+    const QString oldAnnotationGroup = QStringLiteral("annotations/%1").arg(oldId);
+    QVariantMap annotationValues = settingsGroupValues(&m_settings, oldAnnotationGroup);
+    if (!annotationValues.isEmpty()) {
+        annotationValues.insert(QStringLiteral("sourceUrl"), serializedUrl(newDocumentUrl));
+    }
+
+    const QString newDocumentGroup = QStringLiteral("documents/%1").arg(newId);
+    const QString newAnnotationGroup = QStringLiteral("annotations/%1").arg(newId);
+    if (oldId != newId && containsLibraryBook(newDocumentUrl)) {
+        return false;
+    }
+
+    if (oldId != newId) {
+        replaceSettingsGroup(&m_settings, newDocumentGroup, documentValues);
+        replaceSettingsGroup(&m_settings, newAnnotationGroup, annotationValues);
+        m_settings.remove(oldDocumentGroup);
+        m_settings.remove(oldAnnotationGroup);
+    } else {
+        replaceSettingsGroup(&m_settings, oldDocumentGroup, documentValues);
+        replaceSettingsGroup(&m_settings, oldAnnotationGroup, annotationValues);
+    }
+
+    if (m_lastBookUrl == oldDocumentUrl) {
+        setLastBookUrl(newDocumentUrl);
+    }
+    m_settings.sync();
+    emit libraryChanged();
+    return true;
 }
 
 void LocalStateStore::sync()

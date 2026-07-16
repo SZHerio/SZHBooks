@@ -31,6 +31,8 @@ public:
     int pageWidth() const;
     int scrollSpeed() const;
     QUrl lastBookUrl() const;
+    QString librarySortMode() const;
+    QString libraryViewMode() const;
     QString settingsFilePath() const;
 
     void setDarkMode(bool darkMode);
@@ -41,6 +43,8 @@ public:
     void setPageWidth(int pageWidth);
     void setScrollSpeed(int scrollSpeed);
     void setLastBookUrl(const QUrl &lastBookUrl);
+    void setLibrarySortMode(const QString &sortMode);
+    void setLibraryViewMode(const QString &viewMode);
 
     Q_INVOKABLE qreal textPosition(const QUrl &documentUrl) const;
     Q_INVOKABLE int pdfPage(const QUrl &documentUrl) const;
@@ -58,7 +62,15 @@ public:
                           const QString &title,
                           const QString &author,
                           const QString &formatName);
+    void updateBookMetadata(const QUrl &documentUrl,
+                            const QString &title,
+                            const QString &author,
+                            const QString &formatName,
+                            const QUrl &coverUrl,
+                            const QString &metadataFingerprint);
+    bool containsLibraryBook(const QUrl &documentUrl) const;
     void removeFromLibrary(const QUrl &documentUrl);
+    bool relinkDocument(const QUrl &oldDocumentUrl, const QUrl &newDocumentUrl);
 
 signals:
     void darkModeChanged();
@@ -85,4 +97,6 @@ private:
     int m_pageWidth = 820;
     int m_scrollSpeed = 100;
     QUrl m_lastBookUrl;
+    QString m_librarySortMode = QStringLiteral("recent");
+    QString m_libraryViewMode = QStringLiteral("grid");
 };

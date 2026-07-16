@@ -45,9 +45,16 @@ qt_add_executable(appSZHBooks
     documentreader.h
     documentreaders.cpp
     documentreaders.h
+    library/bookcoverprovider.cpp
+    library/bookcoverprovider.h
+    library/bookmetadata.h
+    library/bookmetadataservice.cpp
+    library/bookmetadataservice.h
     library/librarybook.h
     library/librarymodel.cpp
     library/librarymodel.h
+    library/libraryrepository.cpp
+    library/libraryrepository.h
     localdocumentloader.cpp
     localdocumentloader.h
     main.cpp
@@ -70,7 +77,11 @@ qt_add_qml_module(appSZHBooks
     URI SZHBooks
     QML_FILES
         Main.qml
+        library/LibraryBookCover.qml
         library/LibraryBookDelegate.qml
+        library/LibraryBookListDelegate.qml
+        library/LibraryContinueCard.qml
+        library/LibraryControls.qml
         library/LibraryView.qml
         reader/ChapterNavigationPopup.qml
         reader/AnnotationsPopup.qml
@@ -88,6 +99,7 @@ qt_add_qml_module(appSZHBooks
         ui/SZHBrandLogo.qml
         ui/SZHButton.qml
         ui/SZHIconButton.qml
+        ui/SZHMenuButton.qml
         ui/SZHNotification.qml
         ui/SZHProgressBar.qml
         ui/SZHScrollBar.qml
@@ -166,20 +178,36 @@ if(BUILD_TESTING)
 
     if(TARGET Qt6::Test)
         qt_add_executable(tst_localstatestore
+            archive/ziparchivereader.cpp
+            archive/ziparchivereader.h
+            library/bookcoverprovider.cpp
+            library/bookcoverprovider.h
+            library/bookmetadata.h
+            library/bookmetadataservice.cpp
+            library/bookmetadataservice.h
             library/librarybook.h
             library/librarymodel.cpp
             library/librarymodel.h
+            library/libraryrepository.cpp
+            library/libraryrepository.h
+            reader/readingannotation.h
             storage/documentstoragekey.cpp
             storage/documentstoragekey.h
             storage/localstatestore.cpp
             storage/localstatestore.h
+            storage/readingannotationstore.cpp
+            storage/readingannotationstore.h
             tests/localstatestoretest.cpp
         )
 
         target_link_libraries(tst_localstatestore
             PRIVATE
+                szhbooks_miniz
                 Qt6::Core
+                Qt6::Gui
+                Qt6::Pdf
                 Qt6::Test
+                Qt6::Xml
         )
 
         add_test(NAME localstatestore COMMAND tst_localstatestore)
@@ -233,6 +261,32 @@ if(BUILD_TESTING)
 
         add_test(NAME readingfeatures COMMAND tst_readingfeatures)
         set_tests_properties(readingfeatures PROPERTIES
+            ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+        )
+
+        qt_add_executable(tst_libraryservices
+            archive/ziparchivereader.cpp
+            archive/ziparchivereader.h
+            library/bookcoverprovider.cpp
+            library/bookcoverprovider.h
+            library/bookmetadata.h
+            library/bookmetadataservice.cpp
+            library/bookmetadataservice.h
+            tests/libraryservicestest.cpp
+        )
+
+        target_link_libraries(tst_libraryservices
+            PRIVATE
+                szhbooks_miniz
+                Qt6::Gui
+                Qt6::Pdf
+                Qt6::Test
+                Qt6::Xml
+        )
+
+        add_test(NAME libraryservices COMMAND tst_libraryservices)
+        set_tests_properties(libraryservices PROPERTIES
             ENVIRONMENT_MODIFICATION
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
         )

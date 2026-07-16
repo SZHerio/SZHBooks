@@ -7,7 +7,10 @@
 #include <QVariantMap>
 #include <QtMath>
 
+#include "library/bookcoverprovider.h"
+#include "library/bookmetadataservice.h"
 #include "library/librarymodel.h"
+#include "library/libraryrepository.h"
 #include "reader/readingsearchcontroller.h"
 #include "reader/readingdocumentformatter.h"
 #include "readercontroller.h"
@@ -46,7 +49,10 @@ int main(int argc, char *argv[])
                      &LocalStateStore::scrollSpeedChanged,
                      &app,
                      applyScrollSpeed);
-    LibraryModel libraryModel(&localState);
+    BookCoverProvider coverProvider;
+    BookMetadataService metadataService(&coverProvider);
+    LibraryRepository libraryRepository(&localState, &metadataService);
+    LibraryModel libraryModel(&libraryRepository);
     ReaderController reader;
     ReadingDocumentFormatter documentFormatter;
     ReadingSearchController searchController;
@@ -55,13 +61,13 @@ int main(int argc, char *argv[])
     QObject::connect(&reader,
                      &ReaderController::documentOpened,
                      &localState,
-                     [&localState, &reader](const QUrl &sourceUrl) {
+                     [&localState, &libraryRepository, &reader](const QUrl &sourceUrl) {
                          if (!sourceUrl.isEmpty()) {
                              localState.setLastBookUrl(sourceUrl);
-                             localState.recordBookOpened(sourceUrl,
-                                                         reader.title(),
-                                                         reader.author(),
-                                                         reader.formatName());
+                             libraryRepository.recordBookOpened(sourceUrl,
+                                                                reader.title(),
+                                                                reader.author(),
+                                                                reader.formatName());
                          }
                      });
     QObject::connect(&app, &QCoreApplication::aboutToQuit, &localState, &LocalStateStore::sync);

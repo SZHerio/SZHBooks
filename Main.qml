@@ -13,6 +13,14 @@ ApplicationWindow {
     required property var readingAnnotationStore
 
     property bool showingLibrary: true
+    property url relinkSourceUrl
+    readonly property var supportedBookNameFilters: [
+        qsTr("Supported books (*.txt *.fb2 *.epub *.pdf *.html *.htm *.md *.markdown *.docx)"),
+        qsTr("Text files (*.txt *.md *.markdown *.html *.htm)"),
+        qsTr("Electronic books (*.fb2 *.epub)"),
+        qsTr("PDF files (*.pdf)"),
+        qsTr("Word documents (*.docx)")
+    ]
 
     width: 1120
     height: 760
@@ -42,6 +50,12 @@ ApplicationWindow {
 
     function toggleColorTheme() {
         root.localStateStore.darkMode = !root.localStateStore.darkMode
+    }
+
+    function locateBook(sourceUrl) {
+        root.libraryModel.clearError()
+        root.relinkSourceUrl = sourceUrl
+        relinkDialog.open()
     }
 
     onClosing: {
@@ -99,15 +113,21 @@ ApplicationWindow {
         id: openDialog
 
         title: qsTr("Open book")
-        nameFilters: [
-            qsTr("Supported books (*.txt *.fb2 *.epub *.pdf *.html *.htm *.md *.markdown *.docx)"),
-            qsTr("Text files (*.txt *.md *.markdown *.html *.htm)"),
-            qsTr("Electronic books (*.fb2 *.epub)"),
-            qsTr("PDF files (*.pdf)"),
-            qsTr("Word documents (*.docx)")
-        ]
+        nameFilters: root.supportedBookNameFilters
 
         onAccepted: root.openBook(selectedFile)
+    }
+
+    FileDialog {
+        id: relinkDialog
+
+        title: qsTr("Locate moved book")
+        nameFilters: root.supportedBookNameFilters
+        onAccepted: {
+            if (root.libraryModel.relinkBook(root.relinkSourceUrl, selectedFile))
+                root.relinkSourceUrl = ""
+        }
+        onRejected: root.relinkSourceUrl = ""
     }
 
     header: AppHeader {
@@ -158,6 +178,7 @@ ApplicationWindow {
         libraryModel: root.libraryModel
         onAddRequested: openDialog.open()
         onOpenRequested: sourceUrl => root.openBook(sourceUrl)
+        onRelinkRequested: sourceUrl => root.locateBook(sourceUrl)
 
         Behavior on opacity {
             NumberAnimation {
@@ -167,6 +188,8 @@ ApplicationWindow {
     }
 
     SZHNotification {
+        id: readerErrorNotification
+
         z: 100
         anchors.top: parent.top
         anchors.right: parent.right
@@ -179,5 +202,23 @@ ApplicationWindow {
         actionText: qsTr("Choose another")
         onActionRequested: openDialog.open()
         onDismissed: root.readerController.clearError()
+    }
+
+    SZHNotification {
+        z: 101
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: Theme.spaceMd
+                           + (readerErrorNotification.visible
+                              ? readerErrorNotification.height + Theme.spaceSm
+                              : 0)
+        anchors.rightMargin: Theme.spaceMd
+        width: Math.min(480, Math.max(320, root.width - Theme.spaceXl))
+        shown: root.libraryModel.errorMessage.length > 0
+        heading: qsTr("Could not update library")
+        message: root.libraryModel.errorMessage
+        actionText: qsTr("Choose another")
+        onActionRequested: relinkDialog.open()
+        onDismissed: root.libraryModel.clearError()
     }
 }

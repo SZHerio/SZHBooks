@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Item {
+Rectangle {
     id: root
 
     required property int index
@@ -23,13 +23,15 @@ Item {
     signal relinkRequested(url sourceUrl)
 
     activeFocusOnTab: true
+    color: rowMouseArea.containsMouse ? Theme.surfaceMutedColor : Theme.surfaceColor
+    radius: Theme.radiusMd
+    border.color: activeFocus ? Theme.focusColor : Theme.borderColor
+    border.width: activeFocus ? 2 : 1
     opacity: fileAvailable ? 1 : 0.72
-    scale: cardMouseArea.containsMouse ? 1.008 : 1
 
-    Behavior on scale {
-        NumberAnimation {
+    Behavior on color {
+        ColorAnimation {
             duration: Theme.motionFast
-            easing.type: Easing.OutCubic
         }
     }
 
@@ -48,23 +50,8 @@ Item {
         }
     }
 
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        color: cardMouseArea.containsMouse ? Theme.surfaceMutedColor : Theme.surfaceColor
-        radius: Theme.radiusMd
-        border.color: root.activeFocus ? Theme.focusColor : Theme.borderColor
-        border.width: root.activeFocus ? 2 : 1
-
-        Behavior on color {
-            ColorAnimation {
-                duration: Theme.motionFast
-            }
-        }
-    }
-
     MouseArea {
-        id: cardMouseArea
+        id: rowMouseArea
 
         anchors.fill: parent
         hoverEnabled: true
@@ -79,92 +66,92 @@ Item {
         }
     }
 
-    ColumnLayout {
+    RowLayout {
         anchors.fill: parent
-        anchors.margins: Theme.spaceSm
-        spacing: Theme.spaceXs
+        anchors.margins: Theme.spaceXs
+        spacing: Theme.spaceSm
 
         LibraryBookCover {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 158
+            Layout.preferredWidth: 46
+            Layout.fillHeight: true
             title: root.title
             formatName: root.formatName
             coverUrl: root.coverUrl
             fallbackColor: root.fallbackColor
+            compact: true
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Theme.space2xs
+
+            Label {
+                Layout.fillWidth: true
+                text: root.title
+                color: Theme.textColor
+                font.family: Theme.uiFontFamily
+                font.pixelSize: Theme.bodyFontSize
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+            }
+
+            Label {
+                Layout.fillWidth: true
+                text: root.fileAvailable
+                      ? (root.author.length > 0
+                         ? root.author
+                         : Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm")))
+                      : root.sourcePath
+                color: root.fileAvailable ? Theme.mutedTextColor : Theme.dangerColor
+                font.family: Theme.uiFontFamily
+                font.pixelSize: Theme.captionFontSize
+                elide: Text.ElideMiddle
+            }
         }
 
         Label {
-            Layout.fillWidth: true
-            text: root.title
-            color: Theme.textColor
-            font.family: Theme.uiFontFamily
-            font.pixelSize: Theme.bodyFontSize
-            font.weight: Font.DemiBold
-            maximumLineCount: 2
-            elide: Text.ElideRight
-            wrapMode: Text.Wrap
-        }
-
-        Label {
-            Layout.fillWidth: true
-            text: root.fileAvailable
-                  ? (root.author.length > 0
-                     ? root.author + qsTr("  \u00b7  ")
-                       + Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm"))
-                     : Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm")))
-                  : qsTr("File unavailable")
-            color: root.fileAvailable ? Theme.mutedTextColor : Theme.dangerColor
+            Layout.preferredWidth: 68
+            text: root.formatName
+            color: Theme.mutedTextColor
             font.family: Theme.uiFontFamily
             font.pixelSize: Theme.captionFontSize
-            elide: Text.ElideRight
-        }
-
-        Item {
-            Layout.fillHeight: true
+            font.weight: Font.DemiBold
+            horizontalAlignment: Text.AlignHCenter
         }
 
         RowLayout {
             visible: root.fileAvailable
-            Layout.fillWidth: true
+            Layout.preferredWidth: 170
             spacing: Theme.spaceXs
-
-            Label {
-                text: Math.round(root.progress * 100) + qsTr("%")
-                color: Theme.textColor
-                font.family: Theme.uiFontFamily
-                font.pixelSize: Theme.captionFontSize
-                font.weight: Font.DemiBold
-            }
 
             SZHProgressBar {
                 Layout.fillWidth: true
                 value: root.progress
             }
+
+            Label {
+                Layout.preferredWidth: 34
+                text: Math.round(root.progress * 100) + qsTr("%")
+                color: Theme.textColor
+                font.family: Theme.uiFontFamily
+                font.pixelSize: Theme.captionFontSize
+                font.weight: Font.DemiBold
+                horizontalAlignment: Text.AlignRight
+            }
         }
 
         SZHButton {
             visible: !root.fileAvailable
-            Layout.fillWidth: true
+            Layout.preferredWidth: 84
             variant: "secondary"
-            text: qsTr("Locate file")
+            text: qsTr("Locate")
             onClicked: root.relinkRequested(root.sourceUrl)
         }
-    }
 
-    SZHIconButton {
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.margins: Theme.spaceSm
-        z: 2
-        visible: cardMouseArea.containsMouse || root.activeFocus
-        symbol: "\u00d7"
-        toolTip: qsTr("Remove from library")
-        onClicked: root.removeRequested(root.index)
-    }
-
-    ToolTip {
-        visible: cardMouseArea.containsMouse && !root.fileAvailable
-        text: root.sourcePath
-        delay: Theme.tooltipDelay
+        SZHIconButton {
+            symbol: "\u00d7"
+            toolTip: qsTr("Remove from library")
+            onClicked: root.removeRequested(root.index)
+        }
     }
 }

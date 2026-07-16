@@ -1,5 +1,9 @@
 #include "../storage/localstatestore.h"
+#include "../storage/readingannotationstore.h"
+#include "../library/bookcoverprovider.h"
+#include "../library/bookmetadataservice.h"
 #include "../library/librarymodel.h"
+#include "../library/libraryrepository.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -18,8 +22,10 @@ private slots:
     void migratesLegacyScrollSpeed();
     void resetsReadingPreferences();
     void keepsIndependentDocumentPositions();
+    void persistsLibraryPresentation();
     void maintainsLocalLibrary();
     void filtersAndRemovesLibraryBooks();
+    void relinksDocumentStateAndAnnotations();
 };
 
 void LocalStateStoreTest::persistsPreferencesAndLastBook()
@@ -164,6 +170,29 @@ void LocalStateStoreTest::keepsIndependentDocumentPositions()
     QCOMPARE(restored.pdfScale(textBook), 1.0);
 }
 
+void LocalStateStoreTest::persistsLibraryPresentation()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString settingsPath = directory.filePath(QStringLiteral("settings.ini"));
+    {
+        LocalStateStore store(settingsPath);
+        store.setLibrarySortMode(QStringLiteral("author"));
+        store.setLibraryViewMode(QStringLiteral("list"));
+        store.sync();
+    }
+
+    LocalStateStore restored(settingsPath);
+    QCOMPARE(restored.librarySortMode(), QStringLiteral("author"));
+    QCOMPARE(restored.libraryViewMode(), QStringLiteral("list"));
+
+    restored.setLibrarySortMode(QStringLiteral("unsupported"));
+    restored.setLibraryViewMode(QStringLiteral("unsupported"));
+    QCOMPARE(restored.librarySortMode(), QStringLiteral("recent"));
+    QCOMPARE(restored.libraryViewMode(), QStringLiteral("grid"));
+}
+
 void LocalStateStoreTest::maintainsLocalLibrary()
 {
     QTemporaryDir directory;
@@ -230,7 +259,10 @@ void LocalStateStoreTest::filtersAndRemovesLibraryBooks()
                            QStringLiteral("Technical Author"),
                            QStringLiteral("PDF"));
 
-    LibraryModel model(&store);
+    BookCoverProvider coverProvider(directory.filePath(QStringLiteral("covers")));
+    BookMetadataService metadataService(&coverProvider);
+    LibraryRepository repository(&store, &metadataService);
+    LibraryModel model(&repository);
     QCOMPARE(model.totalCount(), 2);
     QCOMPARE(model.rowCount(), 2);
 
@@ -244,9 +276,95 @@ void LocalStateStoreTest::filtersAndRemovesLibraryBooks()
     QCOMPARE(model.data(model.index(0, 0), LibraryModel::TitleRole).toString(),
              QStringLiteral("Reference guide"));
 
+    model.setFilterText({});
+    model.setSortMode(QStringLiteral("title"));
+    QCOMPARE(model.data(model.index(0, 0), LibraryModel::TitleRole).toString(),
+             QStringLiteral("Quiet novel"));
+
+    model.setFormatFilter(QStringLiteral("PDF"));
+    QCOMPARE(model.rowCount(), 1);
+    QCOMPARE(model.data(model.index(0, 0), LibraryModel::FormatNameRole).toString(),
+             QStringLiteral("PDF"));
+
+    model.clearFilters();
+    store.saveTextPosition(textBook, 0.4);
+    model.setProgressFilter(QStringLiteral("reading"));
+    QCOMPARE(model.rowCount(), 1);
+    QCOMPARE(model.data(model.index(0, 0), LibraryModel::SourceUrlRole).toUrl(), textBook);
+
+    model.clearFilters();
+    model.setFilterText(QStringLiteral("guide"));
     model.removeBook(0);
     QCOMPARE(model.totalCount(), 1);
     QCOMPARE(model.rowCount(), 0);
+}
+
+void LocalStateStoreTest::relinksDocumentStateAndAnnotations()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString settingsPath = directory.filePath(QStringLiteral("settings.ini"));
+    const QString oldPath = directory.filePath(QStringLiteral("old-location.txt"));
+    const QString newPath = directory.filePath(QStringLiteral("new-location.txt"));
+    const QString existingPath = directory.filePath(QStringLiteral("existing.txt"));
+    for (const QString &path : {oldPath, newPath, existingPath}) {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write("A local-first book."), qint64(19));
+    }
+
+    const QUrl oldUrl = QUrl::fromLocalFile(oldPath);
+    const QUrl newUrl = QUrl::fromLocalFile(newPath);
+    const QUrl existingUrl = QUrl::fromLocalFile(existingPath);
+    LocalStateStore store(settingsPath);
+    store.recordBookOpened(oldUrl,
+                           QStringLiteral("Moved book"),
+                           QStringLiteral("Local Author"),
+                           QStringLiteral("TXT"));
+    store.saveTextPosition(oldUrl, 0.42);
+    store.setLastBookUrl(oldUrl);
+
+    ReadingAnnotationStore annotations(settingsPath);
+    annotations.setDocumentUrl(oldUrl);
+    QVERIFY(annotations.toggleBookmark(0.42, -1, QStringLiteral("Chapter")));
+    QVERIFY(!annotations.addHighlight(3,
+                                      5,
+                                      QStringLiteral("local"),
+                                      QStringLiteral("Remember"),
+                                      0.42,
+                                      -1)
+                 .isEmpty());
+    annotations.sync();
+
+    QVERIFY(store.relinkDocument(oldUrl, newUrl));
+    QCOMPARE(store.lastBookUrl(), newUrl);
+    QVERIFY(qAbs(store.textPosition(newUrl) - 0.42) < 0.0001);
+    QCOMPARE(store.libraryBooks().size(), 1);
+    QCOMPARE(store.libraryBooks().constFirst().sourceUrl, newUrl);
+
+    ReadingAnnotationStore restoredAnnotations(settingsPath);
+    restoredAnnotations.setDocumentUrl(newUrl);
+    QCOMPARE(restoredAnnotations.totalCount(), 2);
+    QCOMPARE(restoredAnnotations.bookmarks().size(), 1);
+    QCOMPARE(restoredAnnotations.highlights().size(), 1);
+
+    store.recordBookOpened(existingUrl,
+                           QStringLiteral("Existing book"),
+                           QStringLiteral("Other Author"),
+                           QStringLiteral("TXT"));
+    store.saveTextPosition(existingUrl, 0.8);
+
+    BookCoverProvider coverProvider(directory.filePath(QStringLiteral("covers")));
+    BookMetadataService metadataService(&coverProvider);
+    LibraryRepository repository(&store, &metadataService);
+    QString errorMessage;
+    QVERIFY(!repository.relinkBook(newUrl, existingUrl, &errorMessage));
+    QVERIFY(errorMessage.contains(QStringLiteral("already")));
+    QVERIFY(!store.relinkDocument(newUrl, existingUrl));
+    QCOMPARE(store.libraryBooks().size(), 2);
+    QVERIFY(qAbs(store.textPosition(newUrl) - 0.42) < 0.0001);
+    QVERIFY(qAbs(store.textPosition(existingUrl) - 0.8) < 0.0001);
 }
 
 QTEST_GUILESS_MAIN(LocalStateStoreTest)
