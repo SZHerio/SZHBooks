@@ -6,6 +6,7 @@ Item {
 
     required property string documentText
     required property var documentFormatter
+    required property var searchController
     property string fontFamily: Theme.readingFontFamily
     property int fontSize: 18
     property real lineHeight: 1.5
@@ -14,6 +15,14 @@ Item {
     property real pendingProgress: 0
     property bool positionRestorePending: false
     property int positionRestoreAttempts: 0
+
+    readonly property string selectedText: readerText.selectedText
+    readonly property int selectionStart: readerText.selectionStart
+    readonly property int selectionEnd: readerText.selectionEnd
+    readonly property color annotationHighlightColor: Theme.annotationHighlightColor
+    readonly property color searchMatchColor: Theme.searchMatchColor
+    readonly property color currentSearchMatchColor: Theme.currentSearchMatchColor
+    readonly property color currentSearchTextColor: Theme.currentSearchTextColor
 
     readonly property int horizontalGutter: width < 900
                                                 ? Theme.readerNarrowGutter
@@ -53,6 +62,28 @@ Item {
         positionRestoreTimer.restart()
     }
 
+    function goToTextPosition(position) {
+        if (position < 0 || root.documentText.length === 0) {
+            return
+        }
+        const positionRect = readerText.positionToRectangle(
+            Math.min(position, root.documentText.length))
+        const targetY = readerPage.y + readerText.y + positionRect.y
+                        - textFlickable.height * 0.32
+        textFlickable.contentY = Math.max(0, Math.min(root.maximumContentY, targetY))
+    }
+
+    function clearSelection() {
+        readerText.deselect()
+    }
+
+    function updateHighlightColors() {
+        root.searchController.setHighlightColors(root.annotationHighlightColor,
+                                                 root.searchMatchColor,
+                                                 root.currentSearchMatchColor,
+                                                 root.currentSearchTextColor)
+    }
+
     function applyPendingPosition() {
         if (!root.positionRestorePending) {
             return
@@ -79,6 +110,7 @@ Item {
 
     onDocumentTextChanged: {
         root.positionRestorePending = false
+        root.searchController.documentText = root.documentText
         Qt.callLater(root.scrollToStart)
         Qt.callLater(root.applyTextFormatting)
     }
@@ -91,7 +123,28 @@ Item {
             positionRestoreTimer.restart()
         }
     }
-    Component.onCompleted: Qt.callLater(root.applyTextFormatting)
+    onAnnotationHighlightColorChanged: root.updateHighlightColors()
+    onSearchMatchColorChanged: root.updateHighlightColors()
+    onCurrentSearchMatchColorChanged: root.updateHighlightColors()
+    onCurrentSearchTextColorChanged: root.updateHighlightColors()
+    Component.onCompleted: {
+        root.searchController.attachTextDocument(readerText.textDocument)
+        root.searchController.documentText = root.documentText
+        root.updateHighlightColors()
+        Qt.callLater(root.applyTextFormatting)
+    }
+
+    Connections {
+        target: root.searchController
+
+        function onCurrentResultChanged() {
+            if (root.visible && root.searchController.currentStart >= 0) {
+                Qt.callLater(function() {
+                    root.goToTextPosition(root.searchController.currentStart)
+                })
+            }
+        }
+    }
 
     Timer {
         id: positionRestoreTimer

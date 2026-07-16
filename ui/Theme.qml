@@ -45,6 +45,10 @@ QtObject {
     readonly property color primaryActionTextColor: darkMode ? "#080808" : "#ffffff"
     readonly property color focusColor: darkMode ? "#ffffff" : "#000000"
     readonly property color dangerColor: darkMode ? "#f5f5f5" : "#111111"
+    readonly property color annotationHighlightColor: darkMode ? "#303030" : "#e2e2e2"
+    readonly property color searchMatchColor: darkMode ? "#454545" : "#d0d0d0"
+    readonly property color currentSearchMatchColor: darkMode ? "#ffffff" : "#111111"
+    readonly property color currentSearchTextColor: darkMode ? "#080808" : "#ffffff"
 
     readonly property color chromeColor: darkMode ? "#000000" : "#ffffff"
     readonly property color chromeHoverColor: darkMode ? "#1c1c1c" : "#f0f0f0"

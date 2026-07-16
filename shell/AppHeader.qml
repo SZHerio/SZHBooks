@@ -15,13 +15,40 @@ Rectangle {
     signal libraryRequested
     signal darkModeToggled(bool darkMode)
 
+    function closeReaderPopups() {
+        searchPopup.close()
+        annotationsPopup.close()
+        readingSettings.close()
+        chapterNavigation.close()
+    }
+
+    function openSearch() {
+        if (root.showingLibrary || !root.readerWorkspace.hasDocument) {
+            return
+        }
+        annotationsPopup.close()
+        readingSettings.close()
+        chapterNavigation.close()
+        searchPopup.openAndFocus()
+    }
+
+    function openAnnotations(tab) {
+        if (root.showingLibrary || !root.readerWorkspace.hasDocument) {
+            return
+        }
+        searchPopup.close()
+        readingSettings.close()
+        chapterNavigation.close()
+        annotationsPopup.activeTab = tab === "highlights" ? "highlights" : "bookmarks"
+        annotationsPopup.open()
+    }
+
     implicitHeight: Theme.toolbarHeight
     color: Theme.chromeColor
 
     onShowingLibraryChanged: {
         if (root.showingLibrary) {
-            readingSettings.close()
-            chapterNavigation.close()
+            root.closeReaderPopups()
         }
     }
 
@@ -31,6 +58,12 @@ Rectangle {
         function onHasChaptersChanged() {
             if (!root.readerWorkspace.hasChapters) {
                 chapterNavigation.close()
+            }
+        }
+
+        function onHasDocumentChanged() {
+            if (!root.readerWorkspace.hasDocument) {
+                root.closeReaderPopups()
             }
         }
     }
@@ -97,6 +130,43 @@ Rectangle {
         }
 
         SZHIconButton {
+            id: searchButton
+
+            visible: !root.showingLibrary && root.readerWorkspace.hasDocument
+            symbol: "\u2315"
+            symbolPixelSize: Theme.bodyLargeFontSize
+            toolTip: qsTr("Search in book")
+            onChrome: true
+            selected: searchPopup.opened
+            onClicked: searchPopup.opened ? searchPopup.close() : root.openSearch()
+        }
+
+        SZHIconButton {
+            visible: !root.showingLibrary && root.readerWorkspace.hasDocument
+            symbol: root.readerWorkspace.currentLocationBookmarked ? "\u2605" : "\u2606"
+            symbolPixelSize: Theme.bodyLargeFontSize
+            toolTip: root.readerWorkspace.currentLocationBookmarked
+                     ? qsTr("Remove bookmark")
+                     : qsTr("Add bookmark")
+            onChrome: true
+            selected: root.readerWorkspace.currentLocationBookmarked
+            onClicked: root.readerWorkspace.toggleCurrentBookmark()
+        }
+
+        SZHIconButton {
+            id: annotationsButton
+
+            visible: !root.showingLibrary && root.readerWorkspace.hasDocument
+            symbol: "\u2261"
+            toolTip: qsTr("Reading marks")
+            onChrome: true
+            selected: annotationsPopup.opened
+            onClicked: annotationsPopup.opened
+                       ? annotationsPopup.close()
+                       : root.openAnnotations("bookmarks")
+        }
+
+        SZHIconButton {
             visible: !root.showingLibrary && root.readerWorkspace.hasDocument
             symbol: "-"
             toolTip: root.readerWorkspace.showingPdf
@@ -146,6 +216,8 @@ Rectangle {
             onChrome: true
             selected: chapterNavigation.opened
             onClicked: {
+                searchPopup.close()
+                annotationsPopup.close()
                 readingSettings.close()
                 chapterNavigation.opened
                     ? chapterNavigation.close()
@@ -161,6 +233,8 @@ Rectangle {
             onChrome: true
             selected: readingSettings.opened
             onClicked: {
+                searchPopup.close()
+                annotationsPopup.close()
                 chapterNavigation.close()
                 readingSettings.opened
                     ? readingSettings.close()
@@ -193,6 +267,37 @@ Rectangle {
         y: root.height + Theme.spaceXs
         settingsStore: root.settingsStore
         textSettingsAvailable: root.readerWorkspace.showingText
+    }
+
+    SearchPopup {
+        id: searchPopup
+
+        parent: root
+        x: Math.max(Theme.spaceMd, root.width - width - Theme.spaceLg)
+        y: root.height + Theme.spaceXs
+        readerWorkspace: root.readerWorkspace
+        onAboutToShow: {
+            const buttonPosition = searchButton.mapToItem(root, 0, 0)
+            x = Math.max(Theme.spaceMd,
+                         Math.min(root.width - width - Theme.spaceMd,
+                                  buttonPosition.x + searchButton.width - width))
+        }
+    }
+
+    AnnotationsPopup {
+        id: annotationsPopup
+
+        parent: root
+        x: Math.max(Theme.spaceMd, root.width - width - Theme.spaceLg)
+        y: root.height + Theme.spaceXs
+        readerWorkspace: root.readerWorkspace
+        annotationStore: root.readerWorkspace.annotationStore
+        onAboutToShow: {
+            const buttonPosition = annotationsButton.mapToItem(root, 0, 0)
+            x = Math.max(Theme.spaceMd,
+                         Math.min(root.width - width - Theme.spaceMd,
+                                  buttonPosition.x + annotationsButton.width - width))
+        }
     }
 
     ChapterNavigationPopup {

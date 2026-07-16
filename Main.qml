@@ -9,6 +9,8 @@ ApplicationWindow {
     required property var localStateStore
     required property var libraryModel
     required property var readingDocumentFormatter
+    required property var readingSearchController
+    required property var readingAnnotationStore
 
     property bool showingLibrary: true
 
@@ -65,6 +67,8 @@ ApplicationWindow {
     }
 
     header: AppHeader {
+        id: appHeader
+
         readerController: root.readerController
         readerWorkspace: readerWorkspace
         settingsStore: root.localStateStore
@@ -89,6 +93,8 @@ ApplicationWindow {
         readerController: root.readerController
         settingsStore: root.localStateStore
         documentFormatter: root.readingDocumentFormatter
+        searchController: root.readingSearchController
+        annotationStore: root.readingAnnotationStore
         onOpenRequested: openDialog.open()
     }
 

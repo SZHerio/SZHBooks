@@ -6,6 +6,8 @@ Item {
     required property var readerController
     required property var settingsStore
     required property var documentFormatter
+    required property var searchController
+    required property var annotationStore
 
     readonly property int textFontSize: settingsStore.textFontSize
     readonly property string textFontFamily: Theme.readingFontFamilyFor(settingsStore.readingFont)
@@ -45,11 +47,126 @@ Item {
     readonly property string scaleLabel: showingPdf
                                              ? Math.round(pdfView.renderScale * 100) + qsTr("%")
                                              : textFontSize + qsTr(" px")
+    readonly property int searchResultCount: !hasDocument
+                                                   ? 0
+                                                   : showingPdf
+                                                     ? pdfView.searchResultCount
+                                                     : searchController.resultCount
+    readonly property int currentSearchIndex: searchResultCount <= 0
+                                                   ? -1
+                                                   : showingPdf
+                                                     ? pdfView.currentSearchIndex
+                                                     : searchController.currentIndex
+    readonly property string selectedText: showingPdf
+                                               ? pdfView.selectedText
+                                               : showingText
+                                                 ? textView.selectedText
+                                                 : ""
+    readonly property bool canCreateHighlight: hasDocument
+                                                   && selectedText.trim().length > 0
+    readonly property bool currentLocationBookmarked: annotationStore.totalCount >= 0
+                                                          && hasDocument
+                                                          && annotationStore.hasBookmark(
+                                                              readingProgress,
+                                                              showingPdf ? currentPage : -1)
+    readonly property int annotationCount: annotationStore.totalCount
 
     property bool restoringReadingState: false
     property real scaleWheelAccumulator: 0
+    property string searchQuery: ""
 
     signal openRequested
+
+    onSearchQueryChanged: {
+        root.searchController.query = root.searchQuery
+        pdfView.searchQuery = root.searchQuery
+    }
+
+    function configureDocumentTools() {
+        root.searchQuery = ""
+        root.annotationStore.documentUrl = root.activeDocumentUrl
+        root.searchController.documentText = root.showingText
+                                             ? root.readerController.text
+                                             : ""
+        root.updateAnnotationHighlights()
+    }
+
+    function updateAnnotationHighlights() {
+        root.searchController.setAnnotationRanges(root.annotationStore.highlights)
+    }
+
+    function nextSearchResult() {
+        if (root.showingPdf) {
+            pdfView.nextSearchResult()
+        } else if (root.showingText) {
+            root.searchController.next()
+        }
+    }
+
+    function previousSearchResult() {
+        if (root.showingPdf) {
+            pdfView.previousSearchResult()
+        } else if (root.showingText) {
+            root.searchController.previous()
+        }
+    }
+
+    function toggleCurrentBookmark() {
+        if (!root.hasDocument) {
+            return
+        }
+        const page = root.showingPdf ? root.currentPage : -1
+        const label = root.showingPdf
+                      ? qsTr("Page %1").arg(root.currentPage + 1)
+                      : root.currentChapterTitle.length > 0
+                        ? root.currentChapterTitle
+                        : qsTr("%1%").arg(Math.round(root.readingProgress * 100))
+        root.annotationStore.toggleBookmark(root.readingProgress, page, label)
+    }
+
+    function addSelectionHighlight(note) {
+        if (!root.canCreateHighlight) {
+            return
+        }
+
+        let start = -1
+        let length = 0
+        let page = -1
+        let progress = root.readingProgress
+        if (root.showingText) {
+            start = Math.min(textView.selectionStart, textView.selectionEnd)
+            length = Math.abs(textView.selectionEnd - textView.selectionStart)
+            progress = start / Math.max(1, root.readerController.text.length)
+        } else if (root.showingPdf) {
+            page = root.currentPage
+        }
+
+        root.annotationStore.addHighlight(start,
+                                          length,
+                                          root.selectedText,
+                                          note,
+                                          progress,
+                                          page)
+        root.clearSelection()
+    }
+
+    function clearSelection() {
+        if (root.showingText) {
+            textView.clearSelection()
+        } else if (root.showingPdf) {
+            pdfView.clearSelection()
+        }
+    }
+
+    function goToAnnotation(annotation) {
+        if (root.showingPdf && annotation.page >= 0) {
+            root.goToPage(annotation.page)
+        } else if (root.showingText && annotation.start >= 0) {
+            textView.goToTextPosition(annotation.start)
+        } else if (root.showingText) {
+            root.goToProgress(annotation.progress)
+        }
+    }
 
     function decreaseScale() {
         if (root.showingPdf) {
@@ -206,17 +323,32 @@ Item {
         restoreGuardTimer.restart()
     }
 
-    Component.onCompleted: Qt.callLater(root.restoreReadingState)
+    Component.onCompleted: {
+        root.configureDocumentTools()
+        Qt.callLater(root.restoreReadingState)
+    }
 
     Connections {
         target: root.readerController
 
         function onDocumentOpening() {
             root.flushReadingState()
+            root.searchQuery = ""
         }
 
         function onDocumentOpened() {
-            Qt.callLater(root.restoreReadingState)
+            Qt.callLater(function() {
+                root.configureDocumentTools()
+                root.restoreReadingState()
+            })
+        }
+    }
+
+    Connections {
+        target: root.annotationStore
+
+        function onAnnotationsChanged() {
+            root.updateAnnotationHighlights()
         }
     }
 
@@ -259,6 +391,7 @@ Item {
         visible: root.showingText
         documentText: root.readerController.text
         documentFormatter: root.documentFormatter
+        searchController: root.searchController
         fontFamily: root.textFontFamily
         fontSize: root.textFontSize
         lineHeight: root.lineHeight

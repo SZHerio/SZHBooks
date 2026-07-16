@@ -45,12 +45,19 @@ qt_add_executable(appSZHBooks
     localdocumentloader.cpp
     localdocumentloader.h
     main.cpp
+    reader/readingannotation.h
     reader/readingdocumentformatter.cpp
     reader/readingdocumentformatter.h
+    reader/readingsearchcontroller.cpp
+    reader/readingsearchcontroller.h
     readercontroller.cpp
     readercontroller.h
+    storage/documentstoragekey.cpp
+    storage/documentstoragekey.h
     storage/localstatestore.cpp
     storage/localstatestore.h
+    storage/readingannotationstore.cpp
+    storage/readingannotationstore.h
 )
 
 qt_add_qml_module(appSZHBooks
@@ -60,10 +67,12 @@ qt_add_qml_module(appSZHBooks
         library/LibraryBookDelegate.qml
         library/LibraryView.qml
         reader/ChapterNavigationPopup.qml
+        reader/AnnotationsPopup.qml
         reader/EmptyReaderView.qml
         reader/PageNavigationControl.qml
         reader/PdfDocumentView.qml
         reader/ReaderWorkspace.qml
+        reader/SearchPopup.qml
         reader/TextNavigationControl.qml
         reader/TextDocumentView.qml
         shell/AppHeader.qml
@@ -78,6 +87,7 @@ qt_add_qml_module(appSZHBooks
         ui/SZHSlider.qml
         ui/SZHSurface.qml
         ui/SZHSwitch.qml
+        ui/SZHTextArea.qml
         ui/SZHTextField.qml
         ui/Theme.qml
     RESOURCES
@@ -125,6 +135,8 @@ if(BUILD_TESTING)
             library/librarybook.h
             library/librarymodel.cpp
             library/librarymodel.h
+            storage/documentstoragekey.cpp
+            storage/documentstoragekey.h
             storage/localstatestore.cpp
             storage/localstatestore.h
             tests/localstatestoretest.cpp
@@ -163,6 +175,30 @@ if(BUILD_TESTING)
 
         add_test(NAME documentreaders COMMAND tst_documentreaders)
         set_tests_properties(documentreaders PROPERTIES
+            ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+        )
+
+        qt_add_executable(tst_readingfeatures
+            reader/readingannotation.h
+            reader/readingsearchcontroller.cpp
+            reader/readingsearchcontroller.h
+            storage/documentstoragekey.cpp
+            storage/documentstoragekey.h
+            storage/readingannotationstore.cpp
+            storage/readingannotationstore.h
+            tests/readingfeaturestest.cpp
+        )
+
+        target_link_libraries(tst_readingfeatures
+            PRIVATE
+                Qt6::Gui
+                Qt6::Quick
+                Qt6::Test
+        )
+
+        add_test(NAME readingfeatures COMMAND tst_readingfeatures)
+        set_tests_properties(readingfeatures PROPERTIES
             ENVIRONMENT_MODIFICATION
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
         )

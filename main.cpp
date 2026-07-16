@@ -7,9 +7,11 @@
 #include <QtMath>
 
 #include "library/librarymodel.h"
+#include "reader/readingsearchcontroller.h"
 #include "reader/readingdocumentformatter.h"
 #include "readercontroller.h"
 #include "storage/localstatestore.h"
+#include "storage/readingannotationstore.h"
 
 namespace {
 
@@ -44,6 +46,8 @@ int main(int argc, char *argv[])
     LibraryModel libraryModel(&localState);
     ReaderController reader;
     ReadingDocumentFormatter documentFormatter;
+    ReadingSearchController searchController;
+    ReadingAnnotationStore annotationStore(localState.settingsFilePath());
 
     QObject::connect(&reader,
                      &ReaderController::documentOpened,
@@ -68,7 +72,11 @@ int main(int argc, char *argv[])
         {QStringLiteral("libraryModel"),
          QVariant::fromValue(static_cast<QObject *>(&libraryModel))},
         {QStringLiteral("readingDocumentFormatter"),
-         QVariant::fromValue(static_cast<QObject *>(&documentFormatter))}
+         QVariant::fromValue(static_cast<QObject *>(&documentFormatter))},
+        {QStringLiteral("readingSearchController"),
+         QVariant::fromValue(static_cast<QObject *>(&searchController))},
+        {QStringLiteral("readingAnnotationStore"),
+         QVariant::fromValue(static_cast<QObject *>(&annotationStore))}
     });
 
     QObject::connect(

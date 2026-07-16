@@ -1,7 +1,8 @@
 #include "localstatestore.h"
 
+#include "documentstoragekey.h"
+
 #include <QCoreApplication>
-#include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -198,6 +199,11 @@ int LocalStateStore::scrollSpeed() const
 QUrl LocalStateStore::lastBookUrl() const
 {
     return m_lastBookUrl;
+}
+
+QString LocalStateStore::settingsFilePath() const
+{
+    return m_settings.fileName();
 }
 
 void LocalStateStore::setDarkMode(bool darkMode)
@@ -469,31 +475,9 @@ QString LocalStateStore::defaultSettingsFilePath()
     return migratedDefaultSettingsFilePath();
 }
 
-QString LocalStateStore::documentId(const QUrl &documentUrl)
-{
-    QString identity;
-    if (documentUrl.isLocalFile()) {
-        const QFileInfo fileInfo(documentUrl.toLocalFile());
-        identity = fileInfo.canonicalFilePath();
-        if (identity.isEmpty()) {
-            identity = fileInfo.absoluteFilePath();
-        }
-        identity = QDir::cleanPath(identity);
-#ifdef Q_OS_WIN
-        identity = identity.toLower();
-#endif
-    } else {
-        identity = documentUrl.adjusted(QUrl::NormalizePathSegments | QUrl::RemoveFragment)
-                       .toString(QUrl::FullyEncoded);
-    }
-
-    return QString::fromLatin1(
-        QCryptographicHash::hash(identity.toUtf8(), QCryptographicHash::Sha256).toHex());
-}
-
 QString LocalStateStore::documentKey(const QUrl &documentUrl, const QString &name)
 {
-    return QStringLiteral("documents/%1/%2").arg(documentId(documentUrl), name);
+    return DocumentStorageKey::key(documentUrl, name);
 }
 
 void LocalStateStore::rememberDocumentUrl(const QUrl &documentUrl)

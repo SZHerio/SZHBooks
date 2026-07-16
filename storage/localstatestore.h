@@ -31,6 +31,7 @@ public:
     int pageWidth() const;
     int scrollSpeed() const;
     QUrl lastBookUrl() const;
+    QString settingsFilePath() const;
 
     void setDarkMode(bool darkMode);
     void setColorTheme(const QString &colorTheme);
@@ -73,7 +74,6 @@ signals:
 
 private:
     static QString defaultSettingsFilePath();
-    static QString documentId(const QUrl &documentUrl);
     static QString documentKey(const QUrl &documentUrl, const QString &name);
     void rememberDocumentUrl(const QUrl &documentUrl);
 
