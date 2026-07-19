@@ -116,7 +116,9 @@ qt_add_qml_module(appSZHBooks
         library/LibraryBookDelegate.qml
         library/LibraryBookListDelegate.qml
         library/LibraryContinueCard.qml
+        library/CreateCollectionDialog.qml
         library/LibraryControls.qml
+        library/LibrarySyncBar.qml
         library/LibraryView.qml
         reader/EmptyReaderView.qml
         reader/PageNavigationControl.qml
@@ -481,12 +483,15 @@ if(BUILD_TESTING)
                 URI SZHBooksUiTest
                 VERSION 1.0
                 QML_FILES
+                    library/CreateCollectionDialog.qml
                     library/LibraryBookCover.qml
                     library/LibraryBookDelegate.qml
+                    library/LibrarySyncBar.qml
                     shell/ProfileRestoreDialog.qml
                     shell/AppShortcuts.qml
                     ui/SZHButton.qml
                     ui/SZHIconButton.qml
+                    ui/SZHMenuButton.qml
                     ui/SZHProgressBar.qml
                     ui/SZHSegmentedControl.qml
                     ui/SZHSlider.qml

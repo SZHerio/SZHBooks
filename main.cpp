@@ -18,6 +18,7 @@
 #include "storage/localstatestore.h"
 #include "storage/profilearchiveservice.h"
 #include "storage/readingannotationstore.h"
+#include "sync/onedrivelibraryservice.h"
 
 namespace {
 
@@ -63,11 +64,16 @@ int main(int argc, char *argv[])
     ReadingDocumentFormatter documentFormatter;
     ReadingSearchController searchController;
     ReadingAnnotationStore annotationStore(localState.settingsFilePath());
+    OneDriveLibraryService oneDriveLibraryService(&localState, &libraryRepository);
 
     QObject::connect(&localState,
                      &LocalStateStore::profileReplaced,
                      &annotationStore,
                      &ReadingAnnotationStore::reload);
+    QObject::connect(&annotationStore,
+                     &ReadingAnnotationStore::profileChanged,
+                     &oneDriveLibraryService,
+                     &OneDriveLibraryService::scheduleSynchronization);
 
     QObject::connect(&reader,
                      &ReaderController::documentOpened,
@@ -81,7 +87,16 @@ int main(int argc, char *argv[])
                                                                 reader.formatName());
                          }
                      });
-    QObject::connect(&app, &QCoreApplication::aboutToQuit, &localState, &LocalStateStore::sync);
+    QObject::connect(&app,
+                     &QCoreApplication::aboutToQuit,
+                     &app,
+                     [&annotationStore, &localState, &oneDriveLibraryService]() {
+                         annotationStore.sync();
+                         localState.sync();
+                         if (oneDriveLibraryService.configured()) {
+                             oneDriveLibraryService.synchronizeNow();
+                         }
+                     });
 
     QQmlApplicationEngine engine;
     LocalizationController localizationController(&localState, &engine);
@@ -101,7 +116,9 @@ int main(int argc, char *argv[])
         {QStringLiteral("readingSearchController"),
          QVariant::fromValue(static_cast<QObject *>(&searchController))},
         {QStringLiteral("readingAnnotationStore"),
-         QVariant::fromValue(static_cast<QObject *>(&annotationStore))}
+         QVariant::fromValue(static_cast<QObject *>(&annotationStore))},
+        {QStringLiteral("oneDriveLibraryService"),
+         QVariant::fromValue(static_cast<QObject *>(&oneDriveLibraryService))}
     });
 
     QObject::connect(

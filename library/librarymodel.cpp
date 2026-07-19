@@ -2,6 +2,7 @@
 
 #include "libraryrepository.h"
 
+#include <QDir>
 #include <QtGlobal>
 
 #include <algorithm>
@@ -66,6 +67,8 @@ QVariant LibraryModel::data(const QModelIndex &index, int role) const
         return book.lastOpened;
     case FileAvailableRole:
         return book.fileAvailable;
+    case CollectionPathRole:
+        return book.collectionPath;
     default:
         return {};
     }
@@ -82,7 +85,8 @@ QHash<int, QByteArray> LibraryModel::roleNames() const
         {CoverUrlRole, "coverUrl"},
         {ProgressRole, "progress"},
         {LastOpenedRole, "lastOpened"},
-        {FileAvailableRole, "fileAvailable"}
+        {FileAvailableRole, "fileAvailable"},
+        {CollectionPathRole, "collectionPath"}
     };
 }
 
@@ -106,6 +110,11 @@ QString LibraryModel::progressFilter() const
     return m_progressFilter;
 }
 
+QString LibraryModel::collectionFilter() const
+{
+    return m_collectionFilter;
+}
+
 QString LibraryModel::viewMode() const
 {
     return m_viewMode;
@@ -120,7 +129,8 @@ bool LibraryModel::hasActiveFilters() const
 {
     return !m_filterText.isEmpty()
            || m_formatFilter != QLatin1String("all")
-           || m_progressFilter != QLatin1String("all");
+           || m_progressFilter != QLatin1String("all")
+           || !m_collectionFilter.isEmpty();
 }
 
 QString LibraryModel::errorMessage() const
@@ -208,6 +218,29 @@ void LibraryModel::setProgressFilter(const QString &progressFilter)
     }
 }
 
+void LibraryModel::setCollectionFilter(const QString &collectionFilter)
+{
+    QString normalizedFilter = collectionFilter.trimmed();
+    normalizedFilter.replace(u'\\', u'/');
+    if (normalizedFilter != QLatin1String(".")) {
+        normalizedFilter = QDir::cleanPath(normalizedFilter);
+        if (normalizedFilter == QLatin1String(".")) {
+            normalizedFilter.clear();
+        }
+    }
+    if (m_collectionFilter == normalizedFilter) {
+        return;
+    }
+
+    const bool hadActiveFilters = hasActiveFilters();
+    m_collectionFilter = normalizedFilter;
+    emit collectionFilterChanged();
+    rebuildVisibleBooks();
+    if (hadActiveFilters != hasActiveFilters()) {
+        emit hasActiveFiltersChanged();
+    }
+}
+
 void LibraryModel::setViewMode(const QString &viewMode)
 {
     const QString normalizedMode = viewMode == QLatin1String("list")
@@ -268,7 +301,8 @@ void LibraryModel::clearFilters()
 {
     const bool changed = !m_filterText.isEmpty()
                          || m_formatFilter != QLatin1String("all")
-                         || m_progressFilter != QLatin1String("all");
+                         || m_progressFilter != QLatin1String("all")
+                         || !m_collectionFilter.isEmpty();
     if (!changed) {
         return;
     }
@@ -284,6 +318,10 @@ void LibraryModel::clearFilters()
     if (m_progressFilter != QLatin1String("all")) {
         m_progressFilter = QStringLiteral("all");
         emit progressFilterChanged();
+    }
+    if (!m_collectionFilter.isEmpty()) {
+        m_collectionFilter.clear();
+        emit collectionFilterChanged();
     }
     rebuildVisibleBooks();
     emit hasActiveFiltersChanged();
@@ -305,7 +343,8 @@ QVariantMap LibraryModel::toVariantMap(const LibraryBook &book)
         {QStringLiteral("coverUrl"), book.coverUrl},
         {QStringLiteral("progress"), book.progress},
         {QStringLiteral("lastOpened"), book.lastOpened},
-        {QStringLiteral("fileAvailable"), book.fileAvailable}
+        {QStringLiteral("fileAvailable"), book.fileAvailable},
+        {QStringLiteral("collectionPath"), book.collectionPath}
     };
 }
 
@@ -315,10 +354,17 @@ bool LibraryModel::matchesFilters(const LibraryBook &book) const
                              || book.title.contains(m_filterText, Qt::CaseInsensitive)
                              || book.author.contains(m_filterText, Qt::CaseInsensitive)
                              || book.formatName.contains(m_filterText, Qt::CaseInsensitive)
+                             || book.collectionPath.contains(m_filterText, Qt::CaseInsensitive)
                              || book.sourcePath.contains(m_filterText, Qt::CaseInsensitive);
     const bool matchesFormat = m_formatFilter == QLatin1String("all")
                                || book.formatName.compare(m_formatFilter,
                                                           Qt::CaseInsensitive) == 0;
+    const bool matchesCollection = m_collectionFilter.isEmpty()
+                                   || (m_collectionFilter == QLatin1String(".")
+                                       ? book.collectionPath.isEmpty()
+                                       : book.collectionPath == m_collectionFilter
+                                             || book.collectionPath.startsWith(
+                                                 m_collectionFilter + u'/'));
 
     bool matchesProgress = true;
     if (m_progressFilter == QLatin1String("unread")) {
@@ -329,7 +375,7 @@ bool LibraryModel::matchesFilters(const LibraryBook &book) const
     } else if (m_progressFilter == QLatin1String("finished")) {
         matchesProgress = book.progress >= finishedProgressThreshold;
     }
-    return matchesText && matchesFormat && matchesProgress;
+    return matchesText && matchesFormat && matchesCollection && matchesProgress;
 }
 
 void LibraryModel::rebuildVisibleBooks()

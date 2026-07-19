@@ -15,6 +15,7 @@ class LibraryModel final : public QAbstractListModel
     Q_PROPERTY(QString sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
     Q_PROPERTY(QString formatFilter READ formatFilter WRITE setFormatFilter NOTIFY formatFilterChanged)
     Q_PROPERTY(QString progressFilter READ progressFilter WRITE setProgressFilter NOTIFY progressFilterChanged)
+    Q_PROPERTY(QString collectionFilter READ collectionFilter WRITE setCollectionFilter NOTIFY collectionFilterChanged)
     Q_PROPERTY(QString viewMode READ viewMode WRITE setViewMode NOTIFY viewModeChanged)
     Q_PROPERTY(QStringList availableFormats READ availableFormats NOTIFY availableFormatsChanged)
     Q_PROPERTY(bool hasActiveFilters READ hasActiveFilters NOTIFY hasActiveFiltersChanged)
@@ -33,7 +34,8 @@ public:
         CoverUrlRole,
         ProgressRole,
         LastOpenedRole,
-        FileAvailableRole
+        FileAvailableRole,
+        CollectionPathRole
     };
     Q_ENUM(Role)
 
@@ -47,6 +49,7 @@ public:
     QString sortMode() const;
     QString formatFilter() const;
     QString progressFilter() const;
+    QString collectionFilter() const;
     QString viewMode() const;
     QStringList availableFormats() const;
     bool hasActiveFilters() const;
@@ -58,6 +61,7 @@ public:
     void setSortMode(const QString &sortMode);
     void setFormatFilter(const QString &formatFilter);
     void setProgressFilter(const QString &progressFilter);
+    void setCollectionFilter(const QString &collectionFilter);
     void setViewMode(const QString &viewMode);
 
     Q_INVOKABLE void refresh();
@@ -71,6 +75,7 @@ signals:
     void sortModeChanged();
     void formatFilterChanged();
     void progressFilterChanged();
+    void collectionFilterChanged();
     void viewModeChanged();
     void availableFormatsChanged();
     void hasActiveFiltersChanged();
@@ -95,6 +100,7 @@ private:
     QString m_sortMode = QStringLiteral("recent");
     QString m_formatFilter = QStringLiteral("all");
     QString m_progressFilter = QStringLiteral("all");
+    QString m_collectionFilter;
     QString m_viewMode = QStringLiteral("grid");
     QString m_errorMessage;
 };

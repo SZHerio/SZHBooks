@@ -8,10 +8,13 @@ Item {
     id: root
 
     required property var libraryModel
+    required property var syncService
 
     signal addRequested
     signal openRequested(url sourceUrl)
     signal relinkRequested(url sourceUrl)
+    signal chooseFolderRequested
+    signal createCollectionRequested(string parentPath)
 
     function fallbackColor(row) {
         const colors = ["#111111", "#2b2b2b", "#444444", "#5d5d5d", "#242424", "#505050"]
@@ -65,11 +68,19 @@ Item {
             }
 
             SZHTextField {
-                Layout.preferredWidth: root.width < 900 ? 220 : 300
-                Layout.minimumWidth: 180
+                Layout.preferredWidth: root.width < 900 ? 180 : 300
+                Layout.minimumWidth: 140
                 placeholderText: qsTr("Search library")
                 text: root.libraryModel.filterText
                 onTextEdited: root.libraryModel.filterText = text
+            }
+
+            SZHIconButton {
+                enabled: root.syncService.configured && root.syncService.available
+                symbol: "+"
+                toolTip: qsTr("New folder")
+                onClicked: root.createCollectionRequested(
+                               root.libraryModel.collectionFilter)
             }
 
             SZHButton {
@@ -82,6 +93,13 @@ Item {
         LibraryControls {
             Layout.fillWidth: true
             libraryModel: root.libraryModel
+            syncService: root.syncService
+        }
+
+        LibrarySyncBar {
+            Layout.fillWidth: true
+            syncService: root.syncService
+            onChooseFolderRequested: root.chooseFolderRequested()
         }
     }
 

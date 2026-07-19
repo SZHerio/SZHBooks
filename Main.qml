@@ -14,6 +14,7 @@ ApplicationWindow {
     required property var readingDocumentFormatter
     required property var readingSearchController
     required property var readingAnnotationStore
+    required property var oneDriveLibraryService
 
     property bool showingLibrary: true
     property bool focusMode: false
@@ -52,6 +53,23 @@ ApplicationWindow {
     function openBook(fileUrl) {
         if (root.readerController.openFile(fileUrl)) {
             root.showingLibrary = false
+        }
+    }
+
+    function addBook(fileUrl) {
+        if (!root.oneDriveLibraryService.configured) {
+            root.openBook(fileUrl)
+            return
+        }
+
+        const selectedFolder = !root.showingLibrary
+                             || root.libraryModel.collectionFilter === "."
+                             ? ""
+                             : root.libraryModel.collectionFilter
+        const managedUrl = root.oneDriveLibraryService.importBook(fileUrl,
+                                                                  selectedFolder)
+        if (managedUrl.toString().length > 0) {
+            root.openBook(managedUrl)
         }
     }
 
@@ -145,7 +163,31 @@ ApplicationWindow {
         title: qsTr("Open book")
         nameFilters: root.supportedBookNameFilters
 
-        onAccepted: root.openBook(selectedFile)
+        onAccepted: root.addBook(selectedFile)
+    }
+
+    FolderDialog {
+        id: libraryFolderDialog
+
+        title: qsTr("Choose OneDrive library folder")
+        currentFolder: root.oneDriveLibraryService.configured
+                       ? root.oneDriveLibraryService.rootFolder
+                       : root.oneDriveLibraryService.suggestedFolder
+        onAccepted: {
+            if (root.oneDriveLibraryService.setRootFolder(selectedFolder)) {
+                root.libraryModel.collectionFilter = ""
+            }
+        }
+    }
+
+    CreateCollectionDialog {
+        id: createCollectionDialog
+
+        syncService: root.oneDriveLibraryService
+        onCollectionCreated: collectionPath => {
+            root.libraryModel.collectionFilter = collectionPath
+            root.libraryModel.refresh()
+        }
     }
 
     FileDialog {
@@ -219,6 +261,30 @@ ApplicationWindow {
         }
     }
 
+    Connections {
+        target: root.oneDriveLibraryService
+
+        function onProfileApplied() {
+            if (readerWorkspace.hasDocument) {
+                Qt.callLater(readerWorkspace.restoreReadingState)
+            }
+        }
+
+        function onConflictsDetected(conflictFile, count) {
+            root.showProfileNotice(
+                        qsTr("Synchronization conflict preserved"),
+                        qsTr("%n conflicting value(s) were kept in %1.", "", count)
+                            .arg(conflictFile.toString()),
+                        "info")
+        }
+
+        function onOperationFailed(errorMessage) {
+            root.showProfileNotice(qsTr("OneDrive synchronization"),
+                                   errorMessage,
+                                   "error")
+        }
+    }
+
     header: AppHeader {
         id: appHeader
         objectName: "appHeader"
@@ -270,9 +336,14 @@ ApplicationWindow {
         visible: root.showingLibrary
         opacity: root.showingLibrary ? 1 : 0
         libraryModel: root.libraryModel
+        syncService: root.oneDriveLibraryService
         onAddRequested: openDialog.open()
         onOpenRequested: sourceUrl => root.openBook(sourceUrl)
         onRelinkRequested: sourceUrl => root.locateBook(sourceUrl)
+        onChooseFolderRequested: libraryFolderDialog.open()
+        onCreateCollectionRequested: parentPath => {
+            createCollectionDialog.openFor(parentPath)
+        }
 
         Behavior on opacity {
             NumberAnimation {

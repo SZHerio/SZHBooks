@@ -11,6 +11,7 @@ Item {
     required property string title
     required property string author
     required property string formatName
+    required property string collectionPath
     required property url coverUrl
     required property real progress
     required property date lastOpened
@@ -111,10 +112,9 @@ Item {
         Label {
             Layout.fillWidth: true
             text: root.fileAvailable
-                  ? (root.author.length > 0
-                     ? root.author + qsTr("  \u00b7  ")
-                       + Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm"))
-                     : Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm")))
+                  ? ([root.author, root.collectionPath,
+                      Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm"))]
+                     .filter(value => value.length > 0).join(qsTr("  \u00b7  ")))
                   : qsTr("File unavailable")
             color: root.fileAvailable ? Theme.mutedTextColor : Theme.dangerColor
             font.family: Theme.uiFontFamily

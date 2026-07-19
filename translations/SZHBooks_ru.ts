@@ -101,6 +101,44 @@
     </message>
   </context>
   <context>
+    <name>CreateCollectionDialog</name>
+    <message>
+      <location filename="../library/CreateCollectionDialog.qml" line="16" />
+      <source>Library root</source>
+      <translation>Корень библиотеки</translation>
+    </message>
+    <message>
+      <location filename="../library/CreateCollectionDialog.qml" line="73" />
+      <source>New folder</source>
+      <translation>Новая папка</translation>
+    </message>
+    <message>
+      <location filename="../library/CreateCollectionDialog.qml" line="85" />
+      <source>Parent folder</source>
+      <translation>Родительская папка</translation>
+    </message>
+    <message>
+      <location filename="../library/CreateCollectionDialog.qml" line="105" />
+      <source>Folder name</source>
+      <translation>Название папки</translation>
+    </message>
+    <message>
+      <location filename="../library/CreateCollectionDialog.qml" line="116" />
+      <source>For example, Fiction</source>
+      <translation>Например, Фантастика</translation>
+    </message>
+    <message>
+      <location filename="../library/CreateCollectionDialog.qml" line="132" />
+      <source>Cancel</source>
+      <translation>Отмена</translation>
+    </message>
+    <message>
+      <location filename="../library/CreateCollectionDialog.qml" line="139" />
+      <source>Create</source>
+      <translation>Создать</translation>
+    </message>
+  </context>
+  <context>
     <name>DocumentReaders</name>
     <message>
       <location filename="../documentreaders.cpp" line="27" />
@@ -219,23 +257,22 @@
   <context>
     <name>LibraryBookDelegate</name>
     <message>
-      <location filename="../library/LibraryBookDelegate.qml" line="37" />
+      <location filename="../library/LibraryBookDelegate.qml" line="38" />
       <source>%1, %2% read</source>
       <translation>%1, прочитано %2%</translation>
     </message>
     <message>
-      <location filename="../library/LibraryBookDelegate.qml" line="41" />
+      <location filename="../library/LibraryBookDelegate.qml" line="42" />
       <source>File unavailable. Locate the book to continue.</source>
       <translation>Файл недоступен. Найдите книгу, чтобы продолжить.</translation>
     </message>
     <message>
-      <location filename="../library/LibraryBookDelegate.qml" line="115" />
+      <location filename="../library/LibraryBookDelegate.qml" line="117" />
       <source>  ·  </source>
       <translation>  ·  </translation>
     </message>
     <message>
       <location filename="../library/LibraryBookDelegate.qml" line="116" />
-      <location filename="../library/LibraryBookDelegate.qml" line="117" />
       <source>dd MMM, HH:mm</source>
       <translation>dd MMM, HH:mm</translation>
     </message>
@@ -263,32 +300,37 @@
   <context>
     <name>LibraryBookListDelegate</name>
     <message>
-      <location filename="../library/LibraryBookListDelegate.qml" line="37" />
+      <location filename="../library/LibraryBookListDelegate.qml" line="38" />
       <source>%1, %2% read</source>
       <translation>%1, прочитано %2%</translation>
     </message>
     <message>
-      <location filename="../library/LibraryBookListDelegate.qml" line="41" />
+      <location filename="../library/LibraryBookListDelegate.qml" line="42" />
       <source>File unavailable. Locate the book to continue.</source>
       <translation>Файл недоступен. Найдите книгу, чтобы продолжить.</translation>
     </message>
     <message>
-      <location filename="../library/LibraryBookListDelegate.qml" line="106" />
+      <location filename="../library/LibraryBookListDelegate.qml" line="107" />
+      <source>  ·  </source>
+      <translation>  ·  </translation>
+    </message>
+    <message>
+      <location filename="../library/LibraryBookListDelegate.qml" line="108" />
       <source>dd MMM, HH:mm</source>
       <translation>dd MMM, HH:mm</translation>
     </message>
     <message>
-      <location filename="../library/LibraryBookListDelegate.qml" line="137" />
+      <location filename="../library/LibraryBookListDelegate.qml" line="139" />
       <source>%</source>
       <translation>%</translation>
     </message>
     <message>
-      <location filename="../library/LibraryBookListDelegate.qml" line="150" />
+      <location filename="../library/LibraryBookListDelegate.qml" line="152" />
       <source>Locate</source>
       <translation>Найти</translation>
     </message>
     <message>
-      <location filename="../library/LibraryBookListDelegate.qml" line="156" />
+      <location filename="../library/LibraryBookListDelegate.qml" line="158" />
       <source>Remove from library</source>
       <translation>Удалить из библиотеки</translation>
     </message>
@@ -324,67 +366,82 @@
   <context>
     <name>LibraryControls</name>
     <message>
-      <location filename="../library/LibraryControls.qml" line="10" />
+      <location filename="../library/LibraryControls.qml" line="11" />
       <source>All formats</source>
       <translation>Все форматы</translation>
     </message>
     <message>
+      <location filename="../library/LibraryControls.qml" line="20" />
+      <source>All folders</source>
+      <translation>Все папки</translation>
+    </message>
+    <message>
       <location filename="../library/LibraryControls.qml" line="24" />
+      <source>Library root</source>
+      <translation>Корень библиотеки</translation>
+    </message>
+    <message>
+      <location filename="../library/LibraryControls.qml" line="41" />
+      <source>Folder</source>
+      <translation>Папка</translation>
+    </message>
+    <message>
+      <location filename="../library/LibraryControls.qml" line="49" />
       <source>Sort</source>
       <translation>Сортировка</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="27" />
+      <location filename="../library/LibraryControls.qml" line="52" />
       <source>Recent</source>
       <translation>Недавние</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="28" />
+      <location filename="../library/LibraryControls.qml" line="53" />
       <source>Title</source>
       <translation>Название</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="29" />
+      <location filename="../library/LibraryControls.qml" line="54" />
       <source>Author</source>
       <translation>Автор</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="36" />
+      <location filename="../library/LibraryControls.qml" line="61" />
       <source>Format</source>
       <translation>Формат</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="44" />
+      <location filename="../library/LibraryControls.qml" line="69" />
       <source>Status</source>
       <translation>Статус</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="47" />
+      <location filename="../library/LibraryControls.qml" line="72" />
       <source>All</source>
       <translation>Все</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="48" />
+      <location filename="../library/LibraryControls.qml" line="73" />
       <source>Unread</source>
       <translation>Не начато</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="49" />
+      <location filename="../library/LibraryControls.qml" line="74" />
       <source>Reading</source>
       <translation>Читаю</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="50" />
+      <location filename="../library/LibraryControls.qml" line="75" />
       <source>Finished</source>
       <translation>Прочитано</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="58" />
+      <location filename="../library/LibraryControls.qml" line="83" />
       <source>Grid</source>
       <translation>Плитка</translation>
     </message>
     <message>
-      <location filename="../library/LibraryControls.qml" line="59" />
+      <location filename="../library/LibraryControls.qml" line="84" />
       <source>List</source>
       <translation>Список</translation>
     </message>
@@ -392,45 +449,117 @@
   <context>
     <name>LibraryRepository</name>
     <message>
-      <location filename="../library/libraryrepository.cpp" line="110" />
+      <location filename="../library/libraryrepository.cpp" line="154" />
       <source>The missing library item is no longer available.</source>
       <translation>Отсутствующая книга больше не доступна.</translation>
     </message>
     <message>
-      <location filename="../library/libraryrepository.cpp" line="113" />
+      <location filename="../library/libraryrepository.cpp" line="157" />
       <source>Choose a local book file.</source>
       <translation>Выберите локальный файл книги.</translation>
     </message>
     <message>
-      <location filename="../library/libraryrepository.cpp" line="118" />
+      <location filename="../library/libraryrepository.cpp" line="162" />
       <source>The selected file does not exist.</source>
       <translation>Выбранный файл не существует.</translation>
     </message>
     <message>
-      <location filename="../library/libraryrepository.cpp" line="123" />
+      <location filename="../library/libraryrepository.cpp" line="167" />
       <source>The selected file format is not supported.</source>
       <translation>Формат выбранного файла не поддерживается.</translation>
     </message>
     <message>
-      <location filename="../library/libraryrepository.cpp" line="127" />
+      <location filename="../library/libraryrepository.cpp" line="171" />
       <source>This book is already in your library.</source>
       <translation>Эта книга уже есть в библиотеке.</translation>
     </message>
     <message>
-      <location filename="../library/libraryrepository.cpp" line="130" />
+      <location filename="../library/libraryrepository.cpp" line="174" />
       <source>Could not update the library item.</source>
       <translation>Не удалось обновить книгу в библиотеке.</translation>
     </message>
   </context>
   <context>
+    <name>LibrarySyncBar</name>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="15" />
+      <source>Suggested OneDrive folder</source>
+      <translation>Предлагаемая папка OneDrive</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="16" />
+      <source>Choose a folder inside OneDrive</source>
+      <translation>Выберите папку внутри OneDrive</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="19" />
+      <source>Folder unavailable</source>
+      <translation>Папка недоступна</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="22" />
+      <source>Synchronizing</source>
+      <translation>Синхронизация</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="25" />
+      <source>Synchronization needs attention</source>
+      <translation>Синхронизация требует внимания</translation>
+    </message>
+    <message numerus="yes">
+      <location filename="../library/LibrarySyncBar.qml" line="28" />
+      <source>%n conflict(s) preserved</source>
+      <translation>
+        <numerusform>%n конфликт сохранён</numerusform>
+        <numerusform>%n конфликта сохранено</numerusform>
+        <numerusform>%n конфликтов сохранено</numerusform>
+      </translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="31" />
+      <source>Up to date at %1</source>
+      <translation>Синхронизировано в %1</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="32" />
+      <source>HH:mm</source>
+      <translation>HH:mm</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="34" />
+      <source>Ready to synchronize</source>
+      <translation>Готово к синхронизации</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="95" />
+      <source>Use this folder</source>
+      <translation>Использовать</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="102" />
+      <source>Change</source>
+      <translation>Изменить</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="102" />
+      <source>Choose folder</source>
+      <translation>Выбрать папку</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="112" />
+      <source>Synchronize now</source>
+      <translation>Синхронизировать</translation>
+    </message>
+  </context>
+  <context>
     <name>LibraryView</name>
     <message>
-      <location filename="../library/LibraryView.qml" line="52" />
+      <location filename="../library/LibraryView.qml" line="55" />
       <source>Library</source>
       <translation>Библиотека</translation>
     </message>
     <message numerus="yes">
-      <location filename="../library/LibraryView.qml" line="60" />
+      <location filename="../library/LibraryView.qml" line="63" />
       <source>%n book(s)</source>
       <translation>
         <numerusform>%n книга</numerusform>
@@ -439,43 +568,48 @@
       </translation>
     </message>
     <message>
-      <location filename="../library/LibraryView.qml" line="70" />
+      <location filename="../library/LibraryView.qml" line="73" />
       <source>Search library</source>
       <translation>Поиск в библиотеке</translation>
     </message>
     <message>
-      <location filename="../library/LibraryView.qml" line="76" />
-      <location filename="../library/LibraryView.qml" line="213" />
+      <location filename="../library/LibraryView.qml" line="81" />
+      <source>New folder</source>
+      <translation>Новая папка</translation>
+    </message>
+    <message>
+      <location filename="../library/LibraryView.qml" line="87" />
+      <location filename="../library/LibraryView.qml" line="231" />
       <source>Add book</source>
       <translation>Добавить книгу</translation>
     </message>
     <message>
-      <location filename="../library/LibraryView.qml" line="107" />
+      <location filename="../library/LibraryView.qml" line="125" />
       <source>Continue reading</source>
       <translation>Продолжить чтение</translation>
     </message>
     <message>
-      <location filename="../library/LibraryView.qml" line="124" />
+      <location filename="../library/LibraryView.qml" line="142" />
       <source>Results</source>
       <translation>Результаты</translation>
     </message>
     <message>
-      <location filename="../library/LibraryView.qml" line="125" />
+      <location filename="../library/LibraryView.qml" line="143" />
       <source>All books</source>
       <translation>Все книги</translation>
     </message>
     <message>
-      <location filename="../library/LibraryView.qml" line="204" />
+      <location filename="../library/LibraryView.qml" line="222" />
       <source>Your library is empty</source>
       <translation>Ваша библиотека пуста</translation>
     </message>
     <message>
-      <location filename="../library/LibraryView.qml" line="226" />
+      <location filename="../library/LibraryView.qml" line="244" />
       <source>No books match these filters</source>
       <translation>Нет книг по выбранным фильтрам</translation>
     </message>
     <message>
-      <location filename="../library/LibraryView.qml" line="235" />
+      <location filename="../library/LibraryView.qml" line="253" />
       <source>Clear filters</source>
       <translation>Сбросить фильтры</translation>
     </message>
@@ -506,7 +640,7 @@
   <context>
     <name>LocalStateStore</name>
     <message>
-      <location filename="../storage/localstatestore.cpp" line="378" />
+      <location filename="../storage/localstatestore.cpp" line="385" />
       <source>The settings file could not be updated.</source>
       <translation>Не удалось обновить файл настроек.</translation>
     </message>
@@ -514,32 +648,32 @@
   <context>
     <name>Main</name>
     <message>
-      <location filename="../Main.qml" line="32" />
+      <location filename="../Main.qml" line="33" />
       <source>Supported books (*.txt *.fb2 *.epub *.pdf *.html *.htm *.md *.markdown *.docx)</source>
       <translation>Поддерживаемые книги (*.txt *.fb2 *.epub *.pdf *.html *.htm *.md *.markdown *.docx)</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="33" />
+      <location filename="../Main.qml" line="34" />
       <source>Text files (*.txt *.md *.markdown *.html *.htm)</source>
       <translation>Текстовые файлы (*.txt *.md *.markdown *.html *.htm)</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="34" />
+      <location filename="../Main.qml" line="35" />
       <source>Electronic books (*.fb2 *.epub)</source>
       <translation>Электронные книги (*.fb2 *.epub)</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="35" />
+      <location filename="../Main.qml" line="36" />
       <source>PDF files (*.pdf)</source>
       <translation>Файлы PDF (*.pdf)</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="36" />
+      <location filename="../Main.qml" line="37" />
       <source>Word documents (*.docx)</source>
       <translation>Документы Word (*.docx)</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="45" />
+      <location filename="../Main.qml" line="46" />
       <location filename="../tests/localizationcontrollertest.cpp" line="29" />
       <location filename="../tests/localizationcontrollertest.cpp" line="35" />
       <location filename="../tests/localizationcontrollertest.cpp" line="39" />
@@ -547,86 +681,198 @@
       <translation>Библиотека - SZHBooks</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="47" />
+      <location filename="../Main.qml" line="48" />
       <source> - SZHBooks</source>
       <translation> - SZHBooks</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="48" />
+      <location filename="../Main.qml" line="49" />
       <source>SZHBooks</source>
       <translation>SZHBooks</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="145" />
+      <location filename="../Main.qml" line="162" />
       <source>Open book</source>
       <translation>Открыть книгу</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="154" />
+      <location filename="../Main.qml" line="171" />
+      <source>Choose OneDrive library folder</source>
+      <translation>Выберите папку библиотеки OneDrive</translation>
+    </message>
+    <message>
+      <location filename="../Main.qml" line="191" />
       <source>Locate moved book</source>
       <translation>Найти перемещённую книгу</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="166" />
+      <location filename="../Main.qml" line="203" />
       <source>Back up local profile</source>
       <translation>Создать резервную копию профиля</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="169" />
-      <location filename="../Main.qml" line="181" />
+      <location filename="../Main.qml" line="206" />
+      <location filename="../Main.qml" line="218" />
       <source>SZHBooks profile (*.szhbackup)</source>
       <translation>Профиль SZHBooks (*.szhbackup)</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="179" />
+      <location filename="../Main.qml" line="216" />
       <source>Restore local profile</source>
       <translation>Восстановить локальный профиль</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="203" />
+      <location filename="../Main.qml" line="240" />
       <source>Backup saved</source>
       <translation>Резервная копия сохранена</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="204" />
+      <location filename="../Main.qml" line="241" />
       <source>Settings, library, positions and notes were saved.</source>
       <translation>Настройки, библиотека, позиции и заметки сохранены.</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="212" />
+      <location filename="../Main.qml" line="249" />
       <source>Profile restored</source>
       <translation>Профиль восстановлен</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="213" />
+      <location filename="../Main.qml" line="250" />
       <source>Your local reading data is ready.</source>
       <translation>Локальные данные чтения готовы.</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="218" />
+      <location filename="../Main.qml" line="255" />
       <source>Profile operation failed</source>
       <translation>Операция с профилем не выполнена</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="294" />
+      <location filename="../Main.qml" line="270" />
+      <source>Synchronization conflict preserved</source>
+      <translation>Конфликт синхронизации сохранён</translation>
+    </message>
+    <message numerus="yes">
+      <location filename="../Main.qml" line="271" />
+      <source>%n conflicting value(s) were kept in %1.</source>
+      <translation>
+        <numerusform>%n конфликтующее значение сохранено в %1.</numerusform>
+        <numerusform>%n конфликтующих значения сохранены в %1.</numerusform>
+        <numerusform>%n конфликтующих значений сохранены в %1.</numerusform>
+      </translation>
+    </message>
+    <message>
+      <location filename="../Main.qml" line="277" />
+      <source>OneDrive synchronization</source>
+      <translation>Синхронизация OneDrive</translation>
+    </message>
+    <message>
+      <location filename="../Main.qml" line="360" />
       <source>Exit focus mode (F11)</source>
       <translation>Выйти из режима фокуса (F11)</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="318" />
+      <location filename="../Main.qml" line="384" />
       <source>Could not open book</source>
       <translation>Не удалось открыть книгу</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="320" />
-      <location filename="../Main.qml" line="340" />
+      <location filename="../Main.qml" line="386" />
+      <location filename="../Main.qml" line="406" />
       <source>Choose another</source>
       <translation>Выбрать другую</translation>
     </message>
     <message>
-      <location filename="../Main.qml" line="338" />
+      <location filename="../Main.qml" line="404" />
       <source>Could not update library</source>
       <translation>Не удалось обновить библиотеку</translation>
+    </message>
+  </context>
+  <context>
+    <name>OneDriveLibraryService</name>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="175" />
+      <source>Choose a local OneDrive folder.</source>
+      <translation>Выберите локальную папку OneDrive.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="182" />
+      <source>The selected path is not a folder.</source>
+      <translation>Выбранный путь не является папкой.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="186" />
+      <source>Could not create the selected library folder.</source>
+      <translation>Не удалось создать выбранную папку библиотеки.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="298" />
+      <source>Choose a local book file.</source>
+      <translation>Выберите локальный файл книги.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="304" />
+      <source>The selected book does not exist.</source>
+      <translation>Выбранная книга не существует.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="309" />
+      <source>The selected book format is not supported.</source>
+      <translation>Формат выбранной книги не поддерживается.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="323" />
+      <source>The selected collection is unavailable.</source>
+      <translation>Выбранная коллекция недоступна.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="329" />
+      <source>Could not copy the book into the OneDrive library.</source>
+      <translation>Не удалось скопировать книгу в библиотеку OneDrive.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="352" />
+      <source>The parent collection is unavailable.</source>
+      <translation>Родительская коллекция недоступна.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="356" />
+      <source>Use a folder name without reserved characters.</source>
+      <translation>Введите имя папки без зарезервированных символов.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="365" />
+      <source>A collection with this name already exists.</source>
+      <translation>Коллекция с таким именем уже существует.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="369" />
+      <source>Could not create the collection folder.</source>
+      <translation>Не удалось создать папку коллекции.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="479" />
+      <source>Choose a OneDrive library folder first.</source>
+      <translation>Сначала выберите папку библиотеки OneDrive.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="488" />
+      <source>The OneDrive library folder is unavailable.</source>
+      <translation>Папка библиотеки OneDrive недоступна.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="603" />
+      <source>Could not create the Imported collection.</source>
+      <translation>Не удалось создать коллекцию «Импортированные».</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="615" />
+      <source>Some existing books could not be copied into the OneDrive library.</source>
+      <translation>Некоторые книги не удалось скопировать в библиотеку OneDrive.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="675" />
+      <source>OneDrive synchronization failed.</source>
+      <translation>Не удалось синхронизировать библиотеку OneDrive.</translation>
     </message>
   </context>
   <context>
@@ -797,6 +1043,49 @@
       <location filename="../shell/ProfileRestoreDialog.qml" line="91" />
       <source>Restore</source>
       <translation>Восстановить</translation>
+    </message>
+  </context>
+  <context>
+    <name>ProfileSyncEngine</name>
+    <message>
+      <location filename="../sync/profilesyncengine.cpp" line="45" />
+      <source>Could not create the synchronization metadata folder.</source>
+      <translation>Не удалось создать папку служебных данных синхронизации.</translation>
+    </message>
+    <message>
+      <location filename="../sync/profilesyncengine.cpp" line="56" />
+      <source>Could not update the synchronized book profile.</source>
+      <translation>Не удалось обновить синхронизируемый профиль книг.</translation>
+    </message>
+    <message>
+      <location filename="../sync/profilesyncengine.cpp" line="74" />
+      <source>The synchronized profile is empty or too large.</source>
+      <translation>Синхронизируемый профиль пуст или имеет слишком большой размер.</translation>
+    </message>
+    <message>
+      <location filename="../sync/profilesyncengine.cpp" line="81" />
+      <source>Could not read the synchronized profile.</source>
+      <translation>Не удалось прочитать синхронизируемый профиль.</translation>
+    </message>
+    <message>
+      <location filename="../sync/profilesyncengine.cpp" line="89" />
+      <source>The synchronized profile is damaged.</source>
+      <translation>Синхронизируемый профиль повреждён.</translation>
+    </message>
+    <message>
+      <location filename="../sync/profilesyncengine.cpp" line="98" />
+      <source>The synchronized profile version is not supported.</source>
+      <translation>Версия синхронизируемого профиля не поддерживается.</translation>
+    </message>
+    <message>
+      <location filename="../sync/profilesyncengine.cpp" line="211" />
+      <source>The selected synchronization folder is unavailable.</source>
+      <translation>Выбранная папка синхронизации недоступна.</translation>
+    </message>
+    <message>
+      <location filename="../sync/profilesyncengine.cpp" line="260" />
+      <source>Could not apply the synchronized profile: %1</source>
+      <translation>Не удалось применить синхронизируемый профиль: %1</translation>
     </message>
   </context>
   <context>

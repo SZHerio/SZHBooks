@@ -93,10 +93,66 @@ TestCase {
             title: "Novel"
             author: "Author"
             formatName: "TXT"
+            collectionPath: "Fiction"
             coverUrl: ""
             progress: 0.42
             lastOpened: new Date(2026, 0, 1)
             fileAvailable: true
+        }
+    }
+
+    QtObject {
+        id: mockSyncService
+
+        property bool configured: false
+        property bool available: true
+        property url rootFolder: "file:///C:/OneDrive/SZHBooks"
+        property string rootDisplayPath: "C:\\OneDrive\\SZHBooks"
+        property url suggestedFolder: "file:///C:/OneDrive/SZHBooks"
+        property string suggestedDisplayPath: "C:\\OneDrive\\SZHBooks"
+        property bool oneDriveDetected: true
+        property var collections: ["Fiction", "Fiction/Classics"]
+        property bool syncing: false
+        property string status: "pending"
+        property string errorMessage: ""
+        property date lastSyncedAt: new Date(2026, 0, 1, 12, 0)
+        property int conflictCount: 0
+        property int syncCount: 0
+        property int createCount: 0
+        property string createdParent: ""
+        property string createdName: ""
+
+        function useSuggestedFolder() {
+            configured = true
+            return true
+        }
+        function synchronizeNow() {
+            syncCount += 1
+            return true
+        }
+        function createCollection(parentPath, name) {
+            createCount += 1
+            createdParent = parentPath
+            createdName = name
+            return true
+        }
+    }
+
+    Component {
+        id: syncBarComponent
+
+        LibrarySyncBar {
+            width: 600
+            height: implicitHeight
+            syncService: mockSyncService
+        }
+    }
+
+    Component {
+        id: createCollectionComponent
+
+        CreateCollectionDialog {
+            syncService: mockSyncService
         }
     }
 
@@ -207,6 +263,50 @@ TestCase {
         tryCompare(delegate, "activeFocus", true)
         keyClick(Qt.Key_Return)
         compare(openedUrl, "file:///C:/Books/novel.txt")
+    }
+
+    function test_syncBarOffersAndRefreshesFolder() {
+        mockSyncService.configured = false
+        mockSyncService.syncing = false
+        const bar = createTemporaryObject(syncBarComponent, stage)
+        verify(bar)
+        compare(bar.syncService.configured, false)
+        verify(bar.height > 0)
+
+        const suggestedButton = findChild(bar, "useSuggestedFolderButton")
+        const chooseButton = findChild(bar, "chooseLibraryFolderButton")
+        verify(suggestedButton)
+        verify(chooseButton)
+        suggestedButton.clicked()
+        compare(mockSyncService.configured, true)
+
+        const syncButton = findChild(bar, "synchronizeLibraryButton")
+        verify(syncButton)
+        mockSyncService.syncCount = 0
+        syncButton.clicked()
+        compare(mockSyncService.syncCount, 1)
+    }
+
+    function test_createNestedCollectionFromKeyboard() {
+        mockSyncService.configured = true
+        mockSyncService.createCount = 0
+        const dialog = createTemporaryObject(createCollectionComponent, stage)
+        verify(dialog)
+        dialog.openFor("Fiction")
+        tryCompare(dialog, "opened", true)
+
+        const nameField = findChild(dialog, "collectionNameField")
+        const createButton = findChild(dialog, "createCollectionButton")
+        verify(nameField)
+        verify(createButton)
+        nameField.text = "Classics"
+        createButton.forceActiveFocus()
+        keyClick(Qt.Key_Space)
+
+        compare(mockSyncService.createCount, 1)
+        compare(mockSyncService.createdParent, "Fiction")
+        compare(mockSyncService.createdName, "Classics")
+        tryCompare(dialog, "opened", false)
     }
 
     function test_applicationShortcutsRouteCommands() {

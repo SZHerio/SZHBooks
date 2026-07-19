@@ -5,6 +5,7 @@ GridLayout {
     id: root
 
     required property var libraryModel
+    required property var syncService
 
     function formatOptions() {
         var options = [{"value": "all", "label": qsTr("All formats")}]
@@ -15,9 +16,33 @@ GridLayout {
         return options
     }
 
-    columns: width < 820 ? 2 : 4
+    function collectionOptions() {
+        var options = [{"value": "", "label": qsTr("All folders")}]
+        if (!root.syncService.configured) {
+            return options
+        }
+        options.push({"value": ".", "label": qsTr("Library root")})
+        const collections = root.syncService.collections
+        for (var index = 0; index < collections.length; ++index) {
+            options.push({
+                "value": collections[index],
+                "label": collections[index].split("/").join("  /  ")
+            })
+        }
+        return options
+    }
+
+    columns: width < 900 ? 2 : 5
     columnSpacing: Theme.spaceXs
     rowSpacing: Theme.spaceXs
+
+    SZHMenuButton {
+        Layout.fillWidth: true
+        labelPrefix: qsTr("Folder")
+        value: root.libraryModel.collectionFilter
+        options: root.collectionOptions()
+        onValueSelected: value => root.libraryModel.collectionFilter = value
+    }
 
     SZHMenuButton {
         Layout.fillWidth: true

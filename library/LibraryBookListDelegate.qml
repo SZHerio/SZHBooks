@@ -11,6 +11,7 @@ Rectangle {
     required property string title
     required property string author
     required property string formatName
+    required property string collectionPath
     required property url coverUrl
     required property real progress
     required property date lastOpened
@@ -101,9 +102,10 @@ Rectangle {
             Label {
                 Layout.fillWidth: true
                 text: root.fileAvailable
-                      ? (root.author.length > 0
-                         ? root.author
-                         : Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm")))
+                      ? ([root.author, root.collectionPath]
+                         .filter(value => value.length > 0)
+                         .join(qsTr("  \u00b7  "))
+                         || Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm")))
                       : root.sourcePath
                 color: root.fileAvailable ? Theme.mutedTextColor : Theme.dangerColor
                 font.family: Theme.uiFontFamily

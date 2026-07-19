@@ -278,6 +278,8 @@ void LocalStateStoreTest::filtersAndRemovesLibraryBooks()
                            QStringLiteral("Reference guide"),
                            QStringLiteral("Technical Author"),
                            QStringLiteral("PDF"));
+    store.setBookCollection(textBook, QStringLiteral("Fiction/Classics"));
+    store.setBookCollection(pdfBook, QStringLiteral("Reference"));
 
     BookCoverProvider coverProvider(directory.filePath(QStringLiteral("covers")));
     BookMetadataService metadataService(&coverProvider);
@@ -305,6 +307,12 @@ void LocalStateStoreTest::filtersAndRemovesLibraryBooks()
     QCOMPARE(model.rowCount(), 1);
     QCOMPARE(model.data(model.index(0, 0), LibraryModel::FormatNameRole).toString(),
              QStringLiteral("PDF"));
+
+    model.clearFilters();
+    model.setCollectionFilter(QStringLiteral("Fiction"));
+    QCOMPARE(model.rowCount(), 1);
+    QCOMPARE(model.data(model.index(0, 0), LibraryModel::CollectionPathRole).toString(),
+             QStringLiteral("Fiction/Classics"));
 
     model.clearFilters();
     store.saveTextPosition(textBook, 0.4);
