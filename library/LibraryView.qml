@@ -222,6 +222,11 @@ Item {
             Layout.fillWidth: true
             fileService: root.fileService
         }
+
+        LibraryScanProgress {
+            Layout.fillWidth: true
+            libraryModel: root.libraryModel
+        }
     }
 
     Item {

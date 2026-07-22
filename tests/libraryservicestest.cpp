@@ -1,6 +1,7 @@
 #include "../library/bookcoverprovider.h"
 #include "../library/bookmetadata.h"
 #include "../library/bookmetadataservice.h"
+#include "../library/libraryscanservice.h"
 
 #include <QBuffer>
 #include <QColor>
@@ -97,6 +98,8 @@ private slots:
     void extractsEpubMetadataAndCover();
     void extractsDocxMetadataAndCover();
     void rendersPdfFirstPageCover();
+    void scansMetadataInBackground();
+    void cancelsBackgroundScan();
 };
 
 void LibraryServicesTest::extractsFb2MetadataAndCover()
@@ -221,6 +224,76 @@ void LibraryServicesTest::rendersPdfFirstPageCover()
     QCOMPARE(metadata.author, QStringLiteral("PDF Author"));
     QCOMPARE(metadata.formatName, QStringLiteral("PDF"));
     verifyCoverFile(metadata);
+}
+
+void LibraryServicesTest::scansMetadataInBackground()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const QString path = directory.filePath(QStringLiteral("background-book.txt"));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    QVERIFY(file.write("Background scan content") > 0);
+    file.close();
+
+    BookCoverProvider covers(directory.filePath(QStringLiteral("covers")));
+    BookMetadataService metadataService(&covers);
+    LibraryScanService scanner(&metadataService);
+    LibraryBook book;
+    book.sourceUrl = QUrl::fromLocalFile(path);
+    book.sourcePath = path;
+    book.title = QStringLiteral("Cached title");
+
+    QSignalSpy resultSpy(&scanner, &LibraryScanService::resultsReady);
+    QSignalSpy finishedSpy(&scanner, &LibraryScanService::finished);
+    scanner.start({book});
+
+    QTRY_COMPARE_WITH_TIMEOUT(finishedSpy.size(), 1, 5000);
+    QVERIFY(!finishedSpy.constFirst().constFirst().toBool());
+    QCOMPARE(scanner.completed(), 1);
+    QCOMPARE(scanner.total(), 1);
+    QVERIFY(!resultSpy.isEmpty());
+
+    const QVector<LibraryScanResult> results =
+        resultSpy.constFirst().constFirst().value<QVector<LibraryScanResult>>();
+    QCOMPARE(results.size(), 1);
+    QVERIFY(results.constFirst().fileAvailable);
+    QVERIFY(results.constFirst().metadataInspected);
+    QCOMPARE(results.constFirst().metadata.title,
+             QStringLiteral("background-book"));
+    QCOMPARE(results.constFirst().metadata.formatName, QStringLiteral("TXT"));
+}
+
+void LibraryServicesTest::cancelsBackgroundScan()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    QVector<LibraryBook> books;
+    for (int index = 0; index < 256; ++index) {
+        const QString path = directory.filePath(
+            QStringLiteral("book-%1.txt").arg(index));
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QVERIFY(file.write("Cancelable scan") > 0);
+        file.close();
+
+        LibraryBook book;
+        book.sourceUrl = QUrl::fromLocalFile(path);
+        book.sourcePath = path;
+        books.append(book);
+    }
+
+    BookCoverProvider covers(directory.filePath(QStringLiteral("covers")));
+    BookMetadataService metadataService(&covers);
+    LibraryScanService scanner(&metadataService);
+    QSignalSpy finishedSpy(&scanner, &LibraryScanService::finished);
+    scanner.start(books);
+    scanner.cancel();
+
+    QTRY_COMPARE_WITH_TIMEOUT(finishedSpy.size(), 1, 5000);
+    QVERIFY(finishedSpy.constFirst().constFirst().toBool());
+    QVERIFY(!scanner.scanning());
+    QVERIFY(scanner.completed() <= scanner.total());
 }
 
 QTEST_GUILESS_MAIN(LibraryServicesTest)

@@ -80,6 +80,8 @@ target_sources(appSZHBooks PRIVATE
     library/librarymodel.h
     library/libraryrepository.cpp
     library/libraryrepository.h
+    library/libraryscanservice.cpp
+    library/libraryscanservice.h
     notes/notescentermodel.cpp
     notes/notescentermodel.h
     search/librarysearchindex.cpp
@@ -143,6 +145,7 @@ qt_add_qml_module(appSZHBooks
         library/LibraryCollectionSidebar.qml
         library/LibraryControls.qml
         library/LibraryImportProgress.qml
+        library/LibraryScanProgress.qml
         library/LibrarySyncBar.qml
         library/LibraryView.qml
         library/SyncCenterDialog.qml
@@ -281,6 +284,8 @@ if(BUILD_TESTING)
             library/librarymodel.h
             library/libraryrepository.cpp
             library/libraryrepository.h
+            library/libraryscanservice.cpp
+            library/libraryscanservice.h
             reader/readingannotation.h
             storage/documentstoragekey.cpp
             storage/documentstoragekey.h
@@ -295,6 +300,7 @@ if(BUILD_TESTING)
         target_link_libraries(tst_localstatestore
             PRIVATE
                 szhbooks_miniz
+                Qt6::Concurrent
                 Qt6::Core
                 Qt6::Gui
                 Qt6::Pdf
@@ -594,11 +600,17 @@ if(BUILD_TESTING)
             library/bookmetadata.h
             library/bookmetadataservice.cpp
             library/bookmetadataservice.h
+            library/cloudfileavailability.cpp
+            library/cloudfileavailability.h
+            library/librarybook.h
+            library/libraryscanservice.cpp
+            library/libraryscanservice.h
             tests/libraryservicestest.cpp
         )
         target_link_libraries(tst_libraryservices
             PRIVATE
                 szhbooks_miniz
+                Qt6::Concurrent
                 Qt6::Gui
                 Qt6::Pdf
                 Qt6::Test
@@ -666,6 +678,7 @@ if(BUILD_TESTING)
                     library/LibraryBookDelegate.qml
                     library/LibraryCollectionSidebar.qml
                     library/LibraryImportProgress.qml
+                    library/LibraryScanProgress.qml
                     library/LibrarySyncBar.qml
                     library/SyncCenterDialog.qml
                     notes/NotesCenterDialog.qml

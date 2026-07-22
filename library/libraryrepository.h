@@ -10,6 +10,7 @@
 #include <optional>
 
 class BookMetadataService;
+struct BookMetadata;
 class LocalStateStore;
 
 class LibraryRepository final : public QObject
@@ -48,6 +49,10 @@ public:
     bool setCustomCover(const QUrl &sourceUrl,
                         const QUrl &imageUrl,
                         QString *errorMessage = nullptr);
+    void persistScannedMetadata(const QUrl &sourceUrl,
+                                const BookMetadata &metadata);
+    void beginBatchUpdate();
+    void endBatchUpdate();
     void setManagedRootPath(const QString &rootPath);
 
 signals:
@@ -58,4 +63,6 @@ private:
     LocalStateStore *m_store = nullptr;
     BookMetadataService *m_metadataService = nullptr;
     CustomCoverStore m_customCoverStore;
+    int m_batchDepth = 0;
+    bool m_changePending = false;
 };

@@ -1,13 +1,13 @@
 #include "libraryrepository.h"
 
 #include "bookmetadataservice.h"
-#include "cloudfileavailability.h"
 #include "../storage/documentstoragekey.h"
 #include "../storage/localstatestore.h"
 
 #include <QFileInfo>
 
 #include <algorithm>
+#include <utility>
 
 LibraryRepository::LibraryRepository(LocalStateStore *store,
                                      BookMetadataService *metadataService,
@@ -19,7 +19,16 @@ LibraryRepository::LibraryRepository(LocalStateStore *store,
     Q_ASSERT(m_store);
     Q_ASSERT(m_metadataService);
 
-    connect(m_store, &LocalStateStore::libraryChanged, this, &LibraryRepository::changed);
+    connect(m_store,
+            &LocalStateStore::libraryChanged,
+            this,
+            [this]() {
+                if (m_batchDepth > 0) {
+                    m_changePending = true;
+                } else {
+                    emit changed();
+                }
+            });
     connect(m_store,
             &LocalStateStore::documentProgressChanged,
             this,
@@ -28,51 +37,7 @@ LibraryRepository::LibraryRepository(LocalStateStore *store,
 
 QVector<LibraryBook> LibraryRepository::books()
 {
-    QVector<LibraryBook> books = m_store->libraryBooks();
-    for (LibraryBook &book : books) {
-        book.cloudPlaceholder = book.sourceUrl.isLocalFile()
-                                && CloudFileAvailability::isOnlineOnly(
-                                    book.sourceUrl.toLocalFile());
-        if (!book.fileAvailable) {
-            continue;
-        }
-        if (book.cloudPlaceholder) {
-            continue;
-        }
-
-        const QString fingerprint = m_metadataService->fingerprint(book.sourceUrl);
-        const bool customCoverAvailable = !book.customCoverUrl.isEmpty()
-                                          && (!book.customCoverUrl.isLocalFile()
-                                              || QFileInfo::exists(
-                                                  book.customCoverUrl.toLocalFile()));
-        const bool coverMissing = !book.coverUrl.isEmpty()
-                                  && book.coverUrl.isLocalFile()
-                                  && !QFileInfo::exists(book.coverUrl.toLocalFile());
-        if (fingerprint.isEmpty()
-            || (fingerprint == book.metadataFingerprint && !coverMissing)) {
-            continue;
-        }
-
-        const BookMetadata metadata = m_metadataService->inspect(book.sourceUrl);
-        if (metadata.hasDocumentTitle || book.title.isEmpty()) {
-            book.title = metadata.title;
-        }
-        if (metadata.hasDocumentAuthor || book.author.isEmpty()) {
-            book.author = metadata.author;
-        }
-        if (!metadata.formatName.isEmpty()) {
-            book.formatName = metadata.formatName;
-        }
-        book.metadataFingerprint = metadata.fingerprint;
-        book.coverUrl = customCoverAvailable ? book.customCoverUrl : metadata.coverUrl;
-        m_store->updateBookMetadata(book.sourceUrl,
-                                    book.title,
-                                    book.author,
-                                    book.formatName,
-                                    metadata.coverUrl,
-                                    book.metadataFingerprint);
-    }
-    return books;
+    return m_store->libraryBooks();
 }
 
 std::optional<LibraryBook> LibraryRepository::book(const QUrl &sourceUrl)
@@ -256,6 +221,37 @@ bool LibraryRepository::setCustomCover(const QUrl &sourceUrl,
     BookMetadataPatch patch;
     patch.customCoverUrl = coverUrl;
     return m_store->updateBookDetails({sourceUrl}, patch, errorMessage);
+}
+
+void LibraryRepository::persistScannedMetadata(const QUrl &sourceUrl,
+                                                const BookMetadata &metadata)
+{
+    if (sourceUrl.isEmpty() || metadata.fingerprint.isEmpty()) {
+        return;
+    }
+    m_store->updateBookMetadata(sourceUrl,
+                                metadata.title,
+                                metadata.author,
+                                metadata.formatName,
+                                metadata.coverUrl,
+                                metadata.fingerprint);
+}
+
+void LibraryRepository::beginBatchUpdate()
+{
+    ++m_batchDepth;
+}
+
+void LibraryRepository::endBatchUpdate()
+{
+    Q_ASSERT(m_batchDepth > 0);
+    if (m_batchDepth <= 0) {
+        return;
+    }
+    --m_batchDepth;
+    if (m_batchDepth == 0 && std::exchange(m_changePending, false)) {
+        emit changed();
+    }
 }
 
 void LibraryRepository::setManagedRootPath(const QString &rootPath)

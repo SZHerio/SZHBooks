@@ -3,6 +3,7 @@
 #include "../library/libraryrepository.h"
 
 #include <QtConcurrentRun>
+#include <QPointer>
 
 #include <utility>
 
@@ -27,11 +28,13 @@ LibrarySearchModel::LibrarySearchModel(LibraryRepository *repository,
             [this]() {
                 const LibrarySearchIndexSummary summary = m_indexWatcher.result();
                 applyIndexSummary(summary);
-                if (!summary.errorMessage.isEmpty()) {
+                if (!summary.errorMessage.isEmpty() || summary.canceled) {
                     m_indexStale = true;
                 }
                 m_indexing = false;
+                m_cancellationRequested = false;
                 emit indexingChanged();
+                emit indexProgressChanged();
                 refreshResults();
 
                 const bool rebuild = m_rebuildPending;
@@ -50,6 +53,16 @@ LibrarySearchModel::LibrarySearchModel(LibraryRepository *repository,
             &LibraryRepository::changed,
             this,
             &LibrarySearchModel::markIndexStale);
+}
+
+LibrarySearchModel::~LibrarySearchModel()
+{
+    if (m_cancellation) {
+        m_cancellation->store(true, std::memory_order_relaxed);
+    }
+    if (m_indexWatcher.isRunning()) {
+        m_indexWatcher.waitForFinished();
+    }
 }
 
 int LibrarySearchModel::rowCount(const QModelIndex &parent) const
@@ -106,6 +119,23 @@ QString LibrarySearchModel::query() const
 bool LibrarySearchModel::indexing() const
 {
     return m_indexing;
+}
+
+bool LibrarySearchModel::cancellationRequested() const
+{
+    return m_cancellationRequested;
+}
+
+int LibrarySearchModel::indexCompleted() const
+{
+    return m_indexCompleted;
+}
+
+qreal LibrarySearchModel::indexProgress() const
+{
+    return m_totalBooks > 0
+               ? qreal(m_indexCompleted) / qreal(m_totalBooks)
+               : 0;
 }
 
 int LibrarySearchModel::indexedBooks() const
@@ -170,6 +200,20 @@ void LibrarySearchModel::rebuildIndex()
     startIndexing(true);
 }
 
+void LibrarySearchModel::cancelIndexing()
+{
+    if (!m_indexing || m_cancellationRequested) {
+        return;
+    }
+    m_refreshPending = false;
+    m_rebuildPending = false;
+    m_cancellationRequested = true;
+    if (m_cancellation) {
+        m_cancellation->store(true, std::memory_order_relaxed);
+    }
+    emit indexingChanged();
+}
+
 void LibrarySearchModel::clearError()
 {
     setErrorMessage({});
@@ -205,16 +249,36 @@ void LibrarySearchModel::startIndexing(bool rebuild)
 
     const QVector<LibraryBook> books = m_repository->books();
     m_totalBooks = books.size();
+    m_indexCompleted = 0;
     m_indexing = true;
+    m_cancellationRequested = false;
     m_indexStale = false;
+    m_cancellation = std::make_shared<std::atomic_bool>(false);
     setErrorMessage({});
     emit indexStatusChanged();
     emit indexingChanged();
+    emit indexProgressChanged();
 
     const QString databaseFilePath = m_databaseFilePath;
+    const std::shared_ptr<std::atomic_bool> cancellation = m_cancellation;
+    const QPointer<LibrarySearchModel> model(this);
     m_indexWatcher.setFuture(QtConcurrent::run(
-        [databaseFilePath, books, rebuild]() {
-            return LibrarySearchIndex(databaseFilePath).synchronize(books, rebuild);
+        [databaseFilePath, books, rebuild, cancellation, model]() {
+            const auto progress = [model](int completed, int total) {
+                if (!model) {
+                    return;
+                }
+                QMetaObject::invokeMethod(
+                    model,
+                    [model, completed, total]() {
+                        if (model) {
+                            model->updateIndexProgress(completed, total);
+                        }
+                    },
+                    Qt::QueuedConnection);
+            };
+            return LibrarySearchIndex(databaseFilePath)
+                .synchronize(books, rebuild, cancellation.get(), progress);
         }));
 }
 
@@ -223,11 +287,28 @@ void LibrarySearchModel::applyIndexSummary(const LibrarySearchIndexSummary &summ
     m_totalBooks = summary.totalBooks;
     m_indexedBooks = summary.indexedBooks;
     m_failedBooks = summary.failedBooks;
+    m_indexCompleted = summary.processedBooks;
     m_indexedAt = summary.indexedAt;
     setErrorMessage(summary.errorMessage.isEmpty()
                         ? QString()
                         : tr("Search index error: %1").arg(summary.errorMessage));
     emit indexStatusChanged();
+}
+
+void LibrarySearchModel::updateIndexProgress(int completed, int total)
+{
+    if (!m_indexing) {
+        return;
+    }
+    const int boundedTotal = qMax(0, total);
+    const int boundedCompleted = qBound(0, completed, boundedTotal);
+    if (m_totalBooks == boundedTotal && m_indexCompleted == boundedCompleted) {
+        return;
+    }
+    m_totalBooks = boundedTotal;
+    m_indexCompleted = boundedCompleted;
+    emit indexStatusChanged();
+    emit indexProgressChanged();
 }
 
 void LibrarySearchModel::refreshResults()

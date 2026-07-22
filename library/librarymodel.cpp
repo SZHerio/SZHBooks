@@ -1,8 +1,10 @@
 #include "librarymodel.h"
 
 #include "libraryrepository.h"
+#include "libraryscanservice.h"
 
 #include <QDir>
+#include <QFileInfo>
 #include <QRegularExpression>
 #include <QtGlobal>
 
@@ -266,6 +268,59 @@ QVariantMap LibraryModel::recentBook() const
     return m_allBooks.isEmpty() ? QVariantMap() : toVariantMap(m_allBooks.constFirst());
 }
 
+bool LibraryModel::scanning() const
+{
+    return m_scanService && m_scanService->scanning();
+}
+
+bool LibraryModel::scanCancellationRequested() const
+{
+    return m_scanService && m_scanService->cancellationRequested();
+}
+
+int LibraryModel::scanCompleted() const
+{
+    return m_scanService ? m_scanService->completed() : 0;
+}
+
+int LibraryModel::scanTotal() const
+{
+    return m_scanService ? m_scanService->total() : 0;
+}
+
+qreal LibraryModel::scanProgress() const
+{
+    return m_scanService ? m_scanService->progress() : 0;
+}
+
+void LibraryModel::setScanService(LibraryScanService *scanService)
+{
+    if (m_scanService == scanService) {
+        return;
+    }
+    if (m_scanService) {
+        disconnect(m_scanService, nullptr, this, nullptr);
+    }
+    m_scanService = scanService;
+    if (m_scanService) {
+        connect(m_scanService,
+                &LibraryScanService::scanningChanged,
+                this,
+                &LibraryModel::scanStateChanged);
+        connect(m_scanService,
+                &LibraryScanService::progressChanged,
+                this,
+                &LibraryModel::scanProgressChanged);
+        connect(m_scanService,
+                &LibraryScanService::resultsReady,
+                this,
+                &LibraryModel::applyScanResults);
+        m_scanService->start(m_allBooks);
+    }
+    emit scanStateChanged();
+    emit scanProgressChanged();
+}
+
 void LibraryModel::setFilterText(const QString &filterText)
 {
     const QString normalizedFilter = filterText.trimmed();
@@ -452,6 +507,7 @@ void LibraryModel::refresh()
         emit viewModeChanged();
     }
     m_allBooks = m_repository->books();
+    rebuildBookRows();
 
     rebuildAvailableFormats();
     rebuildMetadataFilters();
@@ -461,6 +517,9 @@ void LibraryModel::refresh()
         emit totalCountChanged();
     }
     emit recentBookChanged();
+    if (m_scanService) {
+        m_scanService->start(m_allBooks);
+    }
 }
 
 void LibraryModel::removeBook(int row)
@@ -699,6 +758,20 @@ void LibraryModel::clearError()
     setErrorMessage({});
 }
 
+void LibraryModel::rescan()
+{
+    if (m_scanService) {
+        m_scanService->start(m_allBooks);
+    }
+}
+
+void LibraryModel::cancelScan()
+{
+    if (m_scanService) {
+        m_scanService->cancel();
+    }
+}
+
 QVariantMap LibraryModel::toVariantMap(const LibraryBook &book)
 {
     return {
@@ -914,6 +987,75 @@ void LibraryModel::pruneSelection()
     }
     m_selectedBookKeys = retained;
     emit selectionChanged();
+}
+
+void LibraryModel::rebuildBookRows()
+{
+    m_bookRows.clear();
+    m_bookRows.reserve(m_allBooks.size());
+    for (int row = 0; row < m_allBooks.size(); ++row) {
+        m_bookRows.insert(selectionKey(m_allBooks.at(row).sourceUrl), row);
+    }
+}
+
+void LibraryModel::applyScanResults(const QVector<LibraryScanResult> &results)
+{
+    bool changed = false;
+    bool metadataChanged = false;
+    bool recentChanged = false;
+    for (const LibraryScanResult &result : results) {
+        const auto row = m_bookRows.constFind(selectionKey(result.sourceUrl));
+        if (row == m_bookRows.cend()) {
+            continue;
+        }
+
+        LibraryBook &book = m_allBooks[*row];
+        if (book.fileAvailable != result.fileAvailable
+            || book.cloudPlaceholder != result.cloudPlaceholder) {
+            book.fileAvailable = result.fileAvailable;
+            book.cloudPlaceholder = result.cloudPlaceholder;
+            changed = true;
+        }
+        if (!result.metadataInspected) {
+            recentChanged = recentChanged || (*row == 0 && changed);
+            continue;
+        }
+
+        const BookMetadata &metadata = result.metadata;
+        if (!book.metadataEdited) {
+            if (metadata.hasDocumentTitle || book.title.isEmpty()) {
+                book.title = metadata.title;
+            }
+            if (metadata.hasDocumentAuthor || book.author.isEmpty()) {
+                book.author = metadata.author;
+            }
+        }
+        if (!metadata.formatName.isEmpty()) {
+            book.formatName = metadata.formatName;
+        }
+        book.metadataFingerprint = metadata.fingerprint;
+        const bool customCoverAvailable = !book.customCoverUrl.isEmpty()
+                                          && (!book.customCoverUrl.isLocalFile()
+                                              || QFileInfo::exists(
+                                                  book.customCoverUrl.toLocalFile()));
+        book.coverUrl = customCoverAvailable ? book.customCoverUrl : metadata.coverUrl;
+        m_repository->persistScannedMetadata(result.sourceUrl, metadata);
+        changed = true;
+        metadataChanged = true;
+        recentChanged = recentChanged || *row == 0;
+    }
+
+    if (!changed) {
+        return;
+    }
+    if (metadataChanged) {
+        rebuildAvailableFormats();
+        rebuildMetadataFilters();
+    }
+    rebuildVisibleBooks();
+    if (recentChanged) {
+        emit recentBookChanged();
+    }
 }
 
 void LibraryModel::updateProgress(const QUrl &sourceUrl, qreal progress)

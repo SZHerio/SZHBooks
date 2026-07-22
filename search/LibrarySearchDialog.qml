@@ -21,8 +21,13 @@ Dialog {
     }
 
     function indexStatusText() {
-        if (searchModel.indexing)
-            return qsTr("Updating the local search index...")
+        if (searchModel.indexing) {
+            return searchModel.cancellationRequested
+                   ? qsTr("Finishing the current book...")
+                   : qsTr("Indexing %1 of %2 books")
+                     .arg(searchModel.indexCompleted)
+                     .arg(searchModel.totalBooks)
+        }
         if (searchModel.totalBooks === 0)
             return qsTr("Add books to search their contents")
         if (searchModel.failedBooks > 0) {
@@ -88,17 +93,25 @@ Dialog {
                     font.pixelSize: Theme.captionFontSize
                     elide: Text.ElideRight
                 }
+
+                SZHProgressBar {
+                    Layout.fillWidth: true
+                    visible: root.searchModel.indexing
+                    value: root.searchModel.indexProgress
+                }
             }
 
-            BusyIndicator {
+            SZHIconButton {
                 visible: root.searchModel.indexing
-                running: visible
-                Layout.preferredWidth: 24
-                Layout.preferredHeight: 24
+                symbol: "\u00d7"
+                enabled: !root.searchModel.cancellationRequested
+                toolTip: qsTr("Cancel indexing")
+                onClicked: root.searchModel.cancelIndexing()
             }
 
             SZHIconButton {
                 objectName: "rebuildSearchIndexButton"
+                visible: !root.searchModel.indexing
                 symbol: "\u21bb"
                 toolTip: qsTr("Rebuild search index")
                 enabled: !root.searchModel.indexing

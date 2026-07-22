@@ -331,6 +331,9 @@ TestCase {
 
         property string query: ""
         property bool indexing: false
+        property bool cancellationRequested: false
+        property int indexCompleted: 0
+        property real indexProgress: 0
         property int indexedBooks: 1
         property int totalBooks: 1
         property int failedBooks: 0
@@ -338,9 +341,11 @@ TestCase {
         property string errorMessage: ""
         property int ensureCount: 0
         property int rebuildCount: 0
+        property int cancelCount: 0
 
         function ensureIndexed() { ensureCount += 1 }
         function rebuildIndex() { rebuildCount += 1 }
+        function cancelIndexing() { cancelCount += 1 }
         function clearError() { errorMessage = "" }
     }
 

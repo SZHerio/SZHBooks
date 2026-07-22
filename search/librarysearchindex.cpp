@@ -497,10 +497,21 @@ QString LibrarySearchIndex::databasePathForProfile(const QString &profileDatabas
 }
 
 LibrarySearchIndexSummary LibrarySearchIndex::synchronize(const QVector<LibraryBook> &books,
-                                                          bool rebuild) const
+                                                          bool rebuild,
+                                                          std::atomic_bool *cancellation,
+                                                          const ProgressCallback &progress) const
 {
     LibrarySearchIndexSummary summary;
     summary.totalBooks = books.size();
+    const auto cancellationRequested = [cancellation]() {
+        return cancellation && cancellation->load(std::memory_order_relaxed);
+    };
+    const auto reportProgress = [&summary, &progress]() {
+        if (progress) {
+            progress(summary.processedBooks, summary.totalBooks);
+        }
+    };
+    reportProgress();
     SearchDatabase connection(m_databaseFilePath);
     if (!connection.isValid()) {
         summary.errorMessage = connection.errorMessage();
@@ -546,6 +557,10 @@ LibrarySearchIndexSummary LibrarySearchIndex::synchronize(const QVector<LibraryB
     }
 
     for (const QString &key : staleSources) {
+        if (cancellationRequested()) {
+            summary.canceled = true;
+            break;
+        }
         if (!database.transaction()) {
             summary.errorMessage = database.lastError().text();
             return summary;
@@ -567,29 +582,47 @@ LibrarySearchIndexSummary LibrarySearchIndex::synchronize(const QVector<LibraryB
         }
     }
 
-    for (const LibraryBook &book : books) {
-        if (!book.sourceUrl.isLocalFile() || !book.fileAvailable || book.cloudPlaceholder) {
-            continue;
-        }
-        const QFileInfo fileInfo(localPath(book));
-        if (!fileInfo.exists() || !fileInfo.isFile() || isBookCurrent(database, book, fileInfo)) {
-            continue;
-        }
-
-        QString loadError;
-        const QVector<SearchChunk> chunks = loadChunks(book, &loadError);
-        if (!storeBook(database,
-                       book,
-                       fileInfo,
-                       chunks,
-                       loadError,
-                       connection.ftsAvailable(),
-                       &summary.errorMessage)) {
-            return summary;
-        }
+    if (summary.canceled) {
+        LibrarySearchIndexSummary current = readSummary(database, books.size());
+        current.processedBooks = summary.processedBooks;
+        current.canceled = true;
+        return current;
     }
 
-    return readSummary(database, books.size());
+    for (const LibraryBook &book : books) {
+        if (cancellationRequested()) {
+            summary.canceled = true;
+            break;
+        }
+        if (book.sourceUrl.isLocalFile() && book.fileAvailable && !book.cloudPlaceholder) {
+            const QFileInfo fileInfo(localPath(book));
+            if (fileInfo.exists() && fileInfo.isFile()
+                && !isBookCurrent(database, book, fileInfo)) {
+                QString loadError;
+                const QVector<SearchChunk> chunks = loadChunks(book, &loadError);
+                if (cancellationRequested()) {
+                    summary.canceled = true;
+                    break;
+                }
+                if (!storeBook(database,
+                               book,
+                               fileInfo,
+                               chunks,
+                               loadError,
+                               connection.ftsAvailable(),
+                               &summary.errorMessage)) {
+                    return summary;
+                }
+            }
+        }
+        ++summary.processedBooks;
+        reportProgress();
+    }
+
+    LibrarySearchIndexSummary current = readSummary(database, books.size());
+    current.processedBooks = summary.processedBooks;
+    current.canceled = summary.canceled;
+    return current;
 }
 
 LibrarySearchIndexSummary LibrarySearchIndex::status(int totalBooks) const

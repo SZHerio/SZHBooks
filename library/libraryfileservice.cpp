@@ -264,7 +264,7 @@ QUrl LibraryFileService::importBook(const QUrl &sourceUrl,
     }
 
     const QString actualCollection = collectionForBook(result.destinationUrl);
-    m_repository->registerBook(result.destinationUrl, actualCollection, true);
+    m_repository->registerBook(result.destinationUrl, actualCollection, true, false);
     setLastImportedUrl(result.destinationUrl);
     if (result.status == ImportResult::Duplicate) {
         emit duplicateDetected(result.sourceUrl, result.destinationUrl);
@@ -793,13 +793,13 @@ void LibraryFileService::handleImportFinished()
     ++m_operationCompleted;
     if (result.status == ImportResult::Copied) {
         const QString collection = collectionForBook(result.destinationUrl);
-        m_repository->registerBook(result.destinationUrl, collection, true);
+        m_repository->registerBook(result.destinationUrl, collection, true, false);
         setLastImportedUrl(result.destinationUrl);
         ++m_importedCount;
     } else if (result.status == ImportResult::AlreadyManaged
                || result.status == ImportResult::Duplicate) {
         const QString collection = collectionForBook(result.destinationUrl);
-        m_repository->registerBook(result.destinationUrl, collection, true);
+        m_repository->registerBook(result.destinationUrl, collection, true, false);
         setLastImportedUrl(result.destinationUrl);
         ++m_duplicateCount;
         emit duplicateDetected(result.sourceUrl, result.destinationUrl);

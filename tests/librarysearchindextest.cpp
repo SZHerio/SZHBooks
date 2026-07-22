@@ -57,6 +57,7 @@ class LibrarySearchIndexTest final : public QObject
 private slots:
     void indexesTextAndPreservesCharacterLocation();
     void indexesPdfPagesAndRemovesStaleBooks();
+    void reportsProgressAndStopsBetweenBooks();
 };
 
 void LibrarySearchIndexTest::indexesTextAndPreservesCharacterLocation()
@@ -134,6 +135,41 @@ void LibrarySearchIndexTest::indexesPdfPagesAndRemovesStaleBooks()
     QVERIFY2(emptySummary.errorMessage.isEmpty(), qPrintable(emptySummary.errorMessage));
     QCOMPARE(emptySummary.indexedBooks, 0);
     QVERIFY(index.search(QStringLiteral("NebulaQuartz"), 20, &searchError).isEmpty());
+}
+
+void LibrarySearchIndexTest::reportsProgressAndStopsBetweenBooks()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    QVector<LibraryBook> books;
+    for (int index = 0; index < 3; ++index) {
+        const QString path = directory.filePath(QStringLiteral("book-%1.txt").arg(index));
+        QVERIFY(writeUtf8File(path,
+                              QStringLiteral("Searchable content %1").arg(index)));
+        books.append(localBook(path,
+                               QStringLiteral("Book %1").arg(index),
+                               QStringLiteral("TXT")));
+    }
+
+    std::atomic_bool cancellation = false;
+    QVector<int> progressValues;
+    const LibrarySearchIndexSummary summary = LibrarySearchIndex(
+        directory.filePath(QStringLiteral("cancel-search.sqlite")))
+        .synchronize(books,
+                     false,
+                     &cancellation,
+                     [&cancellation, &progressValues](int completed, int) {
+                         progressValues.append(completed);
+                         if (completed == 1) {
+                             cancellation.store(true, std::memory_order_relaxed);
+                         }
+                     });
+
+    QVERIFY(summary.canceled);
+    QCOMPARE(summary.totalBooks, 3);
+    QCOMPARE(summary.processedBooks, 1);
+    QCOMPARE(progressValues.constFirst(), 0);
+    QCOMPARE(progressValues.constLast(), 1);
 }
 
 QTEST_MAIN(LibrarySearchIndexTest)

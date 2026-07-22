@@ -11,6 +11,7 @@
 #include "library/bookmetadataservice.h"
 #include "library/librarymodel.h"
 #include "library/libraryrepository.h"
+#include "library/libraryscanservice.h"
 #include "localization/localizationcontroller.h"
 #include "notes/notescentermodel.h"
 #include "reader/readingsearchcontroller.h"
@@ -62,7 +63,9 @@ int main(int argc, char *argv[])
     BookCoverProvider coverProvider;
     BookMetadataService metadataService(&coverProvider);
     LibraryRepository libraryRepository(&localState, &metadataService);
+    LibraryScanService libraryScanService(&metadataService);
     LibraryModel libraryModel(&libraryRepository);
+    libraryModel.setScanService(&libraryScanService);
     ReaderController reader;
     ReadingDocumentFormatter documentFormatter;
     ReadingSearchController searchController;

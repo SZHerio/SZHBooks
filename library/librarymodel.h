@@ -3,11 +3,14 @@
 #include "librarybook.h"
 
 #include <QAbstractListModel>
+#include <QHash>
 #include <QSet>
 #include <QStringList>
 #include <QVariantMap>
 
 class LibraryRepository;
+class LibraryScanService;
+struct LibraryScanResult;
 
 class LibraryModel final : public QAbstractListModel
 {
@@ -33,6 +36,11 @@ class LibraryModel final : public QAbstractListModel
     Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
     Q_PROPERTY(int totalCount READ totalCount NOTIFY totalCountChanged)
     Q_PROPERTY(QVariantMap recentBook READ recentBook NOTIFY recentBookChanged)
+    Q_PROPERTY(bool scanning READ scanning NOTIFY scanStateChanged)
+    Q_PROPERTY(bool scanCancellationRequested READ scanCancellationRequested NOTIFY scanStateChanged)
+    Q_PROPERTY(int scanCompleted READ scanCompleted NOTIFY scanProgressChanged)
+    Q_PROPERTY(int scanTotal READ scanTotal NOTIFY scanProgressChanged)
+    Q_PROPERTY(qreal scanProgress READ scanProgress NOTIFY scanProgressChanged)
 
 public:
     enum Role {
@@ -83,6 +91,13 @@ public:
     QString errorMessage() const;
     int totalCount() const;
     QVariantMap recentBook() const;
+    bool scanning() const;
+    bool scanCancellationRequested() const;
+    int scanCompleted() const;
+    int scanTotal() const;
+    qreal scanProgress() const;
+
+    void setScanService(LibraryScanService *scanService);
 
     void setFilterText(const QString &filterText);
     void setSortMode(const QString &sortMode);
@@ -107,6 +122,8 @@ public:
     Q_INVOKABLE void clearSelection();
     Q_INVOKABLE void clearFilters();
     Q_INVOKABLE void clearError();
+    Q_INVOKABLE void rescan();
+    Q_INVOKABLE void cancelScan();
 
 signals:
     void filterTextChanged();
@@ -127,6 +144,8 @@ signals:
     void countChanged();
     void totalCountChanged();
     void recentBookChanged();
+    void scanStateChanged();
+    void scanProgressChanged();
 
 private:
     static QVariantMap toVariantMap(const LibraryBook &book);
@@ -135,12 +154,16 @@ private:
     void rebuildAvailableFormats();
     void rebuildMetadataFilters();
     void pruneSelection();
+    void rebuildBookRows();
+    void applyScanResults(const QVector<LibraryScanResult> &results);
     void updateProgress(const QUrl &sourceUrl, qreal progress);
     void setErrorMessage(const QString &errorMessage);
 
     LibraryRepository *m_repository = nullptr;
+    LibraryScanService *m_scanService = nullptr;
     QVector<LibraryBook> m_allBooks;
     QVector<LibraryBook> m_visibleBooks;
+    QHash<QString, int> m_bookRows;
     QStringList m_availableFormats;
     QString m_filterText;
     QString m_sortMode = QStringLiteral("recent");

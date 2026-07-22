@@ -605,7 +605,9 @@ bool OneDriveLibraryService::scanLibrary()
 
     QStringList collections;
     int cloudPlaceholderCount = 0;
+    m_repository->beginBatchUpdate();
     scanDirectory(m_rootPath, QString(), &collections, &cloudPlaceholderCount);
+    m_repository->endBatchUpdate();
     std::sort(collections.begin(), collections.end(), [](const QString &left,
                                                          const QString &right) {
         return QString::localeAwareCompare(left, right) < 0;
@@ -661,7 +663,7 @@ void OneDriveLibraryService::scanDirectory(const QString &absolutePath,
             m_repository->registerBook(sourceUrl,
                                        relativePath,
                                        false,
-                                       !onlineOnly);
+                                       false);
         }
     }
 }

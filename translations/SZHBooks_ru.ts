@@ -1759,6 +1759,13 @@
     <message><source>Cancel import</source><translation>Отменить импорт</translation></message>
   </context>
   <context>
+    <name>LibraryScanProgress</name>
+    <message><source>Finishing library scan</source><translation>Завершение сканирования библиотеки</translation></message>
+    <message><source>Updating book details</source><translation>Обновление сведений о книгах</translation></message>
+    <message><source>%1 of %2</source><translation>%1 из %2</translation></message>
+    <message><source>Cancel library scan</source><translation>Отменить сканирование библиотеки</translation></message>
+  </context>
+  <context>
     <name>LibraryFileService</name>
     <message><source>Wait for the current import before changing the library folder.</source><translation>Дождитесь завершения текущего импорта перед сменой папки библиотеки.</translation></message>
     <message><source>Wait for the current library operation to finish.</source><translation>Дождитесь завершения текущей операции с библиотекой.</translation></message>
@@ -1958,6 +1965,9 @@
   </context>
   <context>
     <name>LibrarySearchDialog</name>
+    <message><source>Finishing the current book...</source><translation>Завершение обработки текущей книги...</translation></message>
+    <message><source>Indexing %1 of %2 books</source><translation>Индексация книг: %1 из %2</translation></message>
+    <message><source>Cancel indexing</source><translation>Отменить индексацию</translation></message>
     <message><source>Updating the local search index...</source><translation>Обновление локального поискового индекса...</translation></message>
     <message><source>Add books to search their contents</source><translation>Добавьте книги, чтобы искать по их содержимому</translation></message>
     <message><source>%1 of %2 books indexed, %3 skipped</source><translation>Проиндексировано книг: %1 из %2, пропущено: %3</translation></message>

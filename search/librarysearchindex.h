@@ -7,6 +7,9 @@
 #include <QUrl>
 #include <QVector>
 
+#include <atomic>
+#include <functional>
+
 struct LibrarySearchHit final
 {
     QUrl sourceUrl;
@@ -24,6 +27,8 @@ struct LibrarySearchIndexSummary final
     int totalBooks = 0;
     int indexedBooks = 0;
     int failedBooks = 0;
+    int processedBooks = 0;
+    bool canceled = false;
     QDateTime indexedAt;
     QString errorMessage;
 };
@@ -31,12 +36,16 @@ struct LibrarySearchIndexSummary final
 class LibrarySearchIndex final
 {
 public:
+    using ProgressCallback = std::function<void(int completed, int total)>;
+
     explicit LibrarySearchIndex(QString databaseFilePath);
 
     static QString databasePathForProfile(const QString &profileDatabaseFilePath);
 
     LibrarySearchIndexSummary synchronize(const QVector<LibraryBook> &books,
-                                          bool rebuild = false) const;
+                                          bool rebuild = false,
+                                          std::atomic_bool *cancellation = nullptr,
+                                          const ProgressCallback &progress = {}) const;
     LibrarySearchIndexSummary status(int totalBooks) const;
     QVector<LibrarySearchHit> search(const QString &query,
                                      int limit,
