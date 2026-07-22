@@ -14,6 +14,7 @@ namespace {
 const QString documentsPrefix = QStringLiteral("documents/");
 const QString annotationsPrefix = QStringLiteral("annotations/");
 const QString sourceUrlSuffix = QStringLiteral("/sourceUrl");
+const QString customCoverUrlSuffix = QStringLiteral("/customCoverUrl");
 const QString portableScheme = QStringLiteral("szhbooks");
 const QString portableHost = QStringLiteral("library");
 
@@ -142,9 +143,18 @@ void appendPortableGroups(QVariantMap *portable,
                 continue;
             }
             const QString suffix = entry.key().mid(prefix.size() + source.key().size());
-            portable->insert(prefix + portableId + suffix,
-                             suffix == sourceUrlSuffix ? QVariant(portableUrl)
-                                                       : entry.value());
+            QVariant portableValue = entry.value();
+            if (suffix == sourceUrlSuffix) {
+                portableValue = portableUrl;
+            } else if (suffix == customCoverUrlSuffix) {
+                const QString coverPath = PortableProfileMapper::relativeBookPath(
+                    urlFromValue(entry.value()), rootPath);
+                if (coverPath.isEmpty()) {
+                    continue;
+                }
+                portableValue = portableUrlForPath(coverPath);
+            }
+            portable->insert(prefix + portableId + suffix, portableValue);
         }
     }
 }
@@ -183,10 +193,18 @@ void appendLocalGroups(QVariantMap *local,
                 continue;
             }
             const QString suffix = entry.key().mid(prefix.size() + source.key().size());
-            local->insert(prefix + localId + suffix,
-                          suffix == sourceUrlSuffix
-                              ? QVariant(localUrl.toString(QUrl::FullyEncoded))
-                              : entry.value());
+            QVariant localValue = entry.value();
+            if (suffix == sourceUrlSuffix) {
+                localValue = localUrl.toString(QUrl::FullyEncoded);
+            } else if (suffix == customCoverUrlSuffix) {
+                const QString coverPath = pathFromPortableUrl(entry.value());
+                if (coverPath.isEmpty()) {
+                    continue;
+                }
+                localValue = QUrl::fromLocalFile(
+                    QDir(rootPath).absoluteFilePath(coverPath)).toString(QUrl::FullyEncoded);
+            }
+            local->insert(prefix + localId + suffix, localValue);
         }
     }
 }

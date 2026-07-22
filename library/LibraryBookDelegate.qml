@@ -10,6 +10,12 @@ Item {
     required property string sourcePath
     required property string title
     required property string author
+    required property string series
+    required property real seriesNumber
+    required property var genres
+    required property var tags
+    required property string language
+    required property int publicationYear
     required property string formatName
     required property string collectionPath
     required property url coverUrl
@@ -17,8 +23,10 @@ Item {
     required property date lastOpened
     required property bool fileAvailable
     required property bool cloudPlaceholder
+    required property bool selected
 
     property color fallbackColor: Theme.accentColor
+    property bool selectionMode: false
 
     signal openRequested(url sourceUrl)
     signal relinkRequested(url sourceUrl)
@@ -26,6 +34,7 @@ Item {
                             string title,
                             string collectionPath,
                             bool fileAvailable)
+    signal selectionToggled(url sourceUrl)
 
     function activate() {
         if (root.fileAvailable) {
@@ -50,7 +59,7 @@ Item {
     Accessible.onPressAction: root.activate()
     opacity: fileAvailable ? 1 : 0.72
     scale: cardMouseArea.containsMouse ? 1.008 : 1
-    Drag.active: bookDragHandler.active
+    Drag.active: bookDragHandler.active && !root.selectionMode
     Drag.source: root
     Drag.keys: ["szhbooks-book"]
     Drag.supportedActions: Qt.MoveAction
@@ -64,17 +73,17 @@ Item {
         }
     }
 
-    Keys.onReturnPressed: root.activate()
-    Keys.onEnterPressed: root.activate()
-    Keys.onSpacePressed: root.activate()
+    Keys.onReturnPressed: root.selectionMode ? root.selectionToggled(root.sourceUrl) : root.activate()
+    Keys.onEnterPressed: root.selectionMode ? root.selectionToggled(root.sourceUrl) : root.activate()
+    Keys.onSpacePressed: root.selectionMode ? root.selectionToggled(root.sourceUrl) : root.activate()
 
     Rectangle {
         anchors.fill: parent
         anchors.margins: 1
         color: cardMouseArea.containsMouse ? Theme.surfaceMutedColor : Theme.surfaceColor
         radius: Theme.radiusMd
-        border.color: root.activeFocus ? Theme.focusColor : Theme.borderColor
-        border.width: root.activeFocus ? 2 : 1
+        border.color: root.activeFocus || root.selected ? Theme.focusColor : Theme.borderColor
+        border.width: root.activeFocus || root.selected ? 2 : 1
 
         Behavior on color {
             ColorAnimation {
@@ -89,9 +98,13 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: {
+        onClicked: mouse => {
             root.forceActiveFocus()
-            root.activate()
+            if (root.selectionMode || (mouse.modifiers & Qt.ControlModifier)) {
+                root.selectionToggled(root.sourceUrl)
+            } else {
+                root.activate()
+            }
         }
     }
 
@@ -99,7 +112,7 @@ Item {
         id: bookDragHandler
 
         target: null
-        enabled: root.fileAvailable
+        enabled: root.fileAvailable && !root.selectionMode
         acceptedButtons: Qt.LeftButton
     }
 
@@ -134,8 +147,11 @@ Item {
             text: root.cloudPlaceholder
                   ? qsTr("Online-only  \u00b7  Downloads when opened")
                   : root.fileAvailable
-                    ? ([root.author, root.collectionPath,
-                      Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm"))]
+                    ? ([root.author,
+                        root.series.length > 0
+                          ? root.series + (root.seriesNumber > 0 ? " #" + root.seriesNumber : "")
+                          : "",
+                        root.publicationYear > 0 ? String(root.publicationYear) : ""]
                      .filter(value => value.length > 0).join(qsTr("  \u00b7  ")))
                     : qsTr("File unavailable")
             color: root.fileAvailable ? Theme.mutedTextColor : Theme.dangerColor
@@ -181,13 +197,25 @@ Item {
         anchors.right: parent.right
         anchors.margins: Theme.spaceSm
         z: 2
-        visible: cardMouseArea.containsMouse || root.activeFocus
+        visible: !root.selectionMode && (cardMouseArea.containsMouse || root.activeFocus)
         symbol: "\u22ef"
         toolTip: qsTr("Book actions")
         onClicked: root.actionsRequested(root.sourceUrl,
                                          root.title,
                                          root.collectionPath,
                                          root.fileAvailable)
+    }
+
+    SZHCheckBox {
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.margins: Theme.spaceSm
+        z: 3
+        visible: root.selectionMode
+        checked: root.selected
+        text: ""
+        Accessible.name: qsTr("Select %1").arg(root.title)
+        onClicked: root.selectionToggled(root.sourceUrl)
     }
 
     ToolTip {

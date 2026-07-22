@@ -72,7 +72,9 @@ QString normalizedLibrarySortMode(const QString &sortMode)
     static const QStringList supportedModes = {
         QStringLiteral("recent"),
         QStringLiteral("title"),
-        QStringLiteral("author")
+        QStringLiteral("author"),
+        QStringLiteral("series"),
+        QStringLiteral("year")
     };
     return supportedModes.contains(normalized) ? normalized : QStringLiteral("recent");
 }
@@ -710,6 +712,26 @@ void LocalStateStore::updateBookMetadata(const QUrl &documentUrl,
         return;
     }
     emit profileChanged();
+}
+
+bool LocalStateStore::updateBookDetails(const QVector<QUrl> &documentUrls,
+                                        const BookMetadataPatch &patch,
+                                        QString *errorMessage)
+{
+    QString databaseError;
+    if (!m_profileDatabase.updateBookDetails(documentUrls, patch, &databaseError)) {
+        qWarning() << "Could not update book metadata:" << databaseError;
+        if (errorMessage) {
+            *errorMessage = tr("Could not update the selected book metadata.");
+        }
+        return false;
+    }
+    emit libraryChanged();
+    emit profileChanged();
+    if (errorMessage) {
+        errorMessage->clear();
+    }
+    return true;
 }
 
 bool LocalStateStore::containsLibraryBook(const QUrl &documentUrl) const

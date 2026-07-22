@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../library/librarybook.h"
+#include "../library/bookmetadatapatch.h"
 #include "../reader/readingannotation.h"
 
 #include <QSqlDatabase>
@@ -61,6 +62,9 @@ public:
                             const QString &formatName,
                             const QUrl &coverUrl,
                             const QString &metadataFingerprint);
+    bool updateBookDetails(const QVector<QUrl> &documentUrls,
+                           const BookMetadataPatch &patch,
+                           QString *errorMessage = nullptr);
     bool containsLibraryBook(const QUrl &documentUrl) const;
     bool hasLibraryRecord(const QUrl &documentUrl) const;
     bool setBookCollection(const QUrl &documentUrl, const QString &collectionPath);

@@ -33,7 +33,15 @@ GridLayout {
         return options
     }
 
-    columns: width < 900 ? 2 : root.showCollectionControl ? 5 : 4
+    function metadataOptions(values, allLabel) {
+        var options = [{"value": "all", "label": allLabel}]
+        for (var index = 0; index < values.length; ++index) {
+            options.push({"value": values[index], "label": values[index]})
+        }
+        return options
+    }
+
+    columns: width < 720 ? 2 : width < 1160 ? 4 : root.showCollectionControl ? 8 : 7
     columnSpacing: Theme.spaceXs
     rowSpacing: Theme.spaceXs
 
@@ -53,7 +61,9 @@ GridLayout {
         options: [
             {"value": "recent", "label": qsTr("Recent")},
             {"value": "title", "label": qsTr("Title")},
-            {"value": "author", "label": qsTr("Author")}
+            {"value": "author", "label": qsTr("Author")},
+            {"value": "series", "label": qsTr("Series")},
+            {"value": "year", "label": qsTr("Year")}
         ]
         onValueSelected: value => root.libraryModel.sortMode = value
     }
@@ -77,6 +87,30 @@ GridLayout {
             {"value": "finished", "label": qsTr("Finished")}
         ]
         onValueSelected: value => root.libraryModel.progressFilter = value
+    }
+
+    SZHMenuButton {
+        Layout.fillWidth: true
+        labelPrefix: qsTr("Genre")
+        value: root.libraryModel.genreFilter
+        options: root.metadataOptions(root.libraryModel.availableGenres, qsTr("All genres"))
+        onValueSelected: value => root.libraryModel.genreFilter = value
+    }
+
+    SZHMenuButton {
+        Layout.fillWidth: true
+        labelPrefix: qsTr("Tag")
+        value: root.libraryModel.tagFilter
+        options: root.metadataOptions(root.libraryModel.availableTags, qsTr("All tags"))
+        onValueSelected: value => root.libraryModel.tagFilter = value
+    }
+
+    SZHMenuButton {
+        Layout.fillWidth: true
+        labelPrefix: qsTr("Language")
+        value: root.libraryModel.languageFilter
+        options: root.metadataOptions(root.libraryModel.availableLanguages, qsTr("All languages"))
+        onValueSelected: value => root.libraryModel.languageFilter = value
     }
 
     SZHSegmentedControl {

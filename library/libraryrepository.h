@@ -1,9 +1,13 @@
 #pragma once
 
+#include "bookmetadatapatch.h"
+#include "customcoverstore.h"
 #include "librarybook.h"
 
 #include <QObject>
 #include <QVector>
+
+#include <optional>
 
 class BookMetadataService;
 class LocalStateStore;
@@ -18,6 +22,7 @@ public:
                                QObject *parent = nullptr);
 
     QVector<LibraryBook> books();
+    std::optional<LibraryBook> book(const QUrl &sourceUrl);
     QString sortMode() const;
     QString viewMode() const;
 
@@ -37,6 +42,13 @@ public:
     bool relinkBook(const QUrl &oldSourceUrl,
                     const QUrl &newSourceUrl,
                     QString *errorMessage = nullptr);
+    bool updateBookDetails(const QVector<QUrl> &sourceUrls,
+                           const BookMetadataPatch &patch,
+                           QString *errorMessage = nullptr);
+    bool setCustomCover(const QUrl &sourceUrl,
+                        const QUrl &imageUrl,
+                        QString *errorMessage = nullptr);
+    void setManagedRootPath(const QString &rootPath);
 
 signals:
     void changed();
@@ -45,4 +57,5 @@ signals:
 private:
     LocalStateStore *m_store = nullptr;
     BookMetadataService *m_metadataService = nullptr;
+    CustomCoverStore m_customCoverStore;
 };

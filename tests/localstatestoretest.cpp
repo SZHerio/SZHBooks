@@ -8,8 +8,12 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QImage>
 #include <QSettings>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTemporaryDir>
+#include <QUuid>
 #include <QtTest>
 
 class LocalStateStoreTest final : public QObject
@@ -22,11 +26,13 @@ private slots:
     void migratesRemovedSepiaTheme();
     void migratesLegacyScrollSpeed();
     void migratesProfileDataToSqlite();
+    void migratesSqliteMetadataSchema();
     void resetsReadingPreferences();
     void keepsIndependentDocumentPositions();
     void persistsLibraryPresentation();
     void maintainsLocalLibrary();
     void filtersAndRemovesLibraryBooks();
+    void editsAndFiltersExtendedMetadata();
     void relinksDocumentStateAndAnnotations();
 };
 
@@ -204,6 +210,84 @@ void LocalStateStoreTest::migratesProfileDataToSqlite()
     QVERIFY(!migratedSettings.childGroups().contains(QStringLiteral("annotations")));
     QCOMPARE(migratedSettings.value(QStringLiteral("appearance/colorTheme")).toString(),
              QStringLiteral("dark"));
+}
+
+void LocalStateStoreTest::migratesSqliteMetadataSchema()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString settingsPath = directory.filePath(QStringLiteral("settings.ini"));
+    const QString databasePath = ProfileDatabase::databasePathForSettings(settingsPath);
+    const QString bookPath = directory.filePath(QStringLiteral("schema-v1.txt"));
+    QFile bookFile(bookPath);
+    QVERIFY(bookFile.open(QIODevice::WriteOnly));
+    QVERIFY(bookFile.write("Schema migration") > 0);
+    bookFile.close();
+    const QUrl bookUrl = QUrl::fromLocalFile(bookPath);
+    const QString documentId = DocumentStorageKey::id(bookUrl);
+
+    const QString connectionName = QStringLiteral("schema-v1-%1").arg(
+        QUuid::createUuid().toString(QUuid::WithoutBraces));
+    {
+        QSqlDatabase database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"),
+                                                          connectionName);
+        database.setDatabaseName(databasePath);
+        QVERIFY(database.open());
+        QSqlQuery query(database);
+        QVERIFY(query.exec(QStringLiteral(
+            "CREATE TABLE schema_meta(key TEXT PRIMARY KEY, value TEXT NOT NULL)")));
+        QVERIFY(query.exec(QStringLiteral(
+            "INSERT INTO schema_meta(key, value) VALUES('version', '1')")));
+        QVERIFY(query.exec(QStringLiteral(
+            "CREATE TABLE books("
+            "id TEXT PRIMARY KEY, source_url TEXT NOT NULL UNIQUE, "
+            "in_library INTEGER NOT NULL DEFAULT 0, title TEXT NOT NULL DEFAULT '', "
+            "author TEXT NOT NULL DEFAULT '', format_name TEXT NOT NULL DEFAULT '', "
+            "collection_path TEXT NOT NULL DEFAULT '', "
+            "metadata_fingerprint TEXT NOT NULL DEFAULT '', cover_url TEXT NOT NULL DEFAULT '', "
+            "reading_progress REAL NOT NULL DEFAULT 0, text_progress REAL NOT NULL DEFAULT 0, "
+            "pdf_page INTEGER NOT NULL DEFAULT 0, pdf_scale REAL NOT NULL DEFAULT 1, "
+            "last_opened TEXT NOT NULL DEFAULT '')")));
+        query.prepare(QStringLiteral(
+            "INSERT INTO books(id, source_url, in_library, title, format_name) "
+            "VALUES(:id, :source_url, 1, 'Version one', 'TXT')"));
+        query.bindValue(QStringLiteral(":id"), documentId);
+        query.bindValue(QStringLiteral(":source_url"), bookUrl.toString(QUrl::FullyEncoded));
+        QVERIFY(query.exec());
+        database.close();
+    }
+    QSqlDatabase::removeDatabase(connectionName);
+
+    {
+        LocalStateStore store(settingsPath);
+        QCOMPARE(store.libraryBooks().size(), 1);
+        QCOMPARE(store.libraryBooks().constFirst().series, QString());
+        BookMetadataPatch patch;
+        patch.series = QStringLiteral("Migrated series");
+        patch.tags = QStringList({QStringLiteral("Migrated")});
+        QString error;
+        QVERIFY2(store.updateBookDetails({bookUrl}, patch, &error), qPrintable(error));
+        QCOMPARE(store.libraryBooks().constFirst().series,
+                 QStringLiteral("Migrated series"));
+        QCOMPARE(store.libraryBooks().constFirst().tags,
+                 QStringList({QStringLiteral("Migrated")}));
+    }
+
+    const QString verifyConnection = connectionName + QStringLiteral("-verify");
+    {
+        QSqlDatabase database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"),
+                                                          verifyConnection);
+        database.setDatabaseName(databasePath);
+        QVERIFY(database.open());
+        QSqlQuery query(database);
+        QVERIFY(query.exec(QStringLiteral(
+            "SELECT value FROM schema_meta WHERE key = 'version'")));
+        QVERIFY(query.next());
+        QCOMPARE(query.value(0).toInt(), 2);
+        database.close();
+    }
+    QSqlDatabase::removeDatabase(verifyConnection);
 }
 
 void LocalStateStoreTest::resetsReadingPreferences()
@@ -397,6 +481,139 @@ void LocalStateStoreTest::filtersAndRemovesLibraryBooks()
     model.removeBook(0);
     QCOMPARE(model.totalCount(), 1);
     QCOMPARE(model.rowCount(), 0);
+}
+
+void LocalStateStoreTest::editsAndFiltersExtendedMetadata()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString rootPath = directory.filePath(QStringLiteral("SZHBooks"));
+    QVERIFY(QDir().mkpath(rootPath));
+    const QString firstPath = QDir(rootPath).filePath(QStringLiteral("first.txt"));
+    const QString secondPath = QDir(rootPath).filePath(QStringLiteral("second.txt"));
+    for (const QString &path : {firstPath, secondPath}) {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QVERIFY(file.write("Metadata fixture") > 0);
+    }
+
+    const QUrl firstUrl = QUrl::fromLocalFile(firstPath);
+    const QUrl secondUrl = QUrl::fromLocalFile(secondPath);
+    LocalStateStore store(directory.filePath(QStringLiteral("settings.ini")));
+    store.recordBookOpened(firstUrl,
+                           QStringLiteral("First parsed title"),
+                           QStringLiteral("Parsed author"),
+                           QStringLiteral("TXT"));
+    store.recordBookOpened(secondUrl,
+                           QStringLiteral("Second parsed title"),
+                           QStringLiteral("Parsed author"),
+                           QStringLiteral("TXT"));
+
+    BookCoverProvider coverProvider(directory.filePath(QStringLiteral("covers")));
+    BookMetadataService metadataService(&coverProvider);
+    LibraryRepository repository(&store, &metadataService);
+    repository.setManagedRootPath(rootPath);
+    LibraryModel model(&repository);
+
+    const QVariantMap firstChanges{
+        {QStringLiteral("title"), QStringLiteral("User title")},
+        {QStringLiteral("author"), QStringLiteral("User author")},
+        {QStringLiteral("series"), QStringLiteral("Northern archive")},
+        {QStringLiteral("seriesNumber"), 2.0},
+        {QStringLiteral("genres"), QStringLiteral("Fiction, Mystery")},
+        {QStringLiteral("tags"), QStringLiteral("Favorite; Weekend")},
+        {QStringLiteral("language"), QStringLiteral("English")},
+        {QStringLiteral("publicationYear"), 2024}
+    };
+    QVERIFY(model.updateBooksMetadata({firstUrl}, firstChanges));
+
+    QVariantMap firstBook = model.book(firstUrl);
+    QCOMPARE(firstBook.value(QStringLiteral("title")).toString(), QStringLiteral("User title"));
+    QCOMPARE(firstBook.value(QStringLiteral("author")).toString(), QStringLiteral("User author"));
+    QCOMPARE(firstBook.value(QStringLiteral("series")).toString(),
+             QStringLiteral("Northern archive"));
+    QCOMPARE(firstBook.value(QStringLiteral("genres")).toStringList(),
+             QStringList({QStringLiteral("Fiction"), QStringLiteral("Mystery")}));
+    QCOMPARE(firstBook.value(QStringLiteral("tags")).toStringList(),
+             QStringList({QStringLiteral("Favorite"), QStringLiteral("Weekend")}));
+    QCOMPARE(firstBook.value(QStringLiteral("publicationYear")).toInt(), 2024);
+
+    store.updateBookMetadata(firstUrl,
+                             QStringLiteral("New parsed title"),
+                             QStringLiteral("New parsed author"),
+                             QStringLiteral("TXT"),
+                             {},
+                             QStringLiteral("new-fingerprint"));
+    model.refresh();
+    firstBook = model.book(firstUrl);
+    QCOMPARE(firstBook.value(QStringLiteral("title")).toString(), QStringLiteral("User title"));
+    QCOMPARE(firstBook.value(QStringLiteral("author")).toString(), QStringLiteral("User author"));
+
+    const QVariantMap groupChanges{
+        {QStringLiteral("tags"), QStringLiteral("Shared, Reference")},
+        {QStringLiteral("language"), QStringLiteral("Russian")}
+    };
+    QVERIFY(model.updateBooksMetadata({firstUrl, secondUrl}, groupChanges));
+    QCOMPARE(model.book(firstUrl).value(QStringLiteral("language")).toString(),
+             QStringLiteral("Russian"));
+    QCOMPARE(model.book(secondUrl).value(QStringLiteral("tags")).toStringList(),
+             QStringList({QStringLiteral("Shared"), QStringLiteral("Reference")}));
+
+    model.setTagFilter(QStringLiteral("Shared"));
+    QCOMPARE(model.rowCount(), 2);
+    model.setGenreFilter(QStringLiteral("Fiction"));
+    QCOMPARE(model.rowCount(), 1);
+    model.clearFilters();
+    model.setLanguageFilter(QStringLiteral("Russian"));
+    QCOMPARE(model.rowCount(), 2);
+    model.clearFilters();
+
+    const QVariantMap secondChanges{
+        {QStringLiteral("series"), QStringLiteral("Northern archive")},
+        {QStringLiteral("seriesNumber"), 1.0},
+        {QStringLiteral("publicationYear"), 2025}
+    };
+    QVERIFY(model.updateBooksMetadata({secondUrl}, secondChanges));
+    model.setSortMode(QStringLiteral("series"));
+    QCOMPARE(model.data(model.index(0, 0), LibraryModel::SourceUrlRole).toUrl(), secondUrl);
+    model.setSortMode(QStringLiteral("year"));
+    QCOMPARE(model.data(model.index(0, 0), LibraryModel::SourceUrlRole).toUrl(), secondUrl);
+
+    model.setSelectionMode(true);
+    model.toggleSelection(firstUrl);
+    model.toggleSelection(secondUrl);
+    QCOMPARE(model.selectionCount(), 2);
+    QCOMPARE(model.selectedBooks().size(), 2);
+    model.setSelectionMode(false);
+    QCOMPARE(model.selectionCount(), 0);
+
+    const QString sourceCoverPath = directory.filePath(QStringLiteral("cover.png"));
+    const QString automaticCoverPath = directory.filePath(QStringLiteral("automatic-cover.png"));
+    QImage sourceCover(120, 180, QImage::Format_ARGB32_Premultiplied);
+    sourceCover.fill(Qt::black);
+    QVERIFY(sourceCover.save(sourceCoverPath, "PNG"));
+    sourceCover.fill(Qt::white);
+    QVERIFY(sourceCover.save(automaticCoverPath, "PNG"));
+    store.updateBookMetadata(firstUrl,
+                             QStringLiteral("Ignored parsed title"),
+                             QStringLiteral("Ignored parsed author"),
+                             QStringLiteral("TXT"),
+                             QUrl::fromLocalFile(automaticCoverPath),
+                             metadataService.fingerprint(firstUrl));
+    QVERIFY(model.setCustomCover(firstUrl, QUrl::fromLocalFile(sourceCoverPath)));
+    firstBook = model.book(firstUrl);
+    const QUrl customCoverUrl = firstBook.value(QStringLiteral("customCoverUrl")).toUrl();
+    QVERIFY(customCoverUrl.isLocalFile());
+    QVERIFY(QFileInfo::exists(customCoverUrl.toLocalFile()));
+    QVERIFY(QDir(rootPath).relativeFilePath(customCoverUrl.toLocalFile())
+                .startsWith(QStringLiteral(".szhbooks/covers/")));
+    QVERIFY(QFile::remove(customCoverUrl.toLocalFile()));
+    model.refresh();
+    firstBook = model.book(firstUrl);
+    QCOMPARE(firstBook.value(QStringLiteral("customCoverUrl")).toUrl(), customCoverUrl);
+    QCOMPARE(firstBook.value(QStringLiteral("coverUrl")).toUrl(),
+             QUrl::fromLocalFile(automaticCoverPath));
 }
 
 void LocalStateStoreTest::relinksDocumentStateAndAnnotations()

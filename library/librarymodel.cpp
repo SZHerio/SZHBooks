@@ -3,6 +3,7 @@
 #include "libraryrepository.h"
 
 #include <QDir>
+#include <QRegularExpression>
 #include <QtGlobal>
 
 #include <algorithm>
@@ -16,6 +17,45 @@ constexpr qreal finishedProgressThreshold = 0.995;
 int compareText(const QString &left, const QString &right)
 {
     return QString::localeAwareCompare(left.trimmed(), right.trimmed());
+}
+
+QString selectionKey(const QUrl &sourceUrl)
+{
+    return sourceUrl.toString(QUrl::FullyEncoded);
+}
+
+QStringList normalizedList(const QVariant &value)
+{
+    QStringList input;
+    if (value.metaType() == QMetaType::fromType<QString>()) {
+        input = value.toString().split(QRegularExpression(QStringLiteral("[,;]")),
+                                       Qt::SkipEmptyParts);
+    } else if (value.metaType() == QMetaType::fromType<QStringList>()) {
+        input = value.toStringList();
+    } else if (value.canConvert<QVariantList>()) {
+        for (const QVariant &item : value.toList()) {
+            input.append(item.toString());
+        }
+    }
+
+    QStringList result;
+    for (QString item : std::as_const(input)) {
+        item = item.trimmed().left(64);
+        if (!item.isEmpty() && !result.contains(item, Qt::CaseInsensitive)) {
+            result.append(item);
+        }
+        if (result.size() >= 24) {
+            break;
+        }
+    }
+    return result;
+}
+
+bool containsValue(const QStringList &values, const QString &needle)
+{
+    return std::any_of(values.cbegin(), values.cend(), [&needle](const QString &value) {
+        return value.compare(needle, Qt::CaseInsensitive) == 0;
+    });
 }
 
 } // namespace
@@ -57,6 +97,18 @@ QVariant LibraryModel::data(const QModelIndex &index, int role) const
         return book.title;
     case AuthorRole:
         return book.author;
+    case SeriesRole:
+        return book.series;
+    case SeriesNumberRole:
+        return book.seriesNumber;
+    case GenresRole:
+        return book.genres;
+    case TagsRole:
+        return book.tags;
+    case LanguageRole:
+        return book.language;
+    case PublicationYearRole:
+        return book.publicationYear;
     case FormatNameRole:
         return book.formatName;
     case CoverUrlRole:
@@ -71,6 +123,8 @@ QVariant LibraryModel::data(const QModelIndex &index, int role) const
         return book.collectionPath;
     case CloudPlaceholderRole:
         return book.cloudPlaceholder;
+    case SelectedRole:
+        return m_selectedBookKeys.contains(selectionKey(book.sourceUrl));
     default:
         return {};
     }
@@ -83,13 +137,20 @@ QHash<int, QByteArray> LibraryModel::roleNames() const
         {SourcePathRole, "sourcePath"},
         {TitleRole, "title"},
         {AuthorRole, "author"},
+        {SeriesRole, "series"},
+        {SeriesNumberRole, "seriesNumber"},
+        {GenresRole, "genres"},
+        {TagsRole, "tags"},
+        {LanguageRole, "language"},
+        {PublicationYearRole, "publicationYear"},
         {FormatNameRole, "formatName"},
         {CoverUrlRole, "coverUrl"},
         {ProgressRole, "progress"},
         {LastOpenedRole, "lastOpened"},
         {FileAvailableRole, "fileAvailable"},
         {CollectionPathRole, "collectionPath"},
-        {CloudPlaceholderRole, "cloudPlaceholder"}
+        {CloudPlaceholderRole, "cloudPlaceholder"},
+        {SelectedRole, "selected"}
     };
 }
 
@@ -118,6 +179,21 @@ QString LibraryModel::collectionFilter() const
     return m_collectionFilter;
 }
 
+QString LibraryModel::genreFilter() const
+{
+    return m_genreFilter;
+}
+
+QString LibraryModel::tagFilter() const
+{
+    return m_tagFilter;
+}
+
+QString LibraryModel::languageFilter() const
+{
+    return m_languageFilter;
+}
+
 QString LibraryModel::viewMode() const
 {
     return m_viewMode;
@@ -128,12 +204,51 @@ QStringList LibraryModel::availableFormats() const
     return m_availableFormats;
 }
 
+QStringList LibraryModel::availableGenres() const
+{
+    return m_availableGenres;
+}
+
+QStringList LibraryModel::availableTags() const
+{
+    return m_availableTags;
+}
+
+QStringList LibraryModel::availableLanguages() const
+{
+    return m_availableLanguages;
+}
+
 bool LibraryModel::hasActiveFilters() const
 {
     return !m_filterText.isEmpty()
            || m_formatFilter != QLatin1String("all")
            || m_progressFilter != QLatin1String("all")
+           || m_genreFilter != QLatin1String("all")
+           || m_tagFilter != QLatin1String("all")
+           || m_languageFilter != QLatin1String("all")
            || !m_collectionFilter.isEmpty();
+}
+
+bool LibraryModel::selectionMode() const
+{
+    return m_selectionMode;
+}
+
+int LibraryModel::selectionCount() const
+{
+    return m_selectedBookKeys.size();
+}
+
+QVariantList LibraryModel::selectedBooks() const
+{
+    QVariantList books;
+    for (const LibraryBook &book : m_allBooks) {
+        if (m_selectedBookKeys.contains(selectionKey(book.sourceUrl))) {
+            books.append(toVariantMap(book));
+        }
+    }
+    return books;
 }
 
 QString LibraryModel::errorMessage() const
@@ -171,6 +286,8 @@ void LibraryModel::setSortMode(const QString &sortMode)
 {
     const QString normalizedMode = sortMode == QLatin1String("title")
                                        || sortMode == QLatin1String("author")
+                                       || sortMode == QLatin1String("series")
+                                       || sortMode == QLatin1String("year")
                                        ? sortMode
                                        : QStringLiteral("recent");
     if (m_sortMode == normalizedMode) {
@@ -244,6 +361,57 @@ void LibraryModel::setCollectionFilter(const QString &collectionFilter)
     }
 }
 
+void LibraryModel::setGenreFilter(const QString &genreFilter)
+{
+    const QString normalizedFilter = genreFilter.trimmed().isEmpty()
+                                         ? QStringLiteral("all")
+                                         : genreFilter.trimmed();
+    if (m_genreFilter.compare(normalizedFilter, Qt::CaseInsensitive) == 0) {
+        return;
+    }
+    const bool hadActiveFilters = hasActiveFilters();
+    m_genreFilter = normalizedFilter;
+    emit genreFilterChanged();
+    rebuildVisibleBooks();
+    if (hadActiveFilters != hasActiveFilters()) {
+        emit hasActiveFiltersChanged();
+    }
+}
+
+void LibraryModel::setTagFilter(const QString &tagFilter)
+{
+    const QString normalizedFilter = tagFilter.trimmed().isEmpty()
+                                         ? QStringLiteral("all")
+                                         : tagFilter.trimmed();
+    if (m_tagFilter.compare(normalizedFilter, Qt::CaseInsensitive) == 0) {
+        return;
+    }
+    const bool hadActiveFilters = hasActiveFilters();
+    m_tagFilter = normalizedFilter;
+    emit tagFilterChanged();
+    rebuildVisibleBooks();
+    if (hadActiveFilters != hasActiveFilters()) {
+        emit hasActiveFiltersChanged();
+    }
+}
+
+void LibraryModel::setLanguageFilter(const QString &languageFilter)
+{
+    const QString normalizedFilter = languageFilter.trimmed().isEmpty()
+                                         ? QStringLiteral("all")
+                                         : languageFilter.trimmed();
+    if (m_languageFilter.compare(normalizedFilter, Qt::CaseInsensitive) == 0) {
+        return;
+    }
+    const bool hadActiveFilters = hasActiveFilters();
+    m_languageFilter = normalizedFilter;
+    emit languageFilterChanged();
+    rebuildVisibleBooks();
+    if (hadActiveFilters != hasActiveFilters()) {
+        emit hasActiveFiltersChanged();
+    }
+}
+
 void LibraryModel::setViewMode(const QString &viewMode)
 {
     const QString normalizedMode = viewMode == QLatin1String("list")
@@ -256,6 +424,18 @@ void LibraryModel::setViewMode(const QString &viewMode)
     m_viewMode = normalizedMode;
     m_repository->setViewMode(normalizedMode);
     emit viewModeChanged();
+}
+
+void LibraryModel::setSelectionMode(bool selectionMode)
+{
+    if (m_selectionMode == selectionMode) {
+        return;
+    }
+    m_selectionMode = selectionMode;
+    if (!m_selectionMode) {
+        clearSelection();
+    }
+    emit selectionModeChanged();
 }
 
 void LibraryModel::refresh()
@@ -274,6 +454,8 @@ void LibraryModel::refresh()
     m_allBooks = m_repository->books();
 
     rebuildAvailableFormats();
+    rebuildMetadataFilters();
+    pruneSelection();
     rebuildVisibleBooks();
     if (previousTotalCount != m_allBooks.size()) {
         emit totalCountChanged();
@@ -300,11 +482,181 @@ bool LibraryModel::relinkBook(const QUrl &oldSourceUrl, const QUrl &newSourceUrl
     return true;
 }
 
+QVariantMap LibraryModel::book(const QUrl &sourceUrl) const
+{
+    const auto match = std::find_if(m_allBooks.cbegin(),
+                                    m_allBooks.cend(),
+                                    [&sourceUrl](const LibraryBook &book) {
+                                        return book.sourceUrl == sourceUrl;
+                                    });
+    return match == m_allBooks.cend() ? QVariantMap() : toVariantMap(*match);
+}
+
+bool LibraryModel::updateBooksMetadata(const QVariantList &sourceUrls,
+                                       const QVariantMap &changes)
+{
+    QVector<QUrl> urls;
+    QSet<QString> seen;
+    for (const QVariant &value : sourceUrls) {
+        const QUrl sourceUrl = value.toUrl();
+        const QString key = selectionKey(sourceUrl);
+        if (!sourceUrl.isEmpty() && !seen.contains(key)) {
+            urls.append(sourceUrl);
+            seen.insert(key);
+        }
+    }
+    if (urls.isEmpty()) {
+        setErrorMessage(tr("Select at least one book."));
+        return false;
+    }
+
+    BookMetadataPatch patch;
+    if (changes.contains(QStringLiteral("title"))) {
+        const QString title = changes.value(QStringLiteral("title")).toString().trimmed().left(300);
+        if (title.isEmpty()) {
+            setErrorMessage(tr("A book title cannot be empty."));
+            return false;
+        }
+        patch.title = title;
+    }
+    if (changes.contains(QStringLiteral("author"))) {
+        patch.author = changes.value(QStringLiteral("author")).toString().trimmed().left(240);
+    }
+    if (changes.contains(QStringLiteral("series"))) {
+        patch.series = changes.value(QStringLiteral("series")).toString().trimmed().left(240);
+    }
+    if (changes.contains(QStringLiteral("seriesNumber"))) {
+        bool valid = false;
+        const qreal seriesNumber = changes.value(QStringLiteral("seriesNumber")).toDouble(&valid);
+        if (!valid || seriesNumber < 0 || seriesNumber > 100000) {
+            setErrorMessage(tr("Enter a valid series number."));
+            return false;
+        }
+        patch.seriesNumber = seriesNumber;
+    }
+    if (changes.contains(QStringLiteral("genres"))) {
+        patch.genres = normalizedList(changes.value(QStringLiteral("genres")));
+    }
+    if (changes.contains(QStringLiteral("tags"))) {
+        patch.tags = normalizedList(changes.value(QStringLiteral("tags")));
+    }
+    if (changes.contains(QStringLiteral("language"))) {
+        patch.language = changes.value(QStringLiteral("language")).toString().trimmed().left(64);
+    }
+    if (changes.contains(QStringLiteral("publicationYear"))) {
+        bool valid = false;
+        const int year = changes.value(QStringLiteral("publicationYear")).toInt(&valid);
+        if (!valid || year < 0 || year > 9999) {
+            setErrorMessage(tr("Enter a valid publication year."));
+            return false;
+        }
+        patch.publicationYear = year;
+    }
+    if (patch.isEmpty()) {
+        setErrorMessage(tr("Choose at least one metadata field to update."));
+        return false;
+    }
+
+    QString error;
+    if (!m_repository->updateBookDetails(urls, patch, &error)) {
+        setErrorMessage(error);
+        return false;
+    }
+    setErrorMessage({});
+    if (m_selectionMode) {
+        setSelectionMode(false);
+    }
+    refresh();
+    return true;
+}
+
+bool LibraryModel::setCustomCover(const QUrl &sourceUrl, const QUrl &imageUrl)
+{
+    QString error;
+    if (!m_repository->setCustomCover(sourceUrl, imageUrl, &error)) {
+        setErrorMessage(error);
+        return false;
+    }
+    setErrorMessage({});
+    refresh();
+    return true;
+}
+
+void LibraryModel::toggleSelection(const QUrl &sourceUrl)
+{
+    const QString key = selectionKey(sourceUrl);
+    if (key.isEmpty()) {
+        return;
+    }
+    const bool exists = std::any_of(m_allBooks.cbegin(),
+                                    m_allBooks.cend(),
+                                    [&sourceUrl](const LibraryBook &book) {
+                                        return book.sourceUrl == sourceUrl;
+                                    });
+    if (!exists) {
+        return;
+    }
+    if (!m_selectionMode) {
+        m_selectionMode = true;
+        emit selectionModeChanged();
+    }
+    if (m_selectedBookKeys.contains(key)) {
+        m_selectedBookKeys.remove(key);
+    } else {
+        m_selectedBookKeys.insert(key);
+    }
+    for (int row = 0; row < m_visibleBooks.size(); ++row) {
+        if (m_visibleBooks.at(row).sourceUrl == sourceUrl) {
+            emit dataChanged(index(row, 0), index(row, 0), {SelectedRole});
+            break;
+        }
+    }
+    emit selectionChanged();
+}
+
+void LibraryModel::selectAllVisible()
+{
+    if (!m_selectionMode) {
+        m_selectionMode = true;
+        emit selectionModeChanged();
+    }
+    bool changed = false;
+    for (const LibraryBook &book : std::as_const(m_visibleBooks)) {
+        const QString key = selectionKey(book.sourceUrl);
+        if (!m_selectedBookKeys.contains(key)) {
+            m_selectedBookKeys.insert(key);
+            changed = true;
+        }
+    }
+    if (!changed) {
+        return;
+    }
+    if (!m_visibleBooks.isEmpty()) {
+        emit dataChanged(index(0, 0), index(m_visibleBooks.size() - 1, 0), {SelectedRole});
+    }
+    emit selectionChanged();
+}
+
+void LibraryModel::clearSelection()
+{
+    if (m_selectedBookKeys.isEmpty()) {
+        return;
+    }
+    m_selectedBookKeys.clear();
+    if (!m_visibleBooks.isEmpty()) {
+        emit dataChanged(index(0, 0), index(m_visibleBooks.size() - 1, 0), {SelectedRole});
+    }
+    emit selectionChanged();
+}
+
 void LibraryModel::clearFilters()
 {
     const bool changed = !m_filterText.isEmpty()
                          || m_formatFilter != QLatin1String("all")
                          || m_progressFilter != QLatin1String("all")
+                         || m_genreFilter != QLatin1String("all")
+                         || m_tagFilter != QLatin1String("all")
+                         || m_languageFilter != QLatin1String("all")
                          || !m_collectionFilter.isEmpty();
     if (!changed) {
         return;
@@ -326,6 +678,18 @@ void LibraryModel::clearFilters()
         m_collectionFilter.clear();
         emit collectionFilterChanged();
     }
+    if (m_genreFilter != QLatin1String("all")) {
+        m_genreFilter = QStringLiteral("all");
+        emit genreFilterChanged();
+    }
+    if (m_tagFilter != QLatin1String("all")) {
+        m_tagFilter = QStringLiteral("all");
+        emit tagFilterChanged();
+    }
+    if (m_languageFilter != QLatin1String("all")) {
+        m_languageFilter = QStringLiteral("all");
+        emit languageFilterChanged();
+    }
     rebuildVisibleBooks();
     emit hasActiveFiltersChanged();
 }
@@ -342,8 +706,15 @@ QVariantMap LibraryModel::toVariantMap(const LibraryBook &book)
         {QStringLiteral("sourcePath"), book.sourcePath},
         {QStringLiteral("title"), book.title},
         {QStringLiteral("author"), book.author},
+        {QStringLiteral("series"), book.series},
+        {QStringLiteral("seriesNumber"), book.seriesNumber},
+        {QStringLiteral("genres"), book.genres},
+        {QStringLiteral("tags"), book.tags},
+        {QStringLiteral("language"), book.language},
+        {QStringLiteral("publicationYear"), book.publicationYear},
         {QStringLiteral("formatName"), book.formatName},
         {QStringLiteral("coverUrl"), book.coverUrl},
+        {QStringLiteral("customCoverUrl"), book.customCoverUrl},
         {QStringLiteral("progress"), book.progress},
         {QStringLiteral("lastOpened"), book.lastOpened},
         {QStringLiteral("fileAvailable"), book.fileAvailable},
@@ -357,6 +728,10 @@ bool LibraryModel::matchesFilters(const LibraryBook &book) const
     const bool matchesText = m_filterText.isEmpty()
                              || book.title.contains(m_filterText, Qt::CaseInsensitive)
                              || book.author.contains(m_filterText, Qt::CaseInsensitive)
+                             || book.series.contains(m_filterText, Qt::CaseInsensitive)
+                             || book.genres.join(u' ').contains(m_filterText, Qt::CaseInsensitive)
+                             || book.tags.join(u' ').contains(m_filterText, Qt::CaseInsensitive)
+                             || book.language.contains(m_filterText, Qt::CaseInsensitive)
                              || book.formatName.contains(m_filterText, Qt::CaseInsensitive)
                              || book.collectionPath.contains(m_filterText, Qt::CaseInsensitive)
                              || book.sourcePath.contains(m_filterText, Qt::CaseInsensitive);
@@ -369,6 +744,13 @@ bool LibraryModel::matchesFilters(const LibraryBook &book) const
                                        : book.collectionPath == m_collectionFilter
                                              || book.collectionPath.startsWith(
                                                  m_collectionFilter + u'/'));
+    const bool matchesGenre = m_genreFilter == QLatin1String("all")
+                              || containsValue(book.genres, m_genreFilter);
+    const bool matchesTag = m_tagFilter == QLatin1String("all")
+                            || containsValue(book.tags, m_tagFilter);
+    const bool matchesLanguage = m_languageFilter == QLatin1String("all")
+                                 || book.language.compare(m_languageFilter,
+                                                          Qt::CaseInsensitive) == 0;
 
     bool matchesProgress = true;
     if (m_progressFilter == QLatin1String("unread")) {
@@ -379,7 +761,8 @@ bool LibraryModel::matchesFilters(const LibraryBook &book) const
     } else if (m_progressFilter == QLatin1String("finished")) {
         matchesProgress = book.progress >= finishedProgressThreshold;
     }
-    return matchesText && matchesFormat && matchesCollection && matchesProgress;
+    return matchesText && matchesFormat && matchesCollection && matchesGenre
+           && matchesTag && matchesLanguage && matchesProgress;
 }
 
 void LibraryModel::rebuildVisibleBooks()
@@ -416,6 +799,41 @@ void LibraryModel::rebuildVisibleBooks()
                                         ? compareText(left.title, right.title) < 0
                                         : authorOrder < 0;
                          });
+    } else if (m_sortMode == QLatin1String("series")) {
+        std::stable_sort(m_visibleBooks.begin(),
+                         m_visibleBooks.end(),
+                         [](const LibraryBook &left, const LibraryBook &right) {
+                             const QString leftSeries = left.series.isEmpty()
+                                                            ? left.title
+                                                            : left.series;
+                             const QString rightSeries = right.series.isEmpty()
+                                                             ? right.title
+                                                             : right.series;
+                             const int seriesOrder = compareText(leftSeries, rightSeries);
+                             if (seriesOrder != 0) {
+                                 return seriesOrder < 0;
+                             }
+                             if (!qFuzzyCompare(left.seriesNumber + 1,
+                                                right.seriesNumber + 1)) {
+                                 return left.seriesNumber < right.seriesNumber;
+                             }
+                             return compareText(left.title, right.title) < 0;
+                         });
+    } else if (m_sortMode == QLatin1String("year")) {
+        std::stable_sort(m_visibleBooks.begin(),
+                         m_visibleBooks.end(),
+                         [](const LibraryBook &left, const LibraryBook &right) {
+                             if (left.publicationYear != right.publicationYear) {
+                                 if (left.publicationYear == 0) {
+                                     return false;
+                                 }
+                                 if (right.publicationYear == 0) {
+                                     return true;
+                                 }
+                                 return left.publicationYear > right.publicationYear;
+                             }
+                             return compareText(left.title, right.title) < 0;
+                         });
     }
     endResetModel();
 
@@ -440,6 +858,62 @@ void LibraryModel::rebuildAvailableFormats()
         m_availableFormats = formats;
         emit availableFormatsChanged();
     }
+}
+
+void LibraryModel::rebuildMetadataFilters()
+{
+    QStringList genres;
+    QStringList tags;
+    QStringList languages;
+    const auto appendUnique = [](QStringList *target, const QString &value) {
+        const QString normalized = value.trimmed();
+        if (!normalized.isEmpty() && !target->contains(normalized, Qt::CaseInsensitive)) {
+            target->append(normalized);
+        }
+    };
+
+    for (const LibraryBook &book : std::as_const(m_allBooks)) {
+        for (const QString &genre : book.genres) {
+            appendUnique(&genres, genre);
+        }
+        for (const QString &tag : book.tags) {
+            appendUnique(&tags, tag);
+        }
+        appendUnique(&languages, book.language);
+    }
+    const auto sortValues = [](QStringList *values) {
+        std::sort(values->begin(), values->end(), [](const QString &left, const QString &right) {
+            return compareText(left, right) < 0;
+        });
+    };
+    sortValues(&genres);
+    sortValues(&tags);
+    sortValues(&languages);
+
+    if (m_availableGenres == genres
+        && m_availableTags == tags
+        && m_availableLanguages == languages) {
+        return;
+    }
+    m_availableGenres = genres;
+    m_availableTags = tags;
+    m_availableLanguages = languages;
+    emit metadataFiltersChanged();
+}
+
+void LibraryModel::pruneSelection()
+{
+    QSet<QString> availableKeys;
+    for (const LibraryBook &book : std::as_const(m_allBooks)) {
+        availableKeys.insert(selectionKey(book.sourceUrl));
+    }
+    QSet<QString> retained = m_selectedBookKeys;
+    retained.intersect(availableKeys);
+    if (retained == m_selectedBookKeys) {
+        return;
+    }
+    m_selectedBookKeys = retained;
+    emit selectionChanged();
 }
 
 void LibraryModel::updateProgress(const QUrl &sourceUrl, qreal progress)

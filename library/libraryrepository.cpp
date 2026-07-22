@@ -7,6 +7,8 @@
 
 #include <QFileInfo>
 
+#include <algorithm>
+
 LibraryRepository::LibraryRepository(LocalStateStore *store,
                                      BookMetadataService *metadataService,
                                      QObject *parent)
@@ -39,6 +41,10 @@ QVector<LibraryBook> LibraryRepository::books()
         }
 
         const QString fingerprint = m_metadataService->fingerprint(book.sourceUrl);
+        const bool customCoverAvailable = !book.customCoverUrl.isEmpty()
+                                          && (!book.customCoverUrl.isLocalFile()
+                                              || QFileInfo::exists(
+                                                  book.customCoverUrl.toLocalFile()));
         const bool coverMissing = !book.coverUrl.isEmpty()
                                   && book.coverUrl.isLocalFile()
                                   && !QFileInfo::exists(book.coverUrl.toLocalFile());
@@ -58,15 +64,27 @@ QVector<LibraryBook> LibraryRepository::books()
             book.formatName = metadata.formatName;
         }
         book.metadataFingerprint = metadata.fingerprint;
-        book.coverUrl = metadata.coverUrl;
+        book.coverUrl = customCoverAvailable ? book.customCoverUrl : metadata.coverUrl;
         m_store->updateBookMetadata(book.sourceUrl,
                                     book.title,
                                     book.author,
                                     book.formatName,
-                                    book.coverUrl,
+                                    metadata.coverUrl,
                                     book.metadataFingerprint);
     }
     return books;
+}
+
+std::optional<LibraryBook> LibraryRepository::book(const QUrl &sourceUrl)
+{
+    const QVector<LibraryBook> libraryBooks = books();
+    const auto match = std::find_if(libraryBooks.cbegin(),
+                                    libraryBooks.cend(),
+                                    [&sourceUrl](const LibraryBook &book) {
+                                        return book.sourceUrl == sourceUrl;
+                                    });
+    return match == libraryBooks.cend() ? std::nullopt
+                                        : std::optional<LibraryBook>(*match);
 }
 
 QString LibraryRepository::sortMode() const
@@ -202,4 +220,45 @@ bool LibraryRepository::relinkBook(const QUrl &oldSourceUrl,
         errorMessage->clear();
     }
     return true;
+}
+
+bool LibraryRepository::updateBookDetails(const QVector<QUrl> &sourceUrls,
+                                          const BookMetadataPatch &patch,
+                                          QString *errorMessage)
+{
+    if (sourceUrls.isEmpty()) {
+        if (errorMessage) {
+            *errorMessage = tr("Select at least one book.");
+        }
+        return false;
+    }
+    return m_store->updateBookDetails(sourceUrls, patch, errorMessage);
+}
+
+bool LibraryRepository::setCustomCover(const QUrl &sourceUrl,
+                                       const QUrl &imageUrl,
+                                       QString *errorMessage)
+{
+    if (!m_store->containsLibraryBook(sourceUrl)) {
+        if (errorMessage) {
+            *errorMessage = tr("The selected book is no longer in the library.");
+        }
+        return false;
+    }
+
+    QUrl coverUrl;
+    if (!imageUrl.isEmpty()) {
+        coverUrl = m_customCoverStore.importCover(sourceUrl, imageUrl, errorMessage);
+        if (coverUrl.isEmpty()) {
+            return false;
+        }
+    }
+    BookMetadataPatch patch;
+    patch.customCoverUrl = coverUrl;
+    return m_store->updateBookDetails({sourceUrl}, patch, errorMessage);
+}
+
+void LibraryRepository::setManagedRootPath(const QString &rootPath)
+{
+    m_customCoverStore.setManagedRootPath(rootPath);
 }

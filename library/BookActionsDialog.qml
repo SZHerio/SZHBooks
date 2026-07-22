@@ -16,6 +16,7 @@ Popup {
 
     signal bookUpdated(url sourceUrl)
     signal bookRemoved
+    signal editMetadataRequested(url sourceUrl)
 
     function collectionOptions() {
         var options = [
@@ -204,6 +205,17 @@ Popup {
                         enabled: renameField.text.trim().length > 0
                         onClicked: root.renameBook()
                     }
+                }
+            }
+
+            SZHButton {
+                objectName: "editBookMetadataButton"
+                Layout.fillWidth: true
+                text: qsTr("Edit book details")
+                variant: "secondary"
+                onClicked: {
+                    root.editMetadataRequested(root.sourceUrl)
+                    root.close()
                 }
             }
 

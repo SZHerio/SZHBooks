@@ -10,6 +10,12 @@ Rectangle {
     required property string sourcePath
     required property string title
     required property string author
+    required property string series
+    required property real seriesNumber
+    required property var genres
+    required property var tags
+    required property string language
+    required property int publicationYear
     required property string formatName
     required property string collectionPath
     required property url coverUrl
@@ -17,8 +23,10 @@ Rectangle {
     required property date lastOpened
     required property bool fileAvailable
     required property bool cloudPlaceholder
+    required property bool selected
 
     property color fallbackColor: Theme.accentColor
+    property bool selectionMode: false
 
     signal openRequested(url sourceUrl)
     signal relinkRequested(url sourceUrl)
@@ -26,6 +34,7 @@ Rectangle {
                             string title,
                             string collectionPath,
                             bool fileAvailable)
+    signal selectionToggled(url sourceUrl)
 
     function activate() {
         if (root.fileAvailable) {
@@ -50,10 +59,10 @@ Rectangle {
     Accessible.onPressAction: root.activate()
     color: rowMouseArea.containsMouse ? Theme.surfaceMutedColor : Theme.surfaceColor
     radius: Theme.radiusMd
-    border.color: activeFocus ? Theme.focusColor : Theme.borderColor
-    border.width: activeFocus ? 2 : 1
+    border.color: activeFocus || selected ? Theme.focusColor : Theme.borderColor
+    border.width: activeFocus || selected ? 2 : 1
     opacity: fileAvailable ? 1 : 0.72
-    Drag.active: bookDragHandler.active
+    Drag.active: bookDragHandler.active && !root.selectionMode
     Drag.source: root
     Drag.keys: ["szhbooks-book"]
     Drag.supportedActions: Qt.MoveAction
@@ -66,9 +75,9 @@ Rectangle {
         }
     }
 
-    Keys.onReturnPressed: root.activate()
-    Keys.onEnterPressed: root.activate()
-    Keys.onSpacePressed: root.activate()
+    Keys.onReturnPressed: root.selectionMode ? root.selectionToggled(root.sourceUrl) : root.activate()
+    Keys.onEnterPressed: root.selectionMode ? root.selectionToggled(root.sourceUrl) : root.activate()
+    Keys.onSpacePressed: root.selectionMode ? root.selectionToggled(root.sourceUrl) : root.activate()
 
     MouseArea {
         id: rowMouseArea
@@ -76,9 +85,13 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: {
+        onClicked: mouse => {
             root.forceActiveFocus()
-            root.activate()
+            if (root.selectionMode || (mouse.modifiers & Qt.ControlModifier)) {
+                root.selectionToggled(root.sourceUrl)
+            } else {
+                root.activate()
+            }
         }
     }
 
@@ -86,7 +99,7 @@ Rectangle {
         id: bookDragHandler
 
         target: null
-        enabled: root.fileAvailable
+        enabled: root.fileAvailable && !root.selectionMode
         acceptedButtons: Qt.LeftButton
     }
 
@@ -103,6 +116,14 @@ Rectangle {
             coverUrl: root.coverUrl
             fallbackColor: root.fallbackColor
             compact: true
+        }
+
+        SZHCheckBox {
+            visible: root.selectionMode
+            checked: root.selected
+            text: ""
+            Accessible.name: qsTr("Select %1").arg(root.title)
+            onClicked: root.selectionToggled(root.sourceUrl)
         }
 
         ColumnLayout {
@@ -124,7 +145,12 @@ Rectangle {
                 text: root.cloudPlaceholder
                       ? qsTr("Online-only  \u00b7  Downloads when opened")
                       : root.fileAvailable
-                        ? ([root.author, root.collectionPath]
+                        ? ([root.author,
+                            root.series.length > 0
+                              ? root.series + (root.seriesNumber > 0 ? " #" + root.seriesNumber : "")
+                              : "",
+                            root.publicationYear > 0 ? String(root.publicationYear) : "",
+                            root.collectionPath]
                          .filter(value => value.length > 0)
                          .join(qsTr("  \u00b7  "))
                          || Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm")))
@@ -176,6 +202,7 @@ Rectangle {
         }
 
         SZHIconButton {
+            visible: !root.selectionMode
             symbol: "\u22ef"
             toolTip: qsTr("Book actions")
             onClicked: root.actionsRequested(root.sourceUrl,

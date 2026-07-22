@@ -66,10 +66,13 @@ target_sources(appSZHBooks PRIVATE
     library/bookcoverprovider.cpp
     library/bookcoverprovider.h
     library/bookmetadata.h
+    library/bookmetadatapatch.h
     library/bookmetadataservice.cpp
     library/bookmetadataservice.h
     library/cloudfileavailability.cpp
     library/cloudfileavailability.h
+    library/customcoverstore.cpp
+    library/customcoverstore.h
     library/librarybook.h
     library/libraryfileservice.cpp
     library/libraryfileservice.h
@@ -123,6 +126,7 @@ qt_add_qml_module(appSZHBooks
     QML_FILES
         Main.qml
         library/BookActionsDialog.qml
+        library/BookMetadataDialog.qml
         library/CollectionActionsDialog.qml
         library/LibraryBookCover.qml
         library/LibraryBookDelegate.qml
@@ -153,6 +157,7 @@ qt_add_qml_module(appSZHBooks
         shell/ReaderStatusBar.qml
         ui/SZHBrandLogo.qml
         ui/SZHButton.qml
+        ui/SZHCheckBox.qml
         ui/SZHIconButton.qml
         ui/SZHMenuButton.qml
         ui/SZHNotification.qml
@@ -255,10 +260,13 @@ if(BUILD_TESTING)
             library/bookcoverprovider.cpp
             library/bookcoverprovider.h
             library/bookmetadata.h
+            library/bookmetadatapatch.h
             library/bookmetadataservice.cpp
             library/bookmetadataservice.h
             library/cloudfileavailability.cpp
             library/cloudfileavailability.h
+            library/customcoverstore.cpp
+            library/customcoverstore.h
             library/librarybook.h
             library/librarymodel.cpp
             library/librarymodel.h
@@ -332,10 +340,13 @@ if(BUILD_TESTING)
             library/bookcoverprovider.cpp
             library/bookcoverprovider.h
             library/bookmetadata.h
+            library/bookmetadatapatch.h
             library/bookmetadataservice.cpp
             library/bookmetadataservice.h
             library/cloudfileavailability.cpp
             library/cloudfileavailability.h
+            library/customcoverstore.cpp
+            library/customcoverstore.h
             library/librarybook.h
             library/libraryfileservice.cpp
             library/libraryfileservice.h
@@ -389,10 +400,13 @@ if(BUILD_TESTING)
             library/bookcoverprovider.cpp
             library/bookcoverprovider.h
             library/bookmetadata.h
+            library/bookmetadatapatch.h
             library/bookmetadataservice.cpp
             library/bookmetadataservice.h
             library/cloudfileavailability.cpp
             library/cloudfileavailability.h
+            library/customcoverstore.cpp
+            library/customcoverstore.h
             library/librarybook.h
             library/libraryfileservice.cpp
             library/libraryfileservice.h
@@ -565,6 +579,7 @@ if(BUILD_TESTING)
                 QML_FILES
                     library/CreateCollectionDialog.qml
                     library/BookActionsDialog.qml
+                    library/BookMetadataDialog.qml
                     library/CollectionActionsDialog.qml
                     library/LibraryBookCover.qml
                     library/LibraryBookDelegate.qml
@@ -575,6 +590,7 @@ if(BUILD_TESTING)
                     shell/ProfileRestoreDialog.qml
                     shell/AppShortcuts.qml
                     ui/SZHButton.qml
+                    ui/SZHCheckBox.qml
                     ui/SZHIconButton.qml
                     ui/SZHMenuButton.qml
                     ui/SZHProgressBar.qml

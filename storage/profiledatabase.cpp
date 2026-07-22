@@ -5,6 +5,8 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QSettings>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -14,7 +16,7 @@
 
 namespace {
 
-constexpr int schemaVersion = 1;
+constexpr int schemaVersion = 2;
 constexpr qreal minimumPdfScale = 0.4;
 constexpr qreal maximumPdfScale = 3.0;
 
@@ -37,6 +39,42 @@ QString storageString(QString value)
 QString storageString(const QVariant &value)
 {
     return storageString(value.toString());
+}
+
+QString stringListToStorage(const QStringList &values)
+{
+    return QString::fromUtf8(QJsonDocument(QJsonArray::fromStringList(values))
+                                 .toJson(QJsonDocument::Compact));
+}
+
+QStringList stringListFromStorage(const QString &value)
+{
+    const QJsonDocument document = QJsonDocument::fromJson(value.toUtf8());
+    if (!document.isArray()) {
+        return {};
+    }
+    QStringList result;
+    for (const QJsonValue &item : document.array()) {
+        if (item.isString()) {
+            result.append(item.toString());
+        }
+    }
+    return result;
+}
+
+QStringList stringListFromVariant(const QVariant &value)
+{
+    if (value.metaType() == QMetaType::fromType<QString>()) {
+        return value.toString().split(u',', Qt::SkipEmptyParts);
+    }
+    if (value.metaType() == QMetaType::fromType<QStringList>()) {
+        return value.toStringList();
+    }
+    QStringList result;
+    for (const QVariant &item : value.toList()) {
+        result.append(item.toString());
+    }
+    return result;
 }
 
 QString normalizedCollectionPath(QString collectionPath)
@@ -167,9 +205,35 @@ bool ProfileDatabase::initializeSchema()
         setLastError(query.lastError().text());
         return false;
     }
-    if (query.next() && query.value(0).toInt() > schemaVersion) {
+    const int storedVersion = query.next() ? query.value(0).toInt() : 0;
+    if (storedVersion > schemaVersion) {
         setLastError(QStringLiteral("The profile database version is newer than this application."));
         return false;
+    }
+
+    bool migrationTransaction = false;
+    if (storedVersion == 1) {
+        const QStringList migrations = {
+            QStringLiteral("ALTER TABLE books ADD COLUMN series TEXT NOT NULL DEFAULT ''"),
+            QStringLiteral("ALTER TABLE books ADD COLUMN series_number REAL NOT NULL DEFAULT 0"),
+            QStringLiteral("ALTER TABLE books ADD COLUMN genres TEXT NOT NULL DEFAULT '[]'"),
+            QStringLiteral("ALTER TABLE books ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'"),
+            QStringLiteral("ALTER TABLE books ADD COLUMN language TEXT NOT NULL DEFAULT ''"),
+            QStringLiteral("ALTER TABLE books ADD COLUMN publication_year INTEGER NOT NULL DEFAULT 0"),
+            QStringLiteral("ALTER TABLE books ADD COLUMN custom_cover_url TEXT NOT NULL DEFAULT ''"),
+            QStringLiteral("ALTER TABLE books ADD COLUMN metadata_edited INTEGER NOT NULL DEFAULT 0")
+        };
+        if (!m_database.transaction()) {
+            setLastError(m_database.lastError().text());
+            return false;
+        }
+        migrationTransaction = true;
+        for (const QString &migration : migrations) {
+            if (!execute(migration)) {
+                m_database.rollback();
+                return false;
+            }
+        }
     }
 
     QSqlQuery update(m_database);
@@ -178,6 +242,14 @@ bool ProfileDatabase::initializeSchema()
     update.bindValue(QStringLiteral(":version"), schemaVersion);
     if (!update.exec()) {
         setLastError(update.lastError().text());
+        if (migrationTransaction) {
+            m_database.rollback();
+        }
+        return false;
+    }
+    if (migrationTransaction && !m_database.commit()) {
+        setLastError(m_database.lastError().text());
+        m_database.rollback();
         return false;
     }
     return true;
@@ -199,6 +271,11 @@ bool ProfileDatabase::createSchema()
             "author TEXT NOT NULL DEFAULT '', format_name TEXT NOT NULL DEFAULT '', "
             "collection_path TEXT NOT NULL DEFAULT '', "
             "metadata_fingerprint TEXT NOT NULL DEFAULT '', cover_url TEXT NOT NULL DEFAULT '', "
+            "series TEXT NOT NULL DEFAULT '', series_number REAL NOT NULL DEFAULT 0, "
+            "genres TEXT NOT NULL DEFAULT '[]', tags TEXT NOT NULL DEFAULT '[]', "
+            "language TEXT NOT NULL DEFAULT '', publication_year INTEGER NOT NULL DEFAULT 0, "
+            "custom_cover_url TEXT NOT NULL DEFAULT '', "
+            "metadata_edited INTEGER NOT NULL DEFAULT 0, "
             "reading_progress REAL NOT NULL DEFAULT 0, text_progress REAL NOT NULL DEFAULT 0, "
             "pdf_page INTEGER NOT NULL DEFAULT 0, pdf_scale REAL NOT NULL DEFAULT 1, "
             "last_opened TEXT NOT NULL DEFAULT '')"),
@@ -317,8 +394,9 @@ QVariantMap ProfileDatabase::profileValues() const
     QSqlQuery bookQuery(m_database);
     if (!bookQuery.exec(QStringLiteral(
             "SELECT id, source_url, in_library, title, author, format_name, "
-            "collection_path, metadata_fingerprint, cover_url, reading_progress, "
-            "text_progress, pdf_page, pdf_scale, last_opened FROM books"))) {
+            "collection_path, metadata_fingerprint, cover_url, series, series_number, "
+            "genres, tags, language, publication_year, custom_cover_url, metadata_edited, "
+            "reading_progress, text_progress, pdf_page, pdf_scale, last_opened FROM books"))) {
         setLastError(bookQuery.lastError().text());
         return values;
     }
@@ -336,14 +414,29 @@ QVariantMap ProfileDatabase::profileValues() const
         if (!bookQuery.value(8).toString().isEmpty()) {
             values.insert(documentFieldKey(id, QStringLiteral("coverUrl")), bookQuery.value(8));
         }
+        values.insert(documentFieldKey(id, QStringLiteral("series")), bookQuery.value(9));
+        values.insert(documentFieldKey(id, QStringLiteral("seriesNumber")), bookQuery.value(10));
+        values.insert(documentFieldKey(id, QStringLiteral("genres")),
+                      stringListFromStorage(bookQuery.value(11).toString()));
+        values.insert(documentFieldKey(id, QStringLiteral("tags")),
+                      stringListFromStorage(bookQuery.value(12).toString()));
+        values.insert(documentFieldKey(id, QStringLiteral("language")), bookQuery.value(13));
+        values.insert(documentFieldKey(id, QStringLiteral("publicationYear")),
+                      bookQuery.value(14));
+        if (!bookQuery.value(15).toString().isEmpty()) {
+            values.insert(documentFieldKey(id, QStringLiteral("customCoverUrl")),
+                          bookQuery.value(15));
+        }
+        values.insert(documentFieldKey(id, QStringLiteral("metadataEdited")),
+                      bookQuery.value(16).toBool());
         values.insert(documentFieldKey(id, QStringLiteral("readingProgress")),
-                      bookQuery.value(9));
-        values.insert(documentFieldKey(id, QStringLiteral("textProgress")), bookQuery.value(10));
-        values.insert(documentFieldKey(id, QStringLiteral("pdfPage")), bookQuery.value(11));
-        values.insert(documentFieldKey(id, QStringLiteral("pdfScale")), bookQuery.value(12));
-        if (!bookQuery.value(13).toString().isEmpty()) {
+                      bookQuery.value(17));
+        values.insert(documentFieldKey(id, QStringLiteral("textProgress")), bookQuery.value(18));
+        values.insert(documentFieldKey(id, QStringLiteral("pdfPage")), bookQuery.value(19));
+        values.insert(documentFieldKey(id, QStringLiteral("pdfScale")), bookQuery.value(20));
+        if (!bookQuery.value(21).toString().isEmpty()) {
             values.insert(documentFieldKey(id, QStringLiteral("lastOpened")),
-                          bookQuery.value(13));
+                          bookQuery.value(21));
         }
     }
 
@@ -472,11 +565,13 @@ bool ProfileDatabase::importProfileValues(const QVariantMap &values,
     QSqlQuery bookQuery(m_database);
     bookQuery.prepare(QStringLiteral(
         "INSERT INTO books(id, source_url, in_library, title, author, format_name, "
-        "collection_path, metadata_fingerprint, cover_url, reading_progress, "
-        "text_progress, pdf_page, pdf_scale, last_opened) "
+        "collection_path, metadata_fingerprint, cover_url, series, series_number, "
+        "genres, tags, language, publication_year, custom_cover_url, metadata_edited, "
+        "reading_progress, text_progress, pdf_page, pdf_scale, last_opened) "
         "VALUES(:id, :source_url, :in_library, :title, :author, :format_name, "
-        ":collection_path, :metadata_fingerprint, :cover_url, :reading_progress, "
-        ":text_progress, :pdf_page, :pdf_scale, :last_opened)"));
+        ":collection_path, :metadata_fingerprint, :cover_url, :series, :series_number, "
+        ":genres, :tags, :language, :publication_year, :custom_cover_url, :metadata_edited, "
+        ":reading_progress, :text_progress, :pdf_page, :pdf_scale, :last_opened)"));
     for (auto book = books.cbegin(); book != books.cend(); ++book) {
         const QVariantMap data = book.value();
         const QString sourceUrl = data.value(QStringLiteral("sourceUrl")).toString();
@@ -498,6 +593,20 @@ bool ProfileDatabase::importProfileValues(const QVariantMap &values,
             {QStringLiteral(":metadata_fingerprint"),
              storageString(data.value(QStringLiteral("metadataFingerprint")))},
             {QStringLiteral(":cover_url"), storageString(data.value(QStringLiteral("coverUrl")))},
+            {QStringLiteral(":series"), storageString(data.value(QStringLiteral("series")))},
+            {QStringLiteral(":series_number"),
+             qMax(qreal(0), data.value(QStringLiteral("seriesNumber"), 0).toReal())},
+            {QStringLiteral(":genres"),
+             stringListToStorage(stringListFromVariant(data.value(QStringLiteral("genres"))))},
+            {QStringLiteral(":tags"),
+             stringListToStorage(stringListFromVariant(data.value(QStringLiteral("tags"))))},
+            {QStringLiteral(":language"), storageString(data.value(QStringLiteral("language")))},
+            {QStringLiteral(":publication_year"),
+             qBound(0, data.value(QStringLiteral("publicationYear"), 0).toInt(), 9999)},
+            {QStringLiteral(":custom_cover_url"),
+             storageString(data.value(QStringLiteral("customCoverUrl")))},
+            {QStringLiteral(":metadata_edited"),
+             data.value(QStringLiteral("metadataEdited"), false).toBool()},
             {QStringLiteral(":reading_progress"), qBound(qreal(0), readingProgress, qreal(1))},
             {QStringLiteral(":text_progress"), qBound(qreal(0), textProgress, qreal(1))},
             {QStringLiteral(":pdf_page"), qMax(0, data.value(QStringLiteral("pdfPage"), 0).toInt())},
@@ -700,8 +809,10 @@ QVector<LibraryBook> ProfileDatabase::libraryBooks() const
     QVector<LibraryBook> books;
     QSqlQuery query(m_database);
     if (!query.exec(QStringLiteral(
-            "SELECT source_url, title, author, format_name, collection_path, "
-            "metadata_fingerprint, cover_url, reading_progress, last_opened "
+            "SELECT source_url, title, author, series, series_number, genres, tags, "
+            "language, publication_year, format_name, collection_path, "
+            "metadata_fingerprint, cover_url, custom_cover_url, metadata_edited, "
+            "reading_progress, last_opened "
             "FROM books WHERE in_library = 1 "
             "ORDER BY last_opened DESC, title COLLATE NOCASE"))) {
         setLastError(query.lastError().text());
@@ -722,15 +833,28 @@ QVector<LibraryBook> ProfileDatabase::libraryBooks() const
             book.title = fileInfo.completeBaseName();
         }
         book.author = query.value(2).toString().trimmed();
-        book.formatName = query.value(3).toString().trimmed();
+        book.series = query.value(3).toString().trimmed();
+        book.seriesNumber = qMax(qreal(0), query.value(4).toReal());
+        book.genres = stringListFromStorage(query.value(5).toString());
+        book.tags = stringListFromStorage(query.value(6).toString());
+        book.language = query.value(7).toString().trimmed();
+        book.publicationYear = qBound(0, query.value(8).toInt(), 9999);
+        book.formatName = query.value(9).toString().trimmed();
         if (book.formatName.isEmpty()) {
             book.formatName = fileInfo.suffix().toUpper();
         }
-        book.collectionPath = normalizedCollectionPath(query.value(4).toString());
-        book.metadataFingerprint = query.value(5).toString();
-        book.coverUrl = QUrl(query.value(6).toString());
-        book.progress = qBound(qreal(0), query.value(7).toReal(), qreal(1));
-        book.lastOpened = dateTimeFromStorage(query.value(8).toString());
+        book.collectionPath = normalizedCollectionPath(query.value(10).toString());
+        book.metadataFingerprint = query.value(11).toString();
+        const QUrl automaticCoverUrl(query.value(12).toString());
+        book.customCoverUrl = QUrl(query.value(13).toString());
+        const bool customCoverAvailable = !book.customCoverUrl.isEmpty()
+                                          && (!book.customCoverUrl.isLocalFile()
+                                              || QFileInfo::exists(
+                                                  book.customCoverUrl.toLocalFile()));
+        book.coverUrl = customCoverAvailable ? book.customCoverUrl : automaticCoverUrl;
+        book.metadataEdited = query.value(14).toBool();
+        book.progress = qBound(qreal(0), query.value(15).toReal(), qreal(1));
+        book.lastOpened = dateTimeFromStorage(query.value(16).toString());
         book.fileAvailable = !book.sourceUrl.isLocalFile() || fileInfo.exists();
         books.append(book);
     }
@@ -747,7 +871,9 @@ bool ProfileDatabase::recordBookOpened(const QUrl &documentUrl,
     }
     QSqlQuery query(m_database);
     query.prepare(QStringLiteral(
-        "UPDATE books SET in_library = 1, title = :title, author = :author, "
+        "UPDATE books SET in_library = 1, "
+        "title = CASE WHEN metadata_edited = 1 THEN title ELSE :title END, "
+        "author = CASE WHEN metadata_edited = 1 THEN author ELSE :author END, "
         "format_name = :format_name, last_opened = :last_opened WHERE id = :id"));
     query.bindValue(QStringLiteral(":title"), storageString(title.trimmed()));
     query.bindValue(QStringLiteral(":author"), storageString(author.trimmed()));
@@ -805,7 +931,10 @@ bool ProfileDatabase::updateBookMetadata(const QUrl &documentUrl,
     }
     QSqlQuery query(m_database);
     query.prepare(QStringLiteral(
-        "UPDATE books SET title = :title, author = :author, format_name = :format_name, "
+        "UPDATE books SET "
+        "title = CASE WHEN metadata_edited = 1 THEN title ELSE :title END, "
+        "author = CASE WHEN metadata_edited = 1 THEN author ELSE :author END, "
+        "format_name = :format_name, "
         "cover_url = :cover_url, metadata_fingerprint = :fingerprint WHERE id = :id"));
     query.bindValue(QStringLiteral(":title"), storageString(title.trimmed()));
     query.bindValue(QStringLiteral(":author"), storageString(author.trimmed()));
@@ -816,6 +945,94 @@ bool ProfileDatabase::updateBookMetadata(const QUrl &documentUrl,
     if (!query.exec()) {
         setLastError(query.lastError().text());
         return false;
+    }
+    return true;
+}
+
+bool ProfileDatabase::updateBookDetails(const QVector<QUrl> &documentUrls,
+                                        const BookMetadataPatch &patch,
+                                        QString *errorMessage)
+{
+    if (documentUrls.isEmpty() || patch.isEmpty()) {
+        if (errorMessage) {
+            errorMessage->clear();
+        }
+        return true;
+    }
+    if (!m_database.transaction()) {
+        setLastError(m_database.lastError().text());
+        if (errorMessage) {
+            *errorMessage = m_errorMessage;
+        }
+        return false;
+    }
+
+    QSqlQuery query(m_database);
+    query.prepare(QStringLiteral(
+        "UPDATE books SET "
+        "title = CASE WHEN :has_title THEN :title ELSE title END, "
+        "author = CASE WHEN :has_author THEN :author ELSE author END, "
+        "series = CASE WHEN :has_series THEN :series ELSE series END, "
+        "series_number = CASE WHEN :has_series_number THEN :series_number ELSE series_number END, "
+        "genres = CASE WHEN :has_genres THEN :genres ELSE genres END, "
+        "tags = CASE WHEN :has_tags THEN :tags ELSE tags END, "
+        "language = CASE WHEN :has_language THEN :language ELSE language END, "
+        "publication_year = CASE WHEN :has_year THEN :publication_year ELSE publication_year END, "
+        "custom_cover_url = CASE WHEN :has_custom_cover THEN :custom_cover_url ELSE custom_cover_url END, "
+        "metadata_edited = CASE WHEN :lock_metadata THEN 1 ELSE metadata_edited END "
+        "WHERE id = :id AND in_library = 1"));
+
+    query.bindValue(QStringLiteral(":has_title"), patch.title.has_value());
+    query.bindValue(QStringLiteral(":title"),
+                    storageString(patch.title.value_or(QStringLiteral(""))));
+    query.bindValue(QStringLiteral(":has_author"), patch.author.has_value());
+    query.bindValue(QStringLiteral(":author"),
+                    storageString(patch.author.value_or(QStringLiteral(""))));
+    query.bindValue(QStringLiteral(":has_series"), patch.series.has_value());
+    query.bindValue(QStringLiteral(":series"),
+                    storageString(patch.series.value_or(QStringLiteral(""))));
+    query.bindValue(QStringLiteral(":has_series_number"), patch.seriesNumber.has_value());
+    query.bindValue(QStringLiteral(":series_number"), patch.seriesNumber.value_or(0));
+    query.bindValue(QStringLiteral(":has_genres"), patch.genres.has_value());
+    query.bindValue(QStringLiteral(":genres"),
+                    stringListToStorage(patch.genres.value_or(QStringList())));
+    query.bindValue(QStringLiteral(":has_tags"), patch.tags.has_value());
+    query.bindValue(QStringLiteral(":tags"),
+                    stringListToStorage(patch.tags.value_or(QStringList())));
+    query.bindValue(QStringLiteral(":has_language"), patch.language.has_value());
+    query.bindValue(QStringLiteral(":language"),
+                    storageString(patch.language.value_or(QStringLiteral(""))));
+    query.bindValue(QStringLiteral(":has_year"), patch.publicationYear.has_value());
+    query.bindValue(QStringLiteral(":publication_year"), patch.publicationYear.value_or(0));
+    query.bindValue(QStringLiteral(":has_custom_cover"), patch.customCoverUrl.has_value());
+    query.bindValue(QStringLiteral(":custom_cover_url"),
+                    serializedUrl(patch.customCoverUrl.value_or(QUrl())));
+    query.bindValue(QStringLiteral(":lock_metadata"),
+                    patch.title.has_value() || patch.author.has_value());
+
+    for (const QUrl &documentUrl : documentUrls) {
+        query.bindValue(QStringLiteral(":id"), DocumentStorageKey::id(documentUrl));
+        if (!query.exec() || query.numRowsAffected() == 0) {
+            setLastError(query.lastError().text().isEmpty()
+                             ? QStringLiteral("A selected book is no longer in the library.")
+                             : query.lastError().text());
+            m_database.rollback();
+            if (errorMessage) {
+                *errorMessage = m_errorMessage;
+            }
+            return false;
+        }
+    }
+    if (!m_database.commit()) {
+        setLastError(m_database.lastError().text());
+        m_database.rollback();
+        if (errorMessage) {
+            *errorMessage = m_errorMessage;
+        }
+        return false;
+    }
+    if (errorMessage) {
+        errorMessage->clear();
     }
     return true;
 }

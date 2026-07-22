@@ -310,6 +310,7 @@
       <source>Book actions</source>
       <translation>Действия с книгой</translation>
     </message>
+    <message><source>Select %1</source><translation>Выбрать «%1»</translation></message>
   </context>
   <context>
     <name>LibraryBookListDelegate</name>
@@ -362,6 +363,7 @@
       <source>Book actions</source>
       <translation>Действия с книгой</translation>
     </message>
+    <message><source>Select %1</source><translation>Выбрать «%1»</translation></message>
   </context>
   <context>
     <name>LibraryContinueCard</name>
@@ -478,6 +480,14 @@
       <source>List</source>
       <translation>Список</translation>
     </message>
+    <message><source>Series</source><translation>Серия</translation></message>
+    <message><source>Year</source><translation>Год</translation></message>
+    <message><source>Genre</source><translation>Жанр</translation></message>
+    <message><source>All genres</source><translation>Все жанры</translation></message>
+    <message><source>Tag</source><translation>Метка</translation></message>
+    <message><source>All tags</source><translation>Все метки</translation></message>
+    <message><source>Language</source><translation>Язык</translation></message>
+    <message><source>All languages</source><translation>Все языки</translation></message>
   </context>
   <context>
     <name>LibraryRepository</name>
@@ -511,6 +521,8 @@
       <source>Could not update the library item.</source>
       <translation>Не удалось обновить книгу в библиотеке.</translation>
     </message>
+    <message><source>Select at least one book.</source><translation>Выберите хотя бы одну книгу.</translation></message>
+    <message><source>The selected book is no longer in the library.</source><translation>Выбранной книги больше нет в библиотеке.</translation></message>
   </context>
   <context>
     <name>LibrarySyncBar</name>
@@ -665,6 +677,19 @@
       <source>Folder actions</source>
       <translation>Действия с папкой</translation>
     </message>
+    <message><source>Finish selecting</source><translation>Завершить выбор</translation></message>
+    <message><source>Select books</source><translation>Выбрать книги</translation></message>
+    <message numerus="yes">
+      <source>%n book(s) selected</source>
+      <translation>
+        <numerusform>Выбрана %n книга</numerusform>
+        <numerusform>Выбраны %n книги</numerusform>
+        <numerusform>Выбрано %n книг</numerusform>
+      </translation>
+    </message>
+    <message><source>Select all</source><translation>Выбрать все</translation></message>
+    <message><source>Edit details</source><translation>Изменить сведения</translation></message>
+    <message><source>Done</source><translation>Готово</translation></message>
   </context>
   <context>
     <name>LocalDocumentLoader</name>
@@ -701,6 +726,7 @@
       <source>The profile database could not be updated.</source>
       <translation>Не удалось обновить базу данных профиля.</translation>
     </message>
+    <message><source>Could not update the selected book metadata.</source><translation>Не удалось обновить сведения о выбранных книгах.</translation></message>
   </context>
   <context>
     <name>Main</name>
@@ -1650,6 +1676,7 @@
     <message><source>Cancel</source><translation>Отмена</translation></message>
     <message><source>Move to Trash</source><translation>В корзину</translation></message>
     <message><source>Remove</source><translation>Удалить</translation></message>
+    <message><source>Edit book details</source><translation>Изменить сведения о книге</translation></message>
   </context>
   <context>
     <name>CollectionActionsDialog</name>
@@ -1767,5 +1794,59 @@
     <message><source>Could not update the synchronization conflict.</source><translation>Не удалось обновить конфликт синхронизации.</translation></message>
     <message><source>Not set</source><translation>Не задано</translation></message>
     <message><source>Empty value</source><translation>Пустое значение</translation></message>
+  </context>
+  <context>
+    <name>BookMetadataDialog</name>
+    <message><source>Choose a cover image</source><translation>Выберите изображение обложки</translation></message>
+    <message><source>Images (*.png *.jpg *.jpeg *.webp *.bmp)</source><translation>Изображения (*.png *.jpg *.jpeg *.webp *.bmp)</translation></message>
+    <message numerus="yes">
+      <source>Edit %n selected book(s)</source>
+      <translation>
+        <numerusform>Изменить %n выбранную книгу</numerusform>
+        <numerusform>Изменить %n выбранные книги</numerusform>
+        <numerusform>Изменить %n выбранных книг</numerusform>
+      </translation>
+    </message>
+    <message><source>Book details</source><translation>Сведения о книге</translation></message>
+    <message><source>Choose the fields that should change for every selected book.</source><translation>Отметьте поля, которые нужно изменить у всех выбранных книг.</translation></message>
+    <message><source>Close</source><translation>Закрыть</translation></message>
+    <message><source>Title</source><translation>Название</translation></message>
+    <message><source>Apply</source><translation>Применить</translation></message>
+    <message><source>Book title</source><translation>Название книги</translation></message>
+    <message><source>Author</source><translation>Автор</translation></message>
+    <message><source>Series</source><translation>Серия</translation></message>
+    <message><source>Series name</source><translation>Название серии</translation></message>
+    <message><source>Number</source><translation>Номер</translation></message>
+    <message><source>No.</source><translation>№</translation></message>
+    <message><source>Genres</source><translation>Жанры</translation></message>
+    <message><source>Fiction, History</source><translation>Художественная литература, История</translation></message>
+    <message><source>Tags</source><translation>Метки</translation></message>
+    <message><source>Favorites, To review</source><translation>Избранное, Пересмотреть</translation></message>
+    <message><source>Language</source><translation>Язык</translation></message>
+    <message><source>English</source><translation>Английский</translation></message>
+    <message><source>Year</source><translation>Год</translation></message>
+    <message><source>Publication year</source><translation>Год издания</translation></message>
+    <message><source>Custom cover</source><translation>Пользовательская обложка</translation></message>
+    <message><source>PNG, JPEG, WebP or BMP up to 20 MB</source><translation>PNG, JPEG, WebP или BMP размером до 20 МБ</translation></message>
+    <message><source>Choose image</source><translation>Выбрать изображение</translation></message>
+    <message><source>Remove cover</source><translation>Удалить обложку</translation></message>
+    <message><source>Cancel</source><translation>Отмена</translation></message>
+    <message><source>Save</source><translation>Сохранить</translation></message>
+  </context>
+  <context>
+    <name>LibraryModel</name>
+    <message><source>Select at least one book.</source><translation>Выберите хотя бы одну книгу.</translation></message>
+    <message><source>A book title cannot be empty.</source><translation>Название книги не может быть пустым.</translation></message>
+    <message><source>Enter a valid series number.</source><translation>Введите корректный номер в серии.</translation></message>
+    <message><source>Enter a valid publication year.</source><translation>Введите корректный год издания.</translation></message>
+    <message><source>Choose at least one metadata field to update.</source><translation>Выберите хотя бы одно поле для изменения.</translation></message>
+  </context>
+  <context>
+    <name>CustomCoverStore</name>
+    <message><source>Choose a local image file.</source><translation>Выберите локальный файл изображения.</translation></message>
+    <message><source>The selected cover image is unavailable or too large.</source><translation>Выбранное изображение недоступно или слишком велико.</translation></message>
+    <message><source>The selected file is not a readable image.</source><translation>Не удалось прочитать выбранное изображение.</translation></message>
+    <message><source>Could not create the custom cover folder.</source><translation>Не удалось создать папку пользовательских обложек.</translation></message>
+    <message><source>Could not save the custom cover.</source><translation>Не удалось сохранить пользовательскую обложку.</translation></message>
   </context>
 </TS>

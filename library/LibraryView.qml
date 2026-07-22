@@ -31,6 +31,14 @@ Item {
         syncService: root.syncService
         onBookUpdated: root.libraryModel.refresh()
         onBookRemoved: root.libraryModel.refresh()
+        onEditMetadataRequested: sourceUrl => metadataDialog.openFor(sourceUrl)
+    }
+
+    BookMetadataDialog {
+        id: metadataDialog
+
+        libraryModel: root.libraryModel
+        onMetadataUpdated: root.libraryModel.refresh()
     }
 
     CollectionActionsDialog {
@@ -139,6 +147,13 @@ Item {
                 onClicked: collectionActionsDialog.openFor(root.libraryModel.collectionFilter)
             }
 
+            SZHIconButton {
+                visible: root.libraryModel.totalCount > 0
+                symbol: root.libraryModel.selectionMode ? "\u00d7" : "\u2713"
+                toolTip: root.libraryModel.selectionMode ? qsTr("Finish selecting") : qsTr("Select books")
+                onClicked: root.libraryModel.selectionMode = !root.libraryModel.selectionMode
+            }
+
             SZHButton {
                 text: qsTr("Add book")
                 symbol: "+"
@@ -151,6 +166,49 @@ Item {
             libraryModel: root.libraryModel
             syncService: root.syncService
             showCollectionControl: root.width < 960
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: selectionRow.implicitHeight + Theme.spaceSm * 2
+            visible: root.libraryModel.selectionMode
+            color: Theme.surfaceMutedColor
+            radius: Theme.radiusMd
+
+            RowLayout {
+                id: selectionRow
+
+                anchors.fill: parent
+                anchors.margins: Theme.spaceSm
+                spacing: Theme.spaceXs
+
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("%n book(s) selected", "", root.libraryModel.selectionCount)
+                    color: Theme.textColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.bodyFontSize
+                    font.weight: Font.DemiBold
+                }
+
+                SZHButton {
+                    text: qsTr("Select all")
+                    variant: "secondary"
+                    onClicked: root.libraryModel.selectAllVisible()
+                }
+
+                SZHButton {
+                    text: qsTr("Edit details")
+                    enabled: root.libraryModel.selectionCount > 0
+                    onClicked: metadataDialog.openForSelection()
+                }
+
+                SZHButton {
+                    text: qsTr("Done")
+                    variant: "secondary"
+                    onClicked: root.libraryModel.selectionMode = false
+                }
+            }
         }
 
         LibrarySyncBar {
@@ -265,8 +323,10 @@ Item {
                             width: bookGrid.cellWidth - Theme.spaceSm
                             height: bookGrid.cellHeight - Theme.spaceSm
                             fallbackColor: root.fallbackColor(index)
+                            selectionMode: root.libraryModel.selectionMode
                             onOpenRequested: sourceUrl => root.openRequested(sourceUrl)
                             onRelinkRequested: sourceUrl => root.relinkRequested(sourceUrl)
+                            onSelectionToggled: sourceUrl => root.libraryModel.toggleSelection(sourceUrl)
                             onActionsRequested: (sourceUrl, title, collectionPath, fileAvailable) => {
                                 bookActionsDialog.openFor(sourceUrl, title, collectionPath, fileAvailable)
                             }
@@ -288,8 +348,10 @@ Item {
                             width: bookList.width
                             height: 82
                             fallbackColor: root.fallbackColor(index)
+                            selectionMode: root.libraryModel.selectionMode
                             onOpenRequested: sourceUrl => root.openRequested(sourceUrl)
                             onRelinkRequested: sourceUrl => root.relinkRequested(sourceUrl)
+                            onSelectionToggled: sourceUrl => root.libraryModel.toggleSelection(sourceUrl)
                             onActionsRequested: (sourceUrl, title, collectionPath, fileAvailable) => {
                                 bookActionsDialog.openFor(sourceUrl, title, collectionPath, fileAvailable)
                             }

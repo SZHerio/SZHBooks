@@ -92,6 +92,12 @@ TestCase {
             sourcePath: "C:/Books/novel.txt"
             title: "Novel"
             author: "Author"
+            series: ""
+            seriesNumber: 0
+            genres: []
+            tags: []
+            language: ""
+            publicationYear: 0
             formatName: "TXT"
             collectionPath: "Fiction"
             coverUrl: ""
@@ -99,6 +105,57 @@ TestCase {
             lastOpened: new Date(2026, 0, 1)
             fileAvailable: true
             cloudPlaceholder: false
+            selected: false
+            selectionMode: false
+        }
+    }
+
+    QtObject {
+        id: mockLibraryModel
+
+        property string errorMessage: ""
+        property int updateCount: 0
+        property int coverCount: 0
+        property var lastChanges: ({})
+        property var selectedBooks: [{
+            sourceUrl: "file:///C:/Books/novel.txt",
+            title: "Novel",
+            author: "Author"
+        }]
+
+        function book(sourceUrl) {
+            return {
+                sourceUrl: sourceUrl,
+                title: "Novel",
+                author: "Author",
+                series: "Archive",
+                seriesNumber: 2,
+                genres: ["Fiction"],
+                tags: ["Favorite"],
+                language: "English",
+                publicationYear: 2024,
+                formatName: "EPUB",
+                coverUrl: "",
+                customCoverUrl: ""
+            }
+        }
+        function clearError() { errorMessage = "" }
+        function updateBooksMetadata(sourceUrls, changes) {
+            updateCount += 1
+            lastChanges = changes
+            return true
+        }
+        function setCustomCover(sourceUrl, imageUrl) {
+            coverCount += 1
+            return true
+        }
+    }
+
+    Component {
+        id: metadataDialogComponent
+
+        BookMetadataDialog {
+            libraryModel: mockLibraryModel
         }
     }
 
@@ -366,6 +423,26 @@ TestCase {
         tryCompare(delegate, "activeFocus", true)
         keyClick(Qt.Key_Return)
         compare(openedUrl, "file:///C:/Books/novel.txt")
+    }
+
+    function test_metadataDialogEditsSingleBook() {
+        mockLibraryModel.updateCount = 0
+        const dialog = createTemporaryObject(metadataDialogComponent, stage)
+        verify(dialog)
+        dialog.openFor("file:///C:/Books/novel.txt")
+        tryCompare(dialog, "opened", true)
+
+        const titleField = findChild(dialog, "metadataTitleField")
+        const saveButton = findChild(dialog, "saveMetadataButton")
+        verify(titleField)
+        verify(saveButton)
+        compare(titleField.text, "Novel")
+        titleField.text = "Edited novel"
+        saveButton.clicked()
+
+        compare(mockLibraryModel.updateCount, 1)
+        compare(mockLibraryModel.lastChanges.title, "Edited novel")
+        tryCompare(dialog, "opened", false)
     }
 
     function test_syncBarOffersAndRefreshesFolder() {

@@ -196,6 +196,7 @@ void LibraryFileService::setRootPath(const QString &rootPath)
         return;
     }
     m_rootPath = cleanPath;
+    m_repository->setManagedRootPath(m_rootPath);
     emit rootPathChanged();
 }
 

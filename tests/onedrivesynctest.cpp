@@ -60,6 +60,16 @@ void OneDriveSyncTest::mapsManagedBookPathsBetweenDevices()
     firstStore.setBookCollection(firstBook, QStringLiteral("Fiction"));
     firstStore.saveTextPosition(firstBook, 0.42);
     firstStore.setLastBookUrl(firstBook);
+    const QString relativeCoverPath = QStringLiteral(".szhbooks/covers/novel.png");
+    QVERIFY(QDir().mkpath(QFileInfo(firstRoot + u'/' + relativeCoverPath).absolutePath()));
+    QVERIFY(QDir().mkpath(QFileInfo(secondRoot + u'/' + relativeCoverPath).absolutePath()));
+    QVERIFY(writeFile(firstRoot + u'/' + relativeCoverPath, "custom cover"));
+    QVERIFY(writeFile(secondRoot + u'/' + relativeCoverPath, "custom cover"));
+    BookMetadataPatch coverPatch;
+    coverPatch.customCoverUrl = QUrl::fromLocalFile(firstRoot + u'/' + relativeCoverPath);
+    QString coverError;
+    QVERIFY2(firstStore.updateBookDetails({firstBook}, coverPatch, &coverError),
+             qPrintable(coverError));
 
     ReadingAnnotationStore firstAnnotations(firstStore.settingsFilePath());
     firstAnnotations.setDocumentUrl(firstBook);
@@ -72,6 +82,7 @@ void OneDriveSyncTest::mapsManagedBookPathsBetweenDevices()
                                       .toJson(QJsonDocument::Compact);
     QVERIFY(!serialized.contains(firstRoot.toUtf8()));
     QVERIFY(serialized.contains("szhbooks://library/Fiction/novel.txt"));
+    QVERIFY(serialized.contains("szhbooks://library/.szhbooks/covers/novel.png"));
 
     LocalStateStore secondStore(directory.filePath(QStringLiteral("second.ini")));
     const QVariantMap secondProfile = PortableProfileMapper::applyPortable(
@@ -85,6 +96,8 @@ void OneDriveSyncTest::mapsManagedBookPathsBetweenDevices()
     QCOMPARE(books.constFirst().sourceUrl, secondBook);
     QCOMPARE(books.constFirst().collectionPath, QStringLiteral("Fiction"));
     QVERIFY(qAbs(books.constFirst().progress - 0.42) < 0.0001);
+    QCOMPARE(books.constFirst().customCoverUrl,
+             QUrl::fromLocalFile(secondRoot + u'/' + relativeCoverPath));
     QCOMPARE(secondStore.lastBookUrl(), secondBook);
 
     ReadingAnnotationStore secondAnnotations(secondStore.settingsFilePath());
