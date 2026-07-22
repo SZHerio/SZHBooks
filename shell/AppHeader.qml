@@ -23,6 +23,7 @@ Rectangle {
     signal backupProfileRequested
     signal restoreProfileRequested
     signal notesCenterRequested
+    signal librarySearchRequested
 
     function closeReaderPopups() {
         searchPopup.close()
@@ -290,6 +291,15 @@ Rectangle {
             toolTip: qsTr("Focus mode (F11)")
             onChrome: true
             onClicked: root.focusModeRequested()
+        }
+
+        SZHIconButton {
+            visible: root.showingLibrary
+            symbol: "\u2315"
+            symbolPixelSize: Theme.bodyLargeFontSize
+            toolTip: qsTr("Search library (Ctrl+Shift+F)")
+            onChrome: true
+            onClicked: root.librarySearchRequested()
         }
 
         SZHIconButton {

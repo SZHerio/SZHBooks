@@ -82,6 +82,10 @@ target_sources(appSZHBooks PRIVATE
     library/libraryrepository.h
     notes/notescentermodel.cpp
     notes/notescentermodel.h
+    search/librarysearchindex.cpp
+    search/librarysearchindex.h
+    search/librarysearchmodel.cpp
+    search/librarysearchmodel.h
     localization/localizationcontroller.cpp
     localization/localizationcontroller.h
     localdocumentloader.cpp
@@ -143,6 +147,7 @@ qt_add_qml_module(appSZHBooks
         library/LibraryView.qml
         library/SyncCenterDialog.qml
         notes/NotesCenterDialog.qml
+        search/LibrarySearchDialog.qml
         reader/EmptyReaderView.qml
         reader/PageNavigationControl.qml
         reader/PdfDocumentView.qml
@@ -537,6 +542,50 @@ if(BUILD_TESTING)
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
         )
 
+        qt_add_executable(tst_librarysearchindex
+            archive/ziparchivereader.cpp
+            archive/ziparchivereader.h
+            archive/zippathutils.cpp
+            archive/zippathutils.h
+            document/docxcontentrenderer.cpp
+            document/docxcontentrenderer.h
+            document/documentlimits.h
+            document/epubcontentrenderer.cpp
+            document/epubcontentrenderer.h
+            document/fb2contentrenderer.cpp
+            document/fb2contentrenderer.h
+            document/richtextcontent.h
+            document/richtextprocessor.cpp
+            document/richtextprocessor.h
+            document/xmlutils.cpp
+            document/xmlutils.h
+            documentloadresult.h
+            documentreader.h
+            documentreaders.cpp
+            documentreaders.h
+            library/librarybook.h
+            localdocumentloader.cpp
+            localdocumentloader.h
+            search/librarysearchindex.cpp
+            search/librarysearchindex.h
+            tests/librarysearchindextest.cpp
+        )
+        target_link_libraries(tst_librarysearchindex
+            PRIVATE
+                szhbooks_miniz
+                Qt6::Gui
+                Qt6::Pdf
+                Qt6::Sql
+                Qt6::Test
+                Qt6::Xml
+        )
+
+        add_test(NAME librarysearchindex COMMAND tst_librarysearchindex)
+        set_tests_properties(librarysearchindex PROPERTIES
+            ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+        )
+
         qt_add_executable(tst_libraryservices
             archive/ziparchivereader.cpp
             archive/ziparchivereader.h
@@ -620,6 +669,7 @@ if(BUILD_TESTING)
                     library/LibrarySyncBar.qml
                     library/SyncCenterDialog.qml
                     notes/NotesCenterDialog.qml
+                    search/LibrarySearchDialog.qml
                     shell/ProfileRestoreDialog.qml
                     shell/AppShortcuts.qml
                     reader/PageNavigationControl.qml

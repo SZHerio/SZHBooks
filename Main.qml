@@ -15,6 +15,7 @@ ApplicationWindow {
     required property var readingSearchController
     required property var readingAnnotationStore
     required property var notesCenterModel
+    required property var librarySearchModel
     required property var oneDriveLibraryService
 
     property bool showingLibrary: true
@@ -27,7 +28,7 @@ ApplicationWindow {
     property string profileNoticeHeading
     property string profileNoticeMessage
     property string profileNoticeKind: "info"
-    property var pendingLibraryAnnotation: ({})
+    property var pendingLibraryLocation: ({})
     readonly property bool readingNavigationEnabled: !root.showingLibrary
                                                       && readerWorkspace.hasDocument
                                                       && !appHeader.readerPopupOpen
@@ -61,18 +62,18 @@ ApplicationWindow {
         return false
     }
 
-    function openLibraryAnnotation(annotation) {
-        if (!annotation || annotation.sourceUrl === undefined)
+    function openLibraryLocation(location) {
+        if (!location || location.sourceUrl === undefined)
             return
-        const targetUrl = annotation.sourceUrl.toString()
+        const targetUrl = location.sourceUrl.toString()
         if (!root.showingLibrary
                 && root.readerController.sourceUrl.toString() === targetUrl) {
-            readerWorkspace.goToAnnotation(annotation)
+            readerWorkspace.goToAnnotation(location)
             return
         }
-        root.pendingLibraryAnnotation = annotation
-        if (!root.openBook(annotation.sourceUrl))
-            root.pendingLibraryAnnotation = ({})
+        root.pendingLibraryLocation = location
+        if (!root.openBook(location.sourceUrl))
+            root.pendingLibraryLocation = ({})
     }
 
     function addBooks(fileUrls) {
@@ -183,6 +184,7 @@ ApplicationWindow {
         readerWorkspace: readerWorkspace
         appHeader: appHeader
         onOpenRequested: openDialog.open()
+        onLibrarySearchRequested: librarySearchDialog.open()
         onColorThemeToggleRequested: root.toggleColorTheme()
         onFocusModeToggleRequested: root.toggleFocusMode()
         onFocusModeExitRequested: root.exitFocusMode()
@@ -232,7 +234,14 @@ ApplicationWindow {
         id: notesCenterDialog
 
         notesModel: root.notesCenterModel
-        onAnnotationActivated: annotation => root.openLibraryAnnotation(annotation)
+        onAnnotationActivated: annotation => root.openLibraryLocation(annotation)
+    }
+
+    LibrarySearchDialog {
+        id: librarySearchDialog
+
+        searchModel: root.librarySearchModel
+        onResultActivated: result => root.openLibraryLocation(result)
     }
 
     FileDialog {
@@ -384,6 +393,7 @@ ApplicationWindow {
         onBackupProfileRequested: profileBackupDialog.open()
         onRestoreProfileRequested: profileRestoreFileDialog.open()
         onNotesCenterRequested: notesCenterDialog.open()
+        onLibrarySearchRequested: librarySearchDialog.open()
     }
 
     footer: ReaderStatusBar {
@@ -406,11 +416,11 @@ ApplicationWindow {
         annotationStore: root.readingAnnotationStore
         onOpenRequested: openDialog.open()
         onReadingStateRestored: {
-            if (root.pendingLibraryAnnotation.annotationId !== undefined) {
-                const annotation = root.pendingLibraryAnnotation
-                root.pendingLibraryAnnotation = ({})
+            if (root.pendingLibraryLocation.sourceUrl !== undefined) {
+                const location = root.pendingLibraryLocation
+                root.pendingLibraryLocation = ({})
                 Qt.callLater(function() {
-                    readerWorkspace.goToAnnotation(annotation)
+                    readerWorkspace.goToAnnotation(location)
                 })
             }
         }

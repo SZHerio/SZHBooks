@@ -11,6 +11,7 @@ Item {
 
     signal openRequested
     signal colorThemeToggleRequested
+    signal librarySearchRequested
     signal focusModeToggleRequested
     signal focusModeExitRequested
 
@@ -25,6 +26,11 @@ Item {
         enabled: !root.showingLibrary && root.readerWorkspace.hasDocument
         sequence: StandardKey.Find
         onActivated: root.appHeader.openSearch()
+    }
+
+    Shortcut {
+        sequence: "Ctrl+Shift+F"
+        onActivated: root.librarySearchRequested()
     }
 
     Shortcut {

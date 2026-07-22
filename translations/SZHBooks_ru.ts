@@ -100,6 +100,7 @@
       <translation>Включить чёрную тему (Ctrl+Shift+D)</translation>
     </message>
     <message><source>Notes center</source><translation>Центр заметок</translation></message>
+    <message><source>Search library (Ctrl+Shift+F)</source><translation>Поиск по библиотеке (Ctrl+Shift+F)</translation></message>
   </context>
   <context>
     <name>CreateCollectionDialog</name>
@@ -1954,5 +1955,28 @@
     <message><source>Type</source><translation>Тип</translation></message>
     <message><source>Bookmark</source><translation>Закладка</translation></message>
     <message><source>Highlight</source><translation>Выделение</translation></message>
+  </context>
+  <context>
+    <name>LibrarySearchDialog</name>
+    <message><source>Updating the local search index...</source><translation>Обновление локального поискового индекса...</translation></message>
+    <message><source>Add books to search their contents</source><translation>Добавьте книги, чтобы искать по их содержимому</translation></message>
+    <message><source>%1 of %2 books indexed, %3 skipped</source><translation>Проиндексировано книг: %1 из %2, пропущено: %3</translation></message>
+    <message><source>%1 of %2 books indexed</source><translation>Проиндексировано книг: %1 из %2</translation></message>
+    <message><source>Search library</source><translation>Поиск по библиотеке</translation></message>
+    <message><source>Rebuild search index</source><translation>Пересобрать поисковый индекс</translation></message>
+    <message><source>Close</source><translation>Закрыть</translation></message>
+    <message><source>Search every book</source><translation>Искать по всем книгам</translation></message>
+    <message numerus="yes"><source>%n result(s)</source><translation><numerusform>%n результат</numerusform><numerusform>%n результата</numerusform><numerusform>%n результатов</numerusform></translation></message>
+    <message><source>Enter 2+ characters</source><translation>Введите не менее 2 символов</translation></message>
+    <message><source>Page %1</source><translation>Страница %1</translation></message>
+    <message><source>%1%</source><translation>%1%</translation></message>
+    <message><source>Match in book details</source><translation>Совпадение в сведениях о книге</translation></message>
+    <message><source>Type a word or phrase to search the whole library</source><translation>Введите слово или фразу для поиска по всей библиотеке</translation></message>
+    <message><source>The index is updating. Results will appear here.</source><translation>Индекс обновляется. Результаты появятся здесь.</translation></message>
+    <message><source>No matches found</source><translation>Совпадений не найдено</translation></message>
+  </context>
+  <context>
+    <name>LibrarySearchModel</name>
+    <message><source>Search index error: %1</source><translation>Ошибка поискового индекса: %1</translation></message>
   </context>
 </TS>

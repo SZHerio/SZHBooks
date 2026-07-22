@@ -16,6 +16,8 @@
 #include "reader/readingsearchcontroller.h"
 #include "reader/readingdocumentformatter.h"
 #include "readercontroller.h"
+#include "search/librarysearchindex.h"
+#include "search/librarysearchmodel.h"
 #include "storage/localstatestore.h"
 #include "storage/profilearchiveservice.h"
 #include "storage/readingannotationstore.h"
@@ -66,6 +68,9 @@ int main(int argc, char *argv[])
     ReadingSearchController searchController;
     ReadingAnnotationStore annotationStore(localState.profileDatabase());
     NotesCenterModel notesCenterModel(localState.profileDatabase());
+    LibrarySearchModel librarySearchModel(
+        &libraryRepository,
+        LibrarySearchIndex::databasePathForProfile(localState.databaseFilePath()));
     OneDriveLibraryService oneDriveLibraryService(&localState, &libraryRepository);
 
     QObject::connect(&localState,
@@ -145,6 +150,8 @@ int main(int argc, char *argv[])
          QVariant::fromValue(static_cast<QObject *>(&annotationStore))},
         {QStringLiteral("notesCenterModel"),
          QVariant::fromValue(static_cast<QObject *>(&notesCenterModel))},
+        {QStringLiteral("librarySearchModel"),
+         QVariant::fromValue(static_cast<QObject *>(&librarySearchModel))},
         {QStringLiteral("oneDriveLibraryService"),
          QVariant::fromValue(static_cast<QObject *>(&oneDriveLibraryService))}
     });

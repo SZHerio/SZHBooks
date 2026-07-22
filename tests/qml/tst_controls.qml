@@ -326,6 +326,32 @@ TestCase {
         }
     }
 
+    ListModel {
+        id: mockLibrarySearchModel
+
+        property string query: ""
+        property bool indexing: false
+        property int indexedBooks: 1
+        property int totalBooks: 1
+        property int failedBooks: 0
+        property date indexedAt: new Date(2026, 0, 1)
+        property string errorMessage: ""
+        property int ensureCount: 0
+        property int rebuildCount: 0
+
+        function ensureIndexed() { ensureCount += 1 }
+        function rebuildIndex() { rebuildCount += 1 }
+        function clearError() { errorMessage = "" }
+    }
+
+    Component {
+        id: librarySearchComponent
+
+        LibrarySearchDialog {
+            searchModel: mockLibrarySearchModel
+        }
+    }
+
     Component {
         id: bookActionsComponent
 
@@ -645,6 +671,42 @@ TestCase {
         tryCompare(dialog, "opened", false)
     }
 
+    function test_librarySearchOpensResultAndUpdatesQuery() {
+        mockLibrarySearchModel.clear()
+        mockLibrarySearchModel.query = ""
+        mockLibrarySearchModel.ensureCount = 0
+        mockLibrarySearchModel.append({
+            "sourceUrl": "file:///C:/Books/space.txt",
+            "bookTitle": "Space",
+            "bookAuthor": "Author",
+            "formatName": "TXT",
+            "snippet": "A silver comet crossed the sky.",
+            "start": 128,
+            "page": -1,
+            "progress": 0.25
+        })
+
+        const dialog = createTemporaryObject(librarySearchComponent, stage)
+        verify(dialog)
+        let activatedUrl = ""
+        dialog.resultActivated.connect(function(result) {
+            activatedUrl = result.sourceUrl.toString()
+        })
+        dialog.open()
+        tryCompare(dialog, "opened", true)
+        compare(mockLibrarySearchModel.ensureCount, 1)
+
+        const field = findChild(dialog, "librarySearchField")
+        const results = findChild(dialog, "librarySearchResults")
+        verify(field)
+        verify(results)
+        field.text = "comet"
+        tryCompare(mockLibrarySearchModel, "query", "comet", 1000)
+        dialog.openResult(0)
+        compare(activatedUrl, "file:///C:/Books/space.txt")
+        tryCompare(dialog, "opened", false)
+    }
+
     function test_bookAndCollectionActionsOpenSafely() {
         mockFileService.moveCount = 0
         const bookDialog = createTemporaryObject(bookActionsComponent, stage)
@@ -692,16 +754,20 @@ TestCase {
 
         let openCount = 0
         let themeCount = 0
+        let librarySearchCount = 0
         shortcuts.openRequested.connect(function() { openCount += 1 })
         shortcuts.colorThemeToggleRequested.connect(function() { themeCount += 1 })
+        shortcuts.librarySearchRequested.connect(function() { librarySearchCount += 1 })
         shortcutWorkspace.forwardCount = 0
 
         keyClick(Qt.Key_O, Qt.ControlModifier)
         keyClick(Qt.Key_D, Qt.ControlModifier | Qt.ShiftModifier)
+        keyClick(Qt.Key_F, Qt.ControlModifier | Qt.ShiftModifier)
         keyClick(Qt.Key_PageDown)
 
         compare(openCount, 1)
         compare(themeCount, 1)
+        compare(librarySearchCount, 1)
         compare(shortcutWorkspace.forwardCount, 1)
     }
 }
