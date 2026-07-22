@@ -284,7 +284,7 @@ void LocalStateStoreTest::migratesSqliteMetadataSchema()
         QVERIFY(query.exec(QStringLiteral(
             "SELECT value FROM schema_meta WHERE key = 'version'")));
         QVERIFY(query.next());
-        QCOMPARE(query.value(0).toInt(), 2);
+        QCOMPARE(query.value(0).toInt(), 3);
         database.close();
     }
     QSqlDatabase::removeDatabase(verifyConnection);
@@ -332,18 +332,23 @@ void LocalStateStoreTest::keepsIndependentDocumentPositions()
 
     {
         LocalStateStore store(settingsPath);
-        store.saveTextPosition(textBook, 0.42);
+        store.saveTextState(textBook, 0.42, 137);
+        store.setTextReadingMode(textBook, QStringLiteral("pages"));
         store.savePdfPosition(pdfBook, 17, 1.65, 0.75);
         store.sync();
     }
 
     LocalStateStore restored(settingsPath);
     QVERIFY(qAbs(restored.textPosition(textBook) - 0.42) < 0.0001);
+    QCOMPARE(restored.textCharacterPosition(textBook), 137);
+    QCOMPARE(restored.textReadingMode(textBook), QStringLiteral("pages"));
     QCOMPARE(restored.pdfPage(pdfBook), 17);
     QVERIFY(qAbs(restored.pdfScale(pdfBook) - 1.65) < 0.0001);
     QCOMPARE(restored.textPosition(pdfBook), 0.0);
     QCOMPARE(restored.pdfPage(textBook), 0);
     QCOMPARE(restored.pdfScale(textBook), 1.0);
+    QCOMPARE(restored.textCharacterPosition(pdfBook), -1);
+    QCOMPARE(restored.textReadingMode(pdfBook), QStringLiteral("scroll"));
 }
 
 void LocalStateStoreTest::persistsLibraryPresentation()

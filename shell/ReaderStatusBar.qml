@@ -50,15 +50,39 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
         }
 
+        RowLayout {
+            visible: root.showProgress
+            spacing: Theme.space2xs
+
+            SZHIconButton {
+                symbol: "\u2190"
+                toolTip: qsTr("Back to previous location (Alt+Left)")
+                enabled: root.readerWorkspace.canNavigateBack
+                onClicked: root.readerWorkspace.navigateBack()
+            }
+
+            SZHIconButton {
+                symbol: "\u2192"
+                toolTip: qsTr("Forward to next location (Alt+Right)")
+                enabled: root.readerWorkspace.canNavigateForward
+                onClicked: root.readerWorkspace.navigateForward()
+            }
+        }
+
         TextNavigationControl {
-            visible: root.showProgress && root.readerWorkspace.showingText
+            visible: root.showProgress
+                     && root.readerWorkspace.showingText
+                     && !root.readerWorkspace.textPagedMode
             readerWorkspace: root.readerWorkspace
             compact: root.width < 900
         }
 
         PageNavigationControl {
-            visible: root.showProgress && root.readerWorkspace.showingPdf
+            visible: root.showProgress
+                     && (root.readerWorkspace.showingPdf
+                         || root.readerWorkspace.textPagedMode)
             readerWorkspace: root.readerWorkspace
+            compact: root.width < 980
         }
     }
 }

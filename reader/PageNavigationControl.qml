@@ -6,6 +6,7 @@ RowLayout {
     id: root
 
     required property var readerWorkspace
+    property bool compact: false
 
     spacing: Theme.spaceXs
 
@@ -47,6 +48,29 @@ RowLayout {
         toolTip: qsTr("Previous page")
         enabled: root.readerWorkspace.canGoBackward
         onClicked: root.readerWorkspace.previousPage()
+    }
+
+    SZHSlider {
+        visible: root.readerWorkspace.textPagedMode
+        Layout.preferredWidth: root.compact ? 82 : 130
+        accessibleName: qsTr("Reading progress")
+        from: 0
+        to: 1
+        stepSize: 0.001
+        value: root.readerWorkspace.readingProgress
+        onMoved: root.readerWorkspace.goToProgress(value)
+    }
+
+    Label {
+        visible: root.readerWorkspace.textPagedMode && !root.compact
+        Layout.preferredWidth: 38
+        text: Math.round(root.readerWorkspace.readingProgress * 100) + qsTr("%")
+        color: Theme.textColor
+        font.family: Theme.uiFontFamily
+        font.pixelSize: Theme.captionFontSize
+        font.weight: Font.Medium
+        horizontalAlignment: Text.AlignRight
+        verticalAlignment: Text.AlignVCenter
     }
 
     SZHTextField {

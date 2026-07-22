@@ -67,9 +67,16 @@ public:
     void setLibraryViewMode(const QString &viewMode);
 
     Q_INVOKABLE qreal textPosition(const QUrl &documentUrl) const;
+    Q_INVOKABLE int textCharacterPosition(const QUrl &documentUrl) const;
+    Q_INVOKABLE QString textReadingMode(const QUrl &documentUrl) const;
     Q_INVOKABLE int pdfPage(const QUrl &documentUrl) const;
     Q_INVOKABLE qreal pdfScale(const QUrl &documentUrl) const;
     Q_INVOKABLE void saveTextPosition(const QUrl &documentUrl, qreal progress);
+    Q_INVOKABLE void saveTextState(const QUrl &documentUrl,
+                                   qreal progress,
+                                   int characterPosition);
+    Q_INVOKABLE void setTextReadingMode(const QUrl &documentUrl,
+                                        const QString &readingMode);
     Q_INVOKABLE void savePdfPosition(const QUrl &documentUrl,
                                      int page,
                                      qreal scale,

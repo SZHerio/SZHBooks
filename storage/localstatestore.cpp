@@ -591,6 +591,16 @@ qreal LocalStateStore::textPosition(const QUrl &documentUrl) const
     return m_profileDatabase.textPosition(documentUrl);
 }
 
+int LocalStateStore::textCharacterPosition(const QUrl &documentUrl) const
+{
+    return m_profileDatabase.textCharacterPosition(documentUrl);
+}
+
+QString LocalStateStore::textReadingMode(const QUrl &documentUrl) const
+{
+    return m_profileDatabase.textReadingMode(documentUrl);
+}
+
 int LocalStateStore::pdfPage(const QUrl &documentUrl) const
 {
     return m_profileDatabase.pdfPage(documentUrl);
@@ -603,15 +613,34 @@ qreal LocalStateStore::pdfScale(const QUrl &documentUrl) const
 
 void LocalStateStore::saveTextPosition(const QUrl &documentUrl, qreal progress)
 {
+    saveTextState(documentUrl, progress, -1);
+}
+
+void LocalStateStore::saveTextState(const QUrl &documentUrl,
+                                    qreal progress,
+                                    int characterPosition)
+{
     if (documentUrl.isEmpty()) {
         return;
     }
 
     progress = qBound(qreal(0), progress, qreal(1));
-    if (!m_profileDatabase.saveTextPosition(documentUrl, progress)) {
+    if (!m_profileDatabase.saveTextPosition(documentUrl,
+                                            progress,
+                                            characterPosition)) {
         return;
     }
     emit documentProgressChanged(documentUrl, progress);
+    emit profileChanged();
+}
+
+void LocalStateStore::setTextReadingMode(const QUrl &documentUrl,
+                                         const QString &readingMode)
+{
+    if (documentUrl.isEmpty()
+        || !m_profileDatabase.setTextReadingMode(documentUrl, readingMode)) {
+        return;
+    }
     emit profileChanged();
 }
 

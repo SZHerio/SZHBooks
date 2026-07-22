@@ -103,4 +103,28 @@ Item {
         sequence: "Shift+Space"
         onActivated: root.readerWorkspace.pageBackward()
     }
+
+    Shortcut {
+        enabled: root.readingNavigationEnabled && root.readerWorkspace.textPagedMode
+        sequence: "Left"
+        onActivated: root.readerWorkspace.pageBackward()
+    }
+
+    Shortcut {
+        enabled: root.readingNavigationEnabled && root.readerWorkspace.textPagedMode
+        sequence: "Right"
+        onActivated: root.readerWorkspace.pageForward()
+    }
+
+    Shortcut {
+        enabled: root.readingNavigationEnabled && root.readerWorkspace.canNavigateBack
+        sequence: "Alt+Left"
+        onActivated: root.readerWorkspace.navigateBack()
+    }
+
+    Shortcut {
+        enabled: root.readingNavigationEnabled && root.readerWorkspace.canNavigateForward
+        sequence: "Alt+Right"
+        onActivated: root.readerWorkspace.navigateForward()
+    }
 }

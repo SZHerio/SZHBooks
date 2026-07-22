@@ -16,7 +16,7 @@
 
 namespace {
 
-constexpr int schemaVersion = 2;
+constexpr int schemaVersion = 3;
 constexpr qreal minimumPdfScale = 0.4;
 constexpr qreal maximumPdfScale = 3.0;
 
@@ -84,6 +84,13 @@ QString normalizedCollectionPath(QString collectionPath)
     return collectionPath == QLatin1String(".")
                ? QStringLiteral("")
                : storageString(collectionPath);
+}
+
+QString normalizedTextReadingMode(const QString &readingMode)
+{
+    return readingMode.compare(QStringLiteral("pages"), Qt::CaseInsensitive) == 0
+               ? QStringLiteral("pages")
+               : QStringLiteral("scroll");
 }
 
 QString annotationTypeName(ReadingAnnotationType type)
@@ -211,9 +218,9 @@ bool ProfileDatabase::initializeSchema()
         return false;
     }
 
-    bool migrationTransaction = false;
+    QStringList migrations;
     if (storedVersion == 1) {
-        const QStringList migrations = {
+        migrations = {
             QStringLiteral("ALTER TABLE books ADD COLUMN series TEXT NOT NULL DEFAULT ''"),
             QStringLiteral("ALTER TABLE books ADD COLUMN series_number REAL NOT NULL DEFAULT 0"),
             QStringLiteral("ALTER TABLE books ADD COLUMN genres TEXT NOT NULL DEFAULT '[]'"),
@@ -223,11 +230,20 @@ bool ProfileDatabase::initializeSchema()
             QStringLiteral("ALTER TABLE books ADD COLUMN custom_cover_url TEXT NOT NULL DEFAULT ''"),
             QStringLiteral("ALTER TABLE books ADD COLUMN metadata_edited INTEGER NOT NULL DEFAULT 0")
         };
+    }
+    if (storedVersion > 0 && storedVersion < 3) {
+        migrations.append(
+            QStringLiteral("ALTER TABLE books ADD COLUMN text_position INTEGER NOT NULL DEFAULT -1"));
+        migrations.append(
+            QStringLiteral("ALTER TABLE books ADD COLUMN text_reading_mode TEXT NOT NULL DEFAULT 'scroll'"));
+    }
+
+    const bool migrationTransaction = !migrations.isEmpty();
+    if (migrationTransaction) {
         if (!m_database.transaction()) {
             setLastError(m_database.lastError().text());
             return false;
         }
-        migrationTransaction = true;
         for (const QString &migration : migrations) {
             if (!execute(migration)) {
                 m_database.rollback();
@@ -277,6 +293,8 @@ bool ProfileDatabase::createSchema()
             "custom_cover_url TEXT NOT NULL DEFAULT '', "
             "metadata_edited INTEGER NOT NULL DEFAULT 0, "
             "reading_progress REAL NOT NULL DEFAULT 0, text_progress REAL NOT NULL DEFAULT 0, "
+            "text_position INTEGER NOT NULL DEFAULT -1, "
+            "text_reading_mode TEXT NOT NULL DEFAULT 'scroll', "
             "pdf_page INTEGER NOT NULL DEFAULT 0, pdf_scale REAL NOT NULL DEFAULT 1, "
             "last_opened TEXT NOT NULL DEFAULT '')"),
         QStringLiteral(
@@ -396,7 +414,8 @@ QVariantMap ProfileDatabase::profileValues() const
             "SELECT id, source_url, in_library, title, author, format_name, "
             "collection_path, metadata_fingerprint, cover_url, series, series_number, "
             "genres, tags, language, publication_year, custom_cover_url, metadata_edited, "
-            "reading_progress, text_progress, pdf_page, pdf_scale, last_opened FROM books"))) {
+            "reading_progress, text_progress, text_position, text_reading_mode, "
+            "pdf_page, pdf_scale, last_opened FROM books"))) {
         setLastError(bookQuery.lastError().text());
         return values;
     }
@@ -432,11 +451,14 @@ QVariantMap ProfileDatabase::profileValues() const
         values.insert(documentFieldKey(id, QStringLiteral("readingProgress")),
                       bookQuery.value(17));
         values.insert(documentFieldKey(id, QStringLiteral("textProgress")), bookQuery.value(18));
-        values.insert(documentFieldKey(id, QStringLiteral("pdfPage")), bookQuery.value(19));
-        values.insert(documentFieldKey(id, QStringLiteral("pdfScale")), bookQuery.value(20));
-        if (!bookQuery.value(21).toString().isEmpty()) {
+        values.insert(documentFieldKey(id, QStringLiteral("textPosition")), bookQuery.value(19));
+        values.insert(documentFieldKey(id, QStringLiteral("textReadingMode")),
+                      normalizedTextReadingMode(bookQuery.value(20).toString()));
+        values.insert(documentFieldKey(id, QStringLiteral("pdfPage")), bookQuery.value(21));
+        values.insert(documentFieldKey(id, QStringLiteral("pdfScale")), bookQuery.value(22));
+        if (!bookQuery.value(23).toString().isEmpty()) {
             values.insert(documentFieldKey(id, QStringLiteral("lastOpened")),
-                          bookQuery.value(21));
+                          bookQuery.value(23));
         }
     }
 
@@ -567,11 +589,13 @@ bool ProfileDatabase::importProfileValues(const QVariantMap &values,
         "INSERT INTO books(id, source_url, in_library, title, author, format_name, "
         "collection_path, metadata_fingerprint, cover_url, series, series_number, "
         "genres, tags, language, publication_year, custom_cover_url, metadata_edited, "
-        "reading_progress, text_progress, pdf_page, pdf_scale, last_opened) "
+        "reading_progress, text_progress, text_position, text_reading_mode, "
+        "pdf_page, pdf_scale, last_opened) "
         "VALUES(:id, :source_url, :in_library, :title, :author, :format_name, "
         ":collection_path, :metadata_fingerprint, :cover_url, :series, :series_number, "
         ":genres, :tags, :language, :publication_year, :custom_cover_url, :metadata_edited, "
-        ":reading_progress, :text_progress, :pdf_page, :pdf_scale, :last_opened)"));
+        ":reading_progress, :text_progress, :text_position, :text_reading_mode, "
+        ":pdf_page, :pdf_scale, :last_opened)"));
     for (auto book = books.cbegin(); book != books.cend(); ++book) {
         const QVariantMap data = book.value();
         const QString sourceUrl = data.value(QStringLiteral("sourceUrl")).toString();
@@ -609,6 +633,11 @@ bool ProfileDatabase::importProfileValues(const QVariantMap &values,
              data.value(QStringLiteral("metadataEdited"), false).toBool()},
             {QStringLiteral(":reading_progress"), qBound(qreal(0), readingProgress, qreal(1))},
             {QStringLiteral(":text_progress"), qBound(qreal(0), textProgress, qreal(1))},
+            {QStringLiteral(":text_position"),
+             qMax(-1, data.value(QStringLiteral("textPosition"), -1).toInt())},
+            {QStringLiteral(":text_reading_mode"),
+             normalizedTextReadingMode(
+                 data.value(QStringLiteral("textReadingMode")).toString())},
             {QStringLiteral(":pdf_page"), qMax(0, data.value(QStringLiteral("pdfPage"), 0).toInt())},
             {QStringLiteral(":pdf_scale"),
              qBound(minimumPdfScale,
@@ -742,6 +771,24 @@ qreal ProfileDatabase::textPosition(const QUrl &documentUrl) const
                : qreal(0);
 }
 
+int ProfileDatabase::textCharacterPosition(const QUrl &documentUrl) const
+{
+    QSqlQuery query(m_database);
+    query.prepare(QStringLiteral("SELECT text_position FROM books WHERE id = :id"));
+    query.bindValue(QStringLiteral(":id"), DocumentStorageKey::id(documentUrl));
+    return query.exec() && query.next() ? qMax(-1, query.value(0).toInt()) : -1;
+}
+
+QString ProfileDatabase::textReadingMode(const QUrl &documentUrl) const
+{
+    QSqlQuery query(m_database);
+    query.prepare(QStringLiteral("SELECT text_reading_mode FROM books WHERE id = :id"));
+    query.bindValue(QStringLiteral(":id"), DocumentStorageKey::id(documentUrl));
+    return query.exec() && query.next()
+               ? normalizedTextReadingMode(query.value(0).toString())
+               : QStringLiteral("scroll");
+}
+
 int ProfileDatabase::pdfPage(const QUrl &documentUrl) const
 {
     QSqlQuery query(m_database);
@@ -760,7 +807,9 @@ qreal ProfileDatabase::pdfScale(const QUrl &documentUrl) const
                : qreal(1);
 }
 
-bool ProfileDatabase::saveTextPosition(const QUrl &documentUrl, qreal progress)
+bool ProfileDatabase::saveTextPosition(const QUrl &documentUrl,
+                                       qreal progress,
+                                       int characterPosition)
 {
     if (!ensureBookRecord(documentUrl)) {
         return false;
@@ -768,9 +817,29 @@ bool ProfileDatabase::saveTextPosition(const QUrl &documentUrl, qreal progress)
     progress = qBound(qreal(0), progress, qreal(1));
     QSqlQuery query(m_database);
     query.prepare(QStringLiteral(
-        "UPDATE books SET text_progress = :progress, reading_progress = :progress "
+        "UPDATE books SET text_progress = :progress, reading_progress = :progress, "
+        "text_position = :position "
         "WHERE id = :id"));
     query.bindValue(QStringLiteral(":progress"), progress);
+    query.bindValue(QStringLiteral(":position"), qMax(-1, characterPosition));
+    query.bindValue(QStringLiteral(":id"), DocumentStorageKey::id(documentUrl));
+    if (!query.exec()) {
+        setLastError(query.lastError().text());
+        return false;
+    }
+    return true;
+}
+
+bool ProfileDatabase::setTextReadingMode(const QUrl &documentUrl,
+                                         const QString &readingMode)
+{
+    if (!ensureBookRecord(documentUrl)) {
+        return false;
+    }
+    QSqlQuery query(m_database);
+    query.prepare(QStringLiteral(
+        "UPDATE books SET text_reading_mode = :mode WHERE id = :id"));
+    query.bindValue(QStringLiteral(":mode"), normalizedTextReadingMode(readingMode));
     query.bindValue(QStringLiteral(":id"), DocumentStorageKey::id(documentUrl));
     if (!query.exec()) {
         setLastError(query.lastError().text());

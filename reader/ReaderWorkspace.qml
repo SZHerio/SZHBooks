@@ -20,25 +20,38 @@ Item {
     readonly property bool hasDocument: readerController.hasDocument
     readonly property bool showingText: readerController.textMode
     readonly property bool showingPdf: readerController.pdfMode
+    readonly property bool textPagedMode: showingText && textReadingMode === "pages"
     readonly property real readingProgress: showingPdf
                                                 ? pdfView.readingProgress
                                                 : showingText
                                                   ? textView.readingProgress
                                                   : 0
-    readonly property int currentPage: showingPdf ? pdfView.currentPage : -1
-    readonly property int pageCount: showingPdf ? pdfView.pageCount : 0
+    readonly property int currentPage: showingPdf
+                                                ? pdfView.currentPage
+                                                : textPagedMode
+                                                  ? textView.currentPage : -1
+    readonly property int pageCount: showingPdf
+                                              ? pdfView.pageCount
+                                              : textPagedMode
+                                                ? textView.pageCount : 0
+    readonly property int currentTextPosition: showingText
+                                                       ? textView.currentTextPosition : -1
     readonly property var chapters: readerController.chapters
     readonly property bool hasChapters: showingText && chapters.length > 0
     readonly property int currentChapterIndex: root.chapterIndexAt(root.readingProgress)
     readonly property string currentChapterTitle: currentChapterIndex >= 0
                                                            ? chapters[currentChapterIndex].title
                                                            : ""
-    readonly property bool canGoBackward: showingPdf
+    readonly property bool canGoBackward: showingPdf || textPagedMode
                                                ? currentPage > 0
                                                : showingText && readingProgress > 0
-    readonly property bool canGoForward: showingPdf
+    readonly property bool canGoForward: showingPdf || textPagedMode
                                               ? pageCount > 0 && currentPage < pageCount - 1
                                               : showingText && readingProgress < 1
+    readonly property bool canNavigateBack: navigationHistoryIndex > 0
+    readonly property bool canNavigateForward: navigationHistoryIndex >= 0
+                                                       && navigationHistoryIndex
+                                                          < navigationHistory.length - 1
     readonly property bool canDecreaseScale: hasDocument
                                                 && (showingPdf
                                                     ? pdfView.canZoomOut
@@ -85,6 +98,9 @@ Item {
     property real scaleWheelAccumulator: 0
     property string searchQuery: ""
     property bool sidebarOpen: false
+    property string textReadingMode: "scroll"
+    property var navigationHistory: []
+    property int navigationHistoryIndex: -1
 
     signal openRequested
 
@@ -100,6 +116,106 @@ Item {
                                              ? root.readerController.text
                                              : ""
         root.updateAnnotationHighlights()
+    }
+
+    function resetNavigationHistory() {
+        root.navigationHistory = []
+        root.navigationHistoryIndex = -1
+    }
+
+    function currentNavigationLocation() {
+        if (root.showingPdf) {
+            return {"kind": "pdf", "page": root.currentPage,
+                    "progress": root.readingProgress}
+        }
+        if (root.showingText) {
+            return {"kind": "text", "position": root.currentTextPosition,
+                    "progress": root.readingProgress}
+        }
+        return ({})
+    }
+
+    function sameNavigationLocation(left, right) {
+        if (!left || !right || left.kind !== right.kind) {
+            return false
+        }
+        return left.kind === "pdf"
+               ? left.page === right.page
+               : Math.abs(left.position - right.position) <= 2
+    }
+
+    function applyNavigationLocation(location) {
+        if (!location) {
+            return
+        }
+        if (location.kind === "pdf" && root.showingPdf) {
+            root.goToPage(location.page)
+        } else if (location.kind === "text" && root.showingText) {
+            if (location.position >= 0) {
+                textView.goToTextPosition(location.position)
+            } else {
+                textView.goToProgress(location.progress)
+            }
+        }
+    }
+
+    function navigateToLocation(target) {
+        const origin = root.currentNavigationLocation()
+        if (!origin.kind || root.sameNavigationLocation(origin, target)) {
+            root.applyNavigationLocation(target)
+            return
+        }
+
+        let entries = root.navigationHistory.slice(0,
+                                                   root.navigationHistoryIndex + 1)
+        if (entries.length === 0
+                || !root.sameNavigationLocation(entries[entries.length - 1], origin)) {
+            entries.push(origin)
+        }
+        entries.push(target)
+        root.navigationHistory = entries
+        root.navigationHistoryIndex = entries.length - 1
+        root.applyNavigationLocation(target)
+    }
+
+    function navigateToTextPosition(position) {
+        if (root.showingText && position >= 0) {
+            root.navigateToLocation({"kind": "text", "position": position,
+                                     "progress": position
+                                                 / Math.max(1, root.readerController.text.length)})
+        }
+    }
+
+    function navigateBack() {
+        if (!root.canNavigateBack) {
+            return
+        }
+        root.navigationHistoryIndex -= 1
+        root.applyNavigationLocation(root.navigationHistory[root.navigationHistoryIndex])
+    }
+
+    function navigateForward() {
+        if (!root.canNavigateForward) {
+            return
+        }
+        root.navigationHistoryIndex += 1
+        root.applyNavigationLocation(root.navigationHistory[root.navigationHistoryIndex])
+    }
+
+    function setTextReadingMode(readingMode) {
+        if (!root.showingText) {
+            return
+        }
+        const normalizedMode = readingMode === "pages" ? "pages" : "scroll"
+        if (root.textReadingMode === normalizedMode) {
+            return
+        }
+        const progress = root.readingProgress
+        const position = root.currentTextPosition
+        root.textReadingMode = normalizedMode
+        root.settingsStore.setTextReadingMode(root.activeDocumentUrl, normalizedMode)
+        textView.restorePosition(progress, position)
+        root.scheduleReadingStateSave()
     }
 
     function updateAnnotationHighlights() {
@@ -210,11 +326,13 @@ Item {
 
     function goToAnnotation(annotation) {
         if (root.showingPdf && annotation.page >= 0) {
-            root.goToPage(annotation.page)
+            root.navigateToLocation({"kind": "pdf", "page": annotation.page,
+                                     "progress": annotation.progress})
         } else if (root.showingText && annotation.start >= 0) {
-            textView.goToTextPosition(annotation.start)
+            root.navigateToTextPosition(annotation.start)
         } else if (root.showingText) {
-            root.goToProgress(annotation.progress)
+            root.navigateToLocation({"kind": "text", "position": -1,
+                                     "progress": annotation.progress})
         }
     }
 
@@ -268,6 +386,8 @@ Item {
     function goToPage(page) {
         if (root.showingPdf) {
             pdfView.goToPage(page)
+        } else if (root.textPagedMode) {
+            textView.goToPage(page)
         }
     }
 
@@ -312,7 +432,10 @@ Item {
 
     function goToChapter(index) {
         if (index >= 0 && index < root.chapters.length) {
-            root.goToProgress(root.chapters[index].progress)
+            const progress = root.chapters[index].progress
+            root.navigateToLocation({"kind": "text", "position": Math.round(
+                                         progress * root.readerController.text.length),
+                                     "progress": progress})
         }
     }
 
@@ -363,8 +486,9 @@ Item {
                                                    pdfView.readingProgress)
             }
         } else if (root.showingText) {
-            root.settingsStore.saveTextPosition(root.activeDocumentUrl,
-                                                textView.readingProgress)
+            root.settingsStore.saveTextState(root.activeDocumentUrl,
+                                             textView.readingProgress,
+                                             textView.currentTextPosition)
         }
     }
 
@@ -384,7 +508,11 @@ Item {
             pdfView.restoreState(root.settingsStore.pdfPage(root.activeDocumentUrl),
                                  root.settingsStore.pdfScale(root.activeDocumentUrl))
         } else if (root.showingText) {
-            textView.restorePosition(root.settingsStore.textPosition(root.activeDocumentUrl))
+            root.textReadingMode = root.settingsStore.textReadingMode(
+                root.activeDocumentUrl)
+            textView.restorePosition(
+                root.settingsStore.textPosition(root.activeDocumentUrl),
+                root.settingsStore.textCharacterPosition(root.activeDocumentUrl))
         }
         restoreGuardTimer.restart()
     }
@@ -401,6 +529,7 @@ Item {
             root.flushReadingState()
             root.searchQuery = ""
             root.sidebarOpen = false
+            root.resetNavigationHistory()
         }
 
         function onDocumentOpened() {
@@ -494,7 +623,9 @@ Item {
             firstLineIndent: root.firstLineIndent
             textAlignment: root.textAlignment
             preferredPageWidth: root.preferredPageWidth
+            readingMode: root.textReadingMode
             onReadingProgressChanged: root.scheduleReadingStateSave()
+            onSemanticNavigationRequested: position => root.navigateToTextPosition(position)
         }
 
         PdfDocumentView {

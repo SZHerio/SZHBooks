@@ -8,6 +8,7 @@ Popup {
 
     required property var settingsStore
     required property var localizationController
+    required property var readerWorkspace
     property bool textSettingsAvailable: true
 
     signal backupRequested
@@ -30,6 +31,10 @@ Popup {
     readonly property var alignmentOptions: [
         { value: "left", label: qsTr("Left") },
         { value: "justify", label: qsTr("Justified") }
+    ]
+    readonly property var readingModeOptions: [
+        { value: "scroll", label: qsTr("Scroll") },
+        { value: "pages", label: qsTr("Pages") }
     ]
     readonly property real hostWindowHeight: root.parent && root.parent.Window.window
                                                    ? root.parent.Window.window.height
@@ -82,6 +87,26 @@ Popup {
                 font.family: Theme.uiFontFamily
                 font.pixelSize: Theme.bodyLargeFontSize
                 font.weight: Font.DemiBold
+            }
+
+            ColumnLayout {
+                visible: root.textSettingsAvailable
+                Layout.fillWidth: true
+                spacing: Theme.spaceXs
+
+                Label {
+                    text: qsTr("Reading mode")
+                    color: Theme.mutedTextColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.bodyFontSize
+                }
+
+                SZHSegmentedControl {
+                    Layout.fillWidth: true
+                    model: root.readingModeOptions
+                    value: root.readerWorkspace.textReadingMode
+                    onValueSelected: value => root.readerWorkspace.setTextReadingMode(value)
+                }
             }
 
             ColumnLayout {

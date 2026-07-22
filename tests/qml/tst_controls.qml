@@ -320,8 +320,13 @@ TestCase {
         id: shortcutWorkspace
 
         property bool hasDocument: true
+        property bool textPagedMode: false
+        property bool canNavigateBack: false
+        property bool canNavigateForward: false
         property int forwardCount: 0
         property int backwardCount: 0
+        property int historyBackCount: 0
+        property int historyForwardCount: 0
         function increaseScale() {}
         function decreaseScale() {}
         function toggleCurrentBookmark() {}
@@ -329,6 +334,41 @@ TestCase {
         function pageBackward() { backwardCount += 1 }
         function goToStart() {}
         function goToEnd() {}
+        function navigateBack() { historyBackCount += 1 }
+        function navigateForward() { historyForwardCount += 1 }
+    }
+
+    QtObject {
+        id: mockDocumentFormatter
+
+        function applyTypography(document, lineHeight, paragraphSpacing,
+                                 firstLineIndent, alignment, textColor, pageColor) {}
+        function fitImages(document, maximumWidth) {}
+        function anchorPosition(document, anchor) { return -1 }
+    }
+
+    QtObject {
+        id: mockSearchController
+
+        property string documentText: ""
+        property int currentStart: -1
+        signal currentResultChanged
+        function attachTextDocument(document) {}
+        function setHighlightColors(annotation, match, current, currentText) {}
+    }
+
+    Component {
+        id: pagedTextViewComponent
+
+        TextDocumentView {
+            width: 620
+            height: 440
+            documentText: Array(260).fill(
+                "A carefully laid out paragraph for pagination testing.").join("\n\n")
+            readingMode: "pages"
+            documentFormatter: mockDocumentFormatter
+            searchController: mockSearchController
+        }
     }
 
     QtObject {
@@ -443,6 +483,24 @@ TestCase {
         compare(mockLibraryModel.updateCount, 1)
         compare(mockLibraryModel.lastChanges.title, "Edited novel")
         tryCompare(dialog, "opened", false)
+    }
+
+    function test_textReaderPaginatesAndKeepsSemanticPosition() {
+        const reader = createTemporaryObject(pagedTextViewComponent, stage)
+        verify(reader)
+        tryVerify(function() { return reader.pageCount > 2 }, 5000)
+        compare(reader.currentPage, 0)
+
+        reader.goToProgress(0.55)
+        verify(reader.currentPage > 0)
+        const savedPosition = reader.currentTextPosition
+        verify(savedPosition > 0)
+
+        reader.readingMode = "scroll"
+        reader.restorePosition(0.55, savedPosition)
+        tryVerify(function() {
+            return Math.abs(reader.currentTextPosition - savedPosition) < 120
+        }, 5000)
     }
 
     function test_syncBarOffersAndRefreshesFolder() {

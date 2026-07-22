@@ -589,6 +589,9 @@ if(BUILD_TESTING)
                     library/SyncCenterDialog.qml
                     shell/ProfileRestoreDialog.qml
                     shell/AppShortcuts.qml
+                    reader/PageNavigationControl.qml
+                    reader/TextDocumentView.qml
+                    reader/TextNavigationControl.qml
                     ui/SZHButton.qml
                     ui/SZHCheckBox.qml
                     ui/SZHIconButton.qml
@@ -597,6 +600,7 @@ if(BUILD_TESTING)
                     ui/SZHScrollBar.qml
                     ui/SZHSegmentedControl.qml
                     ui/SZHSlider.qml
+                    ui/SZHSurface.qml
                     ui/SZHTextField.qml
                     ui/Theme.qml
             )

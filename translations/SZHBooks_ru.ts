@@ -993,6 +993,16 @@
     </message>
     <message>
       <location filename="../reader/PageNavigationControl.qml" line="56" />
+      <source>Reading progress</source>
+      <translation>Прогресс чтения</translation>
+    </message>
+    <message>
+      <location filename="../reader/PageNavigationControl.qml" line="67" />
+      <source>%</source>
+      <translation>%</translation>
+    </message>
+    <message>
+      <location filename="../reader/PageNavigationControl.qml" line="56" />
       <source>Page number</source>
       <translation>Номер страницы</translation>
     </message>
@@ -1318,6 +1328,16 @@
       <source>No file open</source>
       <translation>Файл не открыт</translation>
     </message>
+    <message>
+      <location filename="../shell/ReaderStatusBar.qml" line="59" />
+      <source>Back to previous location (Alt+Left)</source>
+      <translation>Назад к предыдущему месту (Alt+Left)</translation>
+    </message>
+    <message>
+      <location filename="../shell/ReaderStatusBar.qml" line="66" />
+      <source>Forward to next location (Alt+Right)</source>
+      <translation>Вперёд к следующему месту (Alt+Right)</translation>
+    </message>
   </context>
   <context>
     <name>ReaderToolsPopup</name>
@@ -1448,6 +1468,21 @@
       <translation>По ширине</translation>
     </message>
     <message>
+      <location filename="../shell/ReadingSettingsPopup.qml" line="36" />
+      <source>Scroll</source>
+      <translation>Прокрутка</translation>
+    </message>
+    <message>
+      <location filename="../shell/ReadingSettingsPopup.qml" line="37" />
+      <source>Pages</source>
+      <translation>Страницы</translation>
+    </message>
+    <message>
+      <location filename="../shell/ReadingSettingsPopup.qml" line="98" />
+      <source>Reading mode</source>
+      <translation>Режим чтения</translation>
+    </message>
+    <message>
       <location filename="../shell/ReadingSettingsPopup.qml" line="80" />
       <source>Reading settings</source>
       <translation>Настройки чтения</translation>
@@ -1553,6 +1588,19 @@
       <location filename="../shell/ReadingSettingsPopup.qml" line="435" />
       <source>Restore defaults</source>
       <translation>Сбросить настройки</translation>
+    </message>
+  </context>
+  <context>
+    <name>TextDocumentView</name>
+    <message>
+      <location filename="../reader/TextDocumentView.qml" line="512" />
+      <source>Previous page</source>
+      <translation>Предыдущая страница</translation>
+    </message>
+    <message>
+      <location filename="../reader/TextDocumentView.qml" line="525" />
+      <source>Next page</source>
+      <translation>Следующая страница</translation>
     </message>
   </context>
   <context>

@@ -318,6 +318,7 @@ Rectangle {
         y: root.height + Theme.spaceXs
         settingsStore: root.settingsStore
         localizationController: root.localizationController
+        readerWorkspace: root.readerWorkspace
         textSettingsAvailable: root.readerWorkspace.showingText
         onBackupRequested: root.backupProfileRequested()
         onRestoreRequested: root.restoreProfileRequested()

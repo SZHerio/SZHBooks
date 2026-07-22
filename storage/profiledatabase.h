@@ -36,9 +36,14 @@ public:
     bool setLastBookUrl(const QUrl &documentUrl);
 
     qreal textPosition(const QUrl &documentUrl) const;
+    int textCharacterPosition(const QUrl &documentUrl) const;
+    QString textReadingMode(const QUrl &documentUrl) const;
     int pdfPage(const QUrl &documentUrl) const;
     qreal pdfScale(const QUrl &documentUrl) const;
-    bool saveTextPosition(const QUrl &documentUrl, qreal progress);
+    bool saveTextPosition(const QUrl &documentUrl,
+                          qreal progress,
+                          int characterPosition = -1);
+    bool setTextReadingMode(const QUrl &documentUrl, const QString &readingMode);
     bool savePdfPosition(const QUrl &documentUrl,
                          int page,
                          qreal scale,
