@@ -21,8 +21,11 @@ Rectangle {
     property color fallbackColor: Theme.accentColor
 
     signal openRequested(url sourceUrl)
-    signal removeRequested(int row)
     signal relinkRequested(url sourceUrl)
+    signal actionsRequested(url sourceUrl,
+                            string title,
+                            string collectionPath,
+                            bool fileAvailable)
 
     function activate() {
         if (root.fileAvailable) {
@@ -50,6 +53,12 @@ Rectangle {
     border.color: activeFocus ? Theme.focusColor : Theme.borderColor
     border.width: activeFocus ? 2 : 1
     opacity: fileAvailable ? 1 : 0.72
+    Drag.active: bookDragHandler.active
+    Drag.source: root
+    Drag.keys: ["szhbooks-book"]
+    Drag.supportedActions: Qt.MoveAction
+    Drag.hotSpot.x: width / 2
+    Drag.hotSpot.y: height / 2
 
     Behavior on color {
         ColorAnimation {
@@ -71,6 +80,14 @@ Rectangle {
             root.forceActiveFocus()
             root.activate()
         }
+    }
+
+    DragHandler {
+        id: bookDragHandler
+
+        target: null
+        enabled: root.fileAvailable
+        acceptedButtons: Qt.LeftButton
     }
 
     RowLayout {
@@ -159,9 +176,12 @@ Rectangle {
         }
 
         SZHIconButton {
-            symbol: "\u00d7"
-            toolTip: qsTr("Remove from library")
-            onClicked: root.removeRequested(root.index)
+            symbol: "\u22ef"
+            toolTip: qsTr("Book actions")
+            onClicked: root.actionsRequested(root.sourceUrl,
+                                             root.title,
+                                             root.collectionPath,
+                                             root.fileAvailable)
         }
     }
 }

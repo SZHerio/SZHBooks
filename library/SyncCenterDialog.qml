@@ -34,6 +34,7 @@ Dialog {
             "conflictResolved": qsTr("Conflict resolved"),
             "booksImported": qsTr("Books imported"),
             "bookMoved": qsTr("Book moved"),
+            "bookRenamed": qsTr("Book renamed"),
             "bookRemoved": qsTr("Book removed"),
             "collectionCreated": qsTr("Folder created"),
             "collectionRenamed": qsTr("Folder renamed"),

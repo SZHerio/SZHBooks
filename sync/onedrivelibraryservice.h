@@ -4,6 +4,7 @@
 #include "syncactivitymodel.h"
 #include "syncconfigurationstore.h"
 #include "syncconflictmodel.h"
+#include "../library/libraryfileservice.h"
 
 #include <QDateTime>
 #include <QFileSystemWatcher>
@@ -38,6 +39,7 @@ class OneDriveLibraryService final : public QObject
     Q_PROPERTY(QDateTime nextRetryAt READ nextRetryAt NOTIFY retryStateChanged)
     Q_PROPERTY(QUrl conflictsFolder READ conflictsFolder NOTIFY rootFolderChanged)
     Q_PROPERTY(int cloudPlaceholderCount READ cloudPlaceholderCount NOTIFY cloudPlaceholderCountChanged)
+    Q_PROPERTY(LibraryFileService *fileService READ fileService CONSTANT)
 
 public:
     explicit OneDriveLibraryService(LocalStateStore *store,
@@ -67,6 +69,7 @@ public:
     QDateTime nextRetryAt() const;
     QUrl conflictsFolder() const;
     int cloudPlaceholderCount() const;
+    LibraryFileService *fileService();
 
     Q_INVOKABLE bool setRootFolder(const QUrl &folderUrl);
     Q_INVOKABLE bool useSuggestedFolder();
@@ -107,7 +110,6 @@ signals:
 private:
     static QString suggestedRootPath(bool *oneDriveDetected);
     static QString normalizedCollectionPath(const QString &collectionPath);
-    static bool validCollectionName(const QString &name);
 
     bool ensureAvailable();
     bool scanLibrary();
@@ -133,6 +135,7 @@ private:
     LibraryRepository *m_repository = nullptr;
     SyncConfigurationStore m_configuration;
     ProfileSyncEngine m_profileSync;
+    LibraryFileService m_fileService;
     SyncActivityModel m_activityModel;
     SyncConflictModel m_conflictModel;
     QFileSystemWatcher m_watcher;

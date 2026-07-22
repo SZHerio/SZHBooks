@@ -21,8 +21,11 @@ Item {
     property color fallbackColor: Theme.accentColor
 
     signal openRequested(url sourceUrl)
-    signal removeRequested(int row)
     signal relinkRequested(url sourceUrl)
+    signal actionsRequested(url sourceUrl,
+                            string title,
+                            string collectionPath,
+                            bool fileAvailable)
 
     function activate() {
         if (root.fileAvailable) {
@@ -47,6 +50,12 @@ Item {
     Accessible.onPressAction: root.activate()
     opacity: fileAvailable ? 1 : 0.72
     scale: cardMouseArea.containsMouse ? 1.008 : 1
+    Drag.active: bookDragHandler.active
+    Drag.source: root
+    Drag.keys: ["szhbooks-book"]
+    Drag.supportedActions: Qt.MoveAction
+    Drag.hotSpot.x: width / 2
+    Drag.hotSpot.y: height / 2
 
     Behavior on scale {
         NumberAnimation {
@@ -84,6 +93,14 @@ Item {
             root.forceActiveFocus()
             root.activate()
         }
+    }
+
+    DragHandler {
+        id: bookDragHandler
+
+        target: null
+        enabled: root.fileAvailable
+        acceptedButtons: Qt.LeftButton
     }
 
     ColumnLayout {
@@ -165,9 +182,12 @@ Item {
         anchors.margins: Theme.spaceSm
         z: 2
         visible: cardMouseArea.containsMouse || root.activeFocus
-        symbol: "\u00d7"
-        toolTip: qsTr("Remove from library")
-        onClicked: root.removeRequested(root.index)
+        symbol: "\u22ef"
+        toolTip: qsTr("Book actions")
+        onClicked: root.actionsRequested(root.sourceUrl,
+                                         root.title,
+                                         root.collectionPath,
+                                         root.fileAvailable)
     }
 
     ToolTip {

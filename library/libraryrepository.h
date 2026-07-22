@@ -33,6 +33,7 @@ public:
                       bool inspectMetadata = true);
     bool supports(const QUrl &sourceUrl) const;
     void removeBook(const QUrl &sourceUrl);
+    void setBookCollection(const QUrl &sourceUrl, const QString &collectionPath);
     bool relinkBook(const QUrl &oldSourceUrl,
                     const QUrl &newSourceUrl,
                     QString *errorMessage = nullptr);

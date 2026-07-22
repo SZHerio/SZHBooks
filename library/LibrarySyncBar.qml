@@ -99,6 +99,7 @@ Rectangle {
             visible: !root.syncService.configured
             text: qsTr("Use this folder")
             enabled: root.syncService.suggestedFolder.toString().length > 0
+                     && !root.syncService.fileService.busy
             onClicked: root.syncService.useSuggestedFolder()
         }
 
@@ -106,6 +107,7 @@ Rectangle {
             objectName: "chooseLibraryFolderButton"
             text: root.syncService.configured ? qsTr("Change") : qsTr("Choose folder")
             variant: "secondary"
+            enabled: !root.syncService.fileService.busy
             onClicked: root.chooseFolderRequested()
         }
 

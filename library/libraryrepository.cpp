@@ -158,6 +158,12 @@ void LibraryRepository::removeBook(const QUrl &sourceUrl)
     m_store->removeFromLibrary(sourceUrl);
 }
 
+void LibraryRepository::setBookCollection(const QUrl &sourceUrl,
+                                          const QString &collectionPath)
+{
+    m_store->setBookCollection(sourceUrl, collectionPath);
+}
+
 bool LibraryRepository::relinkBook(const QUrl &oldSourceUrl,
                                    const QUrl &newSourceUrl,
                                    QString *errorMessage)

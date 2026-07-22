@@ -306,6 +306,10 @@
       <source>Online-only  ·  Downloads when opened</source>
       <translation>Только в облаке  ·  Загрузится при открытии</translation>
     </message>
+    <message>
+      <source>Book actions</source>
+      <translation>Действия с книгой</translation>
+    </message>
   </context>
   <context>
     <name>LibraryBookListDelegate</name>
@@ -353,6 +357,10 @@
       <location filename="../library/LibraryBookListDelegate.qml" line="108" />
       <source>Online-only  ·  Downloads when opened</source>
       <translation>Только в облаке  ·  Загрузится при открытии</translation>
+    </message>
+    <message>
+      <source>Book actions</source>
+      <translation>Действия с книгой</translation>
     </message>
   </context>
   <context>
@@ -653,6 +661,10 @@
       <source>Clear filters</source>
       <translation>Сбросить фильтры</translation>
     </message>
+    <message>
+      <source>Folder actions</source>
+      <translation>Действия с папкой</translation>
+    </message>
   </context>
   <context>
     <name>LocalDocumentLoader</name>
@@ -826,6 +838,13 @@
       <source>Could not update library</source>
       <translation>Не удалось обновить библиотеку</translation>
     </message>
+    <message><source>Choose a library folder</source><translation>Выберите папку библиотеки</translation></message>
+    <message><source>Batch import stores books inside the managed library folder.</source><translation>При пакетном импорте книги сохраняются в управляемой папке библиотеки.</translation></message>
+    <message><source>Import canceled</source><translation>Импорт отменён</translation></message>
+    <message><source>%1 of %2 file(s) processed.</source><translation>Обработано файлов: %1 из %2.</translation></message>
+    <message><source>Import complete</source><translation>Импорт завершён</translation></message>
+    <message><source>Added: %1  ·  Duplicates: %2  ·  Failed: %3</source><translation>Добавлено: %1  ·  Дубликаты: %2  ·  Ошибки: %3</translation></message>
+    <message><source>Library operation</source><translation>Операция с библиотекой</translation></message>
   </context>
   <context>
     <name>OneDriveLibraryService</name>
@@ -843,6 +862,10 @@
       <location filename="../sync/onedrivelibraryservice.cpp" line="186" />
       <source>Could not create the selected library folder.</source>
       <translation>Не удалось создать выбранную папку библиотеки.</translation>
+    </message>
+    <message>
+      <source>Wait for the current library import before changing folders.</source>
+      <translation>Дождитесь завершения текущего импорта перед сменой папки библиотеки.</translation>
     </message>
     <message>
       <location filename="../sync/onedrivelibraryservice.cpp" line="298" />
@@ -1605,6 +1628,81 @@
     </message>
   </context>
   <context>
+    <name>BookActionsDialog</name>
+    <message><source>Library root</source><translation>Корень библиотеки</translation></message>
+    <message><source>Close</source><translation>Закрыть</translation></message>
+    <message><source>Move to folder</source><translation>Переместить в папку</translation></message>
+    <message><source>Move</source><translation>Переместить</translation></message>
+    <message><source>File name</source><translation>Имя файла</translation></message>
+    <message><source>Book name</source><translation>Название книги</translation></message>
+    <message><source>Rename</source><translation>Переименовать</translation></message>
+    <message><source>Remove from library</source><translation>Удалить из библиотеки</translation></message>
+    <message><source>Move file to Trash</source><translation>Переместить файл в корзину</translation></message>
+    <message><source>Move this book file to the Trash?</source><translation>Переместить файл этой книги в корзину?</translation></message>
+    <message><source>Remove this book from the library?</source><translation>Удалить эту книгу из библиотеки?</translation></message>
+    <message><source>Reading progress and notes stay in your profile.</source><translation>Прогресс чтения и заметки останутся в профиле.</translation></message>
+    <message><source>The book file will stay in its current folder.</source><translation>Файл книги останется в текущей папке.</translation></message>
+    <message><source>Cancel</source><translation>Отмена</translation></message>
+    <message><source>Move to Trash</source><translation>В корзину</translation></message>
+    <message><source>Remove</source><translation>Удалить</translation></message>
+  </context>
+  <context>
+    <name>CollectionActionsDialog</name>
+    <message><source>Folder actions</source><translation>Действия с папкой</translation></message>
+    <message><source>Close</source><translation>Закрыть</translation></message>
+    <message><source>Folder name</source><translation>Имя папки</translation></message>
+    <message><source>Rename</source><translation>Переименовать</translation></message>
+    <message><source>Remove empty folder</source><translation>Удалить пустую папку</translation></message>
+    <message><source>Remove this empty folder?</source><translation>Удалить эту пустую папку?</translation></message>
+    <message><source>Cancel</source><translation>Отмена</translation></message>
+    <message><source>Remove</source><translation>Удалить</translation></message>
+  </context>
+  <context>
+    <name>LibraryCollectionSidebar</name>
+    <message><source>All books</source><translation>Все книги</translation></message>
+    <message><source>Library root</source><translation>Корень библиотеки</translation></message>
+    <message><source>Folders</source><translation>Папки</translation></message>
+    <message><source>New folder</source><translation>Новая папка</translation></message>
+  </context>
+  <context>
+    <name>LibraryImportProgress</name>
+    <message><source>Finishing current file</source><translation>Завершается обработка текущего файла</translation></message>
+    <message><source>Importing %1</source><translation>Импорт: %1</translation></message>
+    <message><source>%1 of %2</source><translation>%1 из %2</translation></message>
+    <message><source>Cancel import</source><translation>Отменить импорт</translation></message>
+  </context>
+  <context>
+    <name>LibraryFileService</name>
+    <message><source>Wait for the current import before changing the library folder.</source><translation>Дождитесь завершения текущего импорта перед сменой папки библиотеки.</translation></message>
+    <message><source>Wait for the current library operation to finish.</source><translation>Дождитесь завершения текущей операции с библиотекой.</translation></message>
+    <message><source>The selected destination folder is unavailable.</source><translation>Выбранная папка назначения недоступна.</translation></message>
+    <message><source>Choose one or more local book files.</source><translation>Выберите один или несколько локальных файлов книг.</translation></message>
+    <message><source>A book with this filename already exists in the destination folder.</source><translation>Книга с таким именем файла уже есть в выбранной папке.</translation></message>
+    <message><source>Could not move the book to the selected folder.</source><translation>Не удалось переместить книгу в выбранную папку.</translation></message>
+    <message><source>Use a filename without reserved characters.</source><translation>Введите имя файла без зарезервированных символов.</translation></message>
+    <message><source>A book with this filename already exists.</source><translation>Книга с таким именем файла уже существует.</translation></message>
+    <message><source>Could not rename the book file.</source><translation>Не удалось переименовать файл книги.</translation></message>
+    <message><source>Could not move the book file to the Trash.</source><translation>Не удалось переместить файл книги в корзину.</translation></message>
+    <message><source>The parent folder is unavailable.</source><translation>Родительская папка недоступна.</translation></message>
+    <message><source>Use a folder name without reserved characters.</source><translation>Введите имя папки без зарезервированных символов.</translation></message>
+    <message><source>A folder with this name already exists.</source><translation>Папка с таким именем уже существует.</translation></message>
+    <message><source>Could not create the library folder.</source><translation>Не удалось создать папку библиотеки.</translation></message>
+    <message><source>The library root cannot be renamed.</source><translation>Корневую папку библиотеки нельзя переименовать.</translation></message>
+    <message><source>The selected folder is unavailable.</source><translation>Выбранная папка недоступна.</translation></message>
+    <message><source>Could not rename the library folder.</source><translation>Не удалось переименовать папку библиотеки.</translation></message>
+    <message><source>Choose an existing library folder.</source><translation>Выберите существующую папку библиотеки.</translation></message>
+    <message><source>Only an empty library folder can be removed.</source><translation>Можно удалить только пустую папку библиотеки.</translation></message>
+    <message><source>Could not remove the library folder.</source><translation>Не удалось удалить папку библиотеки.</translation></message>
+    <message><source>The selected book file is unavailable.</source><translation>Выбранный файл книги недоступен.</translation></message>
+    <message><source>The selected book format is not supported.</source><translation>Формат выбранной книги не поддерживается.</translation></message>
+    <message><source>Could not read the selected book for duplicate detection.</source><translation>Не удалось прочитать выбранную книгу для поиска дубликатов.</translation></message>
+    <message><source>Could not copy the selected book into the library.</source><translation>Не удалось скопировать выбранную книгу в библиотеку.</translation></message>
+    <message><source>The managed library folder is unavailable.</source><translation>Управляемая папка библиотеки недоступна.</translation></message>
+    <message><source>Only a book inside the managed library can be changed on disk.</source><translation>На диске можно изменять только книги из управляемой библиотеки.</translation></message>
+    <message><source>Could not preserve the book state after moving the file.</source><translation>Не удалось сохранить состояние книги после перемещения файла.</translation></message>
+    <message><source>The library operation failed.</source><translation>Не удалось выполнить операцию с библиотекой.</translation></message>
+  </context>
+  <context>
     <name>SyncCenterDialog</name>
     <message><source>OneDrive is not configured</source><translation>OneDrive не настроен</translation></message>
     <message><source>Synchronizing library</source><translation>Библиотека синхронизируется</translation></message>
@@ -1622,6 +1720,7 @@
     <message><source>Conflict resolved</source><translation>Конфликт разрешён</translation></message>
     <message><source>Books imported</source><translation>Книги импортированы</translation></message>
     <message><source>Book moved</source><translation>Книга перемещена</translation></message>
+    <message><source>Book renamed</source><translation>Книга переименована</translation></message>
     <message><source>Book removed</source><translation>Книга удалена</translation></message>
     <message><source>Folder created</source><translation>Папка создана</translation></message>
     <message><source>Folder renamed</source><translation>Папка переименована</translation></message>

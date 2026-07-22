@@ -6,6 +6,7 @@ GridLayout {
 
     required property var libraryModel
     required property var syncService
+    property bool showCollectionControl: true
 
     function formatOptions() {
         var options = [{"value": "all", "label": qsTr("All formats")}]
@@ -32,11 +33,12 @@ GridLayout {
         return options
     }
 
-    columns: width < 900 ? 2 : 5
+    columns: width < 900 ? 2 : root.showCollectionControl ? 5 : 4
     columnSpacing: Theme.spaceXs
     rowSpacing: Theme.spaceXs
 
     SZHMenuButton {
+        visible: root.showCollectionControl
         Layout.fillWidth: true
         labelPrefix: qsTr("Folder")
         value: root.libraryModel.collectionFilter

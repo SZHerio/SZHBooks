@@ -10,8 +10,6 @@
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileInfo>
-#include <QRegularExpression>
-#include <QSet>
 #include <QStandardPaths>
 
 #include <algorithm>
@@ -62,6 +60,7 @@ OneDriveLibraryService::OneDriveLibraryService(LocalStateStore *store,
     , m_repository(repository)
     , m_configuration(configurationFilePath)
     , m_profileSync(store)
+    , m_fileService(repository)
     , m_activityModel(m_configuration.settingsFilePath())
     , m_rootPath(m_configuration.rootPath())
     , m_suggestedRootPath(suggestedRootPath(&m_oneDriveDetected))
@@ -104,6 +103,21 @@ OneDriveLibraryService::OneDriveLibraryService(LocalStateStore *store,
             &LocalStateStore::profileChanged,
             this,
             &OneDriveLibraryService::scheduleSynchronization);
+    connect(&m_fileService,
+            &LibraryFileService::libraryChanged,
+            this,
+            [this]() {
+                scanLibrary();
+                scheduleSynchronization();
+            });
+    connect(&m_fileService,
+            &LibraryFileService::activityRecorded,
+            this,
+            [this](const QString &event,
+                   const QString &severity,
+                   const QString &detail) {
+                m_activityModel.append(event, severity, detail);
+            });
     connect(&m_conflictModel,
             &SyncConflictModel::countChanged,
             this,
@@ -111,6 +125,7 @@ OneDriveLibraryService::OneDriveLibraryService(LocalStateStore *store,
 
     m_available = !m_rootPath.isEmpty()
                   && QFileInfo(m_rootPath).isDir();
+    m_fileService.setRootPath(m_rootPath);
     if (configured()) {
         m_status = m_available ? QStringLiteral("pending")
                                : QStringLiteral("unavailable");
@@ -226,6 +241,11 @@ int OneDriveLibraryService::cloudPlaceholderCount() const
     return m_cloudPlaceholderCount;
 }
 
+LibraryFileService *OneDriveLibraryService::fileService()
+{
+    return &m_fileService;
+}
+
 bool OneDriveLibraryService::setRootFolder(const QUrl &folderUrl)
 {
     clearError();
@@ -240,21 +260,26 @@ bool OneDriveLibraryService::setRootFolder(const QUrl &folderUrl)
         setError(tr("The selected path is not a folder."));
         return false;
     }
+    const bool rootChanged = m_rootPath.isEmpty() || !samePath(m_rootPath, rootPath);
+    if (rootChanged && m_fileService.busy()) {
+        setError(tr("Wait for the current library import before changing folders."));
+        return false;
+    }
     if (!QDir().mkpath(rootPath)) {
         setError(tr("Could not create the selected library folder."));
         return false;
     }
 
-    if (configured() && !samePath(m_rootPath, rootPath) && m_available) {
+    if (configured() && rootChanged && m_available) {
         synchronizeNow();
     }
 
-    const bool rootChanged = m_rootPath.isEmpty() || !samePath(m_rootPath, rootPath);
     const bool availabilityChangedValue = !m_available;
     m_rootPath = rootPath;
     m_available = true;
     resetRetry();
     m_configuration.setRootPath(rootPath);
+    m_fileService.setRootPath(rootPath);
     QDir().mkpath(QDir(rootPath).filePath(metadataDirectoryName));
     if (rootChanged) {
         emit rootFolderChanged();
@@ -358,96 +383,26 @@ bool OneDriveLibraryService::synchronizeNow()
 QUrl OneDriveLibraryService::importBook(const QUrl &sourceUrl,
                                         const QString &collectionPath)
 {
-    clearError();
-    if (!ensureAvailable()) {
-        return {};
+    const QUrl importedUrl = m_fileService.importBook(sourceUrl, collectionPath);
+    if (importedUrl.isEmpty() && !m_fileService.errorMessage().isEmpty()) {
+        setError(m_fileService.errorMessage());
     }
-    if (!sourceUrl.isLocalFile()) {
-        setError(tr("Choose a local book file."));
-        return {};
-    }
-
-    const QFileInfo sourceInfo(sourceUrl.toLocalFile());
-    if (!sourceInfo.exists() || !sourceInfo.isFile()) {
-        setError(tr("The selected book does not exist."));
-        return {};
-    }
-    const QUrl normalizedSource = QUrl::fromLocalFile(sourceInfo.absoluteFilePath());
-    if (!m_repository->supports(normalizedSource)) {
-        setError(tr("The selected book format is not supported."));
-        return {};
-    }
-
-    if (PortableProfileMapper::isManagedBook(normalizedSource, m_rootPath)) {
-        const QString actualCollection = collectionForBook(normalizedSource);
-        m_repository->registerBook(normalizedSource, actualCollection, true);
-        scheduleSynchronization();
-        return normalizedSource;
-    }
-
-    const QString normalizedCollection = normalizedCollectionPath(collectionPath);
-    const QString destinationDirectory = absoluteCollectionPath(normalizedCollection);
-    if (destinationDirectory.isEmpty() || !QFileInfo(destinationDirectory).isDir()) {
-        setError(tr("The selected collection is unavailable."));
-        return {};
-    }
-
-    const QString destinationPath = destinationForCopy(sourceInfo, normalizedCollection);
-    if (destinationPath.isEmpty() || !QFile::copy(sourceInfo.absoluteFilePath(), destinationPath)) {
-        setError(tr("Could not copy the book into the OneDrive library."));
-        return {};
-    }
-
-    const QUrl destinationUrl = QUrl::fromLocalFile(destinationPath);
-    m_repository->registerBook(destinationUrl, normalizedCollection, true);
-    scanLibrary();
-    scheduleSynchronization();
-    return destinationUrl;
+    return importedUrl;
 }
 
 bool OneDriveLibraryService::createCollection(const QString &parentPath,
                                               const QString &name)
 {
-    clearError();
-    if (!ensureAvailable()) {
-        return false;
+    const bool created = m_fileService.createCollection(parentPath, name);
+    if (!created && !m_fileService.errorMessage().isEmpty()) {
+        setError(m_fileService.errorMessage());
     }
-
-    const QString parent = normalizedCollectionPath(parentPath);
-    const QString parentDirectory = absoluteCollectionPath(parent);
-    const QString cleanName = name.trimmed();
-    if (parentDirectory.isEmpty() || !QFileInfo(parentDirectory).isDir()) {
-        setError(tr("The parent collection is unavailable."));
-        return false;
-    }
-    if (!validCollectionName(cleanName)) {
-        setError(tr("Use a folder name without reserved characters."));
-        return false;
-    }
-
-    const QString collectionPath = parent.isEmpty()
-                                       ? cleanName
-                                       : parent + u'/' + cleanName;
-    const QString directoryPath = absoluteCollectionPath(collectionPath);
-    if (directoryPath.isEmpty() || QFileInfo::exists(directoryPath)) {
-        setError(tr("A collection with this name already exists."));
-        return false;
-    }
-    if (!QDir().mkpath(directoryPath)) {
-        setError(tr("Could not create the collection folder."));
-        return false;
-    }
-
-    scanLibrary();
-    refreshWatchPaths();
-    return true;
+    return created;
 }
 
 QString OneDriveLibraryService::collectionForBook(const QUrl &sourceUrl) const
 {
-    const QString relativePath = PortableProfileMapper::relativeBookPath(sourceUrl, m_rootPath);
-    const qsizetype separator = relativePath.lastIndexOf(u'/');
-    return separator < 0 ? QString() : relativePath.left(separator);
+    return m_fileService.collectionForBook(sourceUrl);
 }
 
 bool OneDriveLibraryService::retryNow()
@@ -614,33 +569,6 @@ QString OneDriveLibraryService::normalizedCollectionPath(const QString &collecti
         return {};
     }
     return QString(path).replace(u'\\', u'/');
-}
-
-bool OneDriveLibraryService::validCollectionName(const QString &name)
-{
-    if (name.isEmpty()
-        || name.size() > 120
-        || name == QLatin1String(".")
-        || name == QLatin1String("..")
-        || name.endsWith(u'.')
-        || name.endsWith(u' ')
-        || name.compare(metadataDirectoryName, Qt::CaseInsensitive) == 0) {
-        return false;
-    }
-    static const QRegularExpression reservedCharacters(
-        QStringLiteral(R"([<>:"/\\|?*\x00-\x1F])"));
-    static const QSet<QString> reservedNames = {
-        QStringLiteral("CON"), QStringLiteral("PRN"), QStringLiteral("AUX"),
-        QStringLiteral("NUL"), QStringLiteral("COM1"), QStringLiteral("COM2"),
-        QStringLiteral("COM3"), QStringLiteral("COM4"), QStringLiteral("COM5"),
-        QStringLiteral("COM6"), QStringLiteral("COM7"), QStringLiteral("COM8"),
-        QStringLiteral("COM9"), QStringLiteral("LPT1"), QStringLiteral("LPT2"),
-        QStringLiteral("LPT3"), QStringLiteral("LPT4"), QStringLiteral("LPT5"),
-        QStringLiteral("LPT6"), QStringLiteral("LPT7"), QStringLiteral("LPT8"),
-        QStringLiteral("LPT9")
-    };
-    return !name.contains(reservedCharacters)
-           && !reservedNames.contains(name.section(u'.', 0, 0).toUpper());
 }
 
 bool OneDriveLibraryService::ensureAvailable()

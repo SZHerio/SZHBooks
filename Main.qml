@@ -22,6 +22,7 @@ ApplicationWindow {
     property url relinkSourceUrl
     property url pendingProfileRestoreUrl
     property bool profileNoticeShown: false
+    property bool openSingleImportWhenReady: false
     property string profileNoticeHeading
     property string profileNoticeMessage
     property string profileNoticeKind: "info"
@@ -56,9 +57,22 @@ ApplicationWindow {
         }
     }
 
-    function addBook(fileUrl) {
+    function addBooks(fileUrls) {
+        const urls = []
+        for (var index = 0; index < fileUrls.length; ++index)
+            urls.push(fileUrls[index])
+        if (urls.length === 0)
+            return
+
         if (!root.oneDriveLibraryService.configured) {
-            root.openBook(fileUrl)
+            if (urls.length === 1) {
+                root.openBook(urls[0])
+            } else {
+                root.showProfileNotice(
+                            qsTr("Choose a library folder"),
+                            qsTr("Batch import stores books inside the managed library folder."),
+                            "info")
+            }
             return
         }
 
@@ -66,11 +80,10 @@ ApplicationWindow {
                              || root.libraryModel.collectionFilter === "."
                              ? ""
                              : root.libraryModel.collectionFilter
-        const managedUrl = root.oneDriveLibraryService.importBook(fileUrl,
-                                                                  selectedFolder)
-        if (managedUrl.toString().length > 0) {
-            root.openBook(managedUrl)
-        }
+        root.openSingleImportWhenReady = urls.length === 1
+        if (!root.oneDriveLibraryService.fileService.importBooks(urls,
+                                                                 selectedFolder))
+            root.openSingleImportWhenReady = false
     }
 
     function showLibrary() {
@@ -161,9 +174,10 @@ ApplicationWindow {
         id: openDialog
 
         title: qsTr("Open book")
+        fileMode: FileDialog.OpenFiles
         nameFilters: root.supportedBookNameFilters
 
-        onAccepted: root.addBook(selectedFile)
+        onAccepted: root.addBooks(selectedFiles)
     }
 
     FolderDialog {
@@ -291,6 +305,42 @@ ApplicationWindow {
         }
     }
 
+    Connections {
+        target: root.oneDriveLibraryService.fileService
+
+        function onBatchFinished(importedCount, duplicateCount, failedCount, canceled) {
+            root.libraryModel.refresh()
+            const importedUrl = root.oneDriveLibraryService.fileService.lastImportedUrl
+            if (root.openSingleImportWhenReady
+                    && importedUrl.toString().length > 0
+                    && failedCount === 0) {
+                root.openBook(importedUrl)
+            } else if (canceled) {
+                root.showProfileNotice(
+                            qsTr("Import canceled"),
+                            qsTr("%1 of %2 file(s) processed.")
+                                .arg(root.oneDriveLibraryService.fileService.operationCompleted)
+                                .arg(root.oneDriveLibraryService.fileService.operationTotal),
+                            "info")
+            } else {
+                root.showProfileNotice(
+                            qsTr("Import complete"),
+                            qsTr("Added: %1  ·  Duplicates: %2  ·  Failed: %3")
+                                .arg(importedCount)
+                                .arg(duplicateCount)
+                                .arg(failedCount),
+                            failedCount > 0 ? "error" : "success")
+            }
+            root.openSingleImportWhenReady = false
+        }
+
+        function onOperationFailed(errorMessage) {
+            root.showProfileNotice(qsTr("Library operation"),
+                                   errorMessage,
+                                   "error")
+        }
+    }
+
     header: AppHeader {
         id: appHeader
         objectName: "appHeader"
@@ -351,6 +401,7 @@ ApplicationWindow {
             createCollectionDialog.openFor(parentPath)
         }
         onSyncDetailsRequested: syncCenterDialog.open()
+        onFilesDropped: fileUrls => root.addBooks(fileUrls)
 
         Behavior on opacity {
             NumberAnimation {

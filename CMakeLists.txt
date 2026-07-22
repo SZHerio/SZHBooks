@@ -11,7 +11,7 @@ if(WIN32)
     set(CMAKE_INSTALL_BINDIR ".")
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Gui LinguistTools Pdf PdfQuick Quick QuickControls2 QuickDialogs2 Xml)
+find_package(Qt6 REQUIRED COMPONENTS Concurrent Gui LinguistTools Pdf PdfQuick Quick QuickControls2 QuickDialogs2 Xml)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -71,6 +71,8 @@ target_sources(appSZHBooks PRIVATE
     library/cloudfileavailability.cpp
     library/cloudfileavailability.h
     library/librarybook.h
+    library/libraryfileservice.cpp
+    library/libraryfileservice.h
     library/librarymodel.cpp
     library/librarymodel.h
     library/libraryrepository.cpp
@@ -118,12 +120,16 @@ qt_add_qml_module(appSZHBooks
     NO_GENERATE_QMLTYPES
     QML_FILES
         Main.qml
+        library/BookActionsDialog.qml
+        library/CollectionActionsDialog.qml
         library/LibraryBookCover.qml
         library/LibraryBookDelegate.qml
         library/LibraryBookListDelegate.qml
         library/LibraryContinueCard.qml
         library/CreateCollectionDialog.qml
+        library/LibraryCollectionSidebar.qml
         library/LibraryControls.qml
+        library/LibraryImportProgress.qml
         library/LibrarySyncBar.qml
         library/LibraryView.qml
         library/SyncCenterDialog.qml
@@ -198,6 +204,7 @@ endif()
 target_link_libraries(appSZHBooks
     PRIVATE
         szhbooks_miniz
+        Qt6::Concurrent
         Qt6::Gui
         Qt6::Pdf
         Qt6::PdfQuick
@@ -323,6 +330,8 @@ if(BUILD_TESTING)
             library/cloudfileavailability.cpp
             library/cloudfileavailability.h
             library/librarybook.h
+            library/libraryfileservice.cpp
+            library/libraryfileservice.h
             library/libraryrepository.cpp
             library/libraryrepository.h
             reader/readingannotation.h
@@ -351,6 +360,7 @@ if(BUILD_TESTING)
         target_link_libraries(tst_onedrivesync
             PRIVATE
                 szhbooks_miniz
+                Qt6::Concurrent
                 Qt6::Core
                 Qt6::Gui
                 Qt6::Pdf
@@ -360,6 +370,48 @@ if(BUILD_TESTING)
 
         add_test(NAME onedrivesync COMMAND tst_onedrivesync)
         set_tests_properties(onedrivesync PROPERTIES
+            ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+        )
+
+        qt_add_executable(tst_libraryfiles
+            archive/ziparchivereader.cpp
+            archive/ziparchivereader.h
+            library/bookcoverprovider.cpp
+            library/bookcoverprovider.h
+            library/bookmetadata.h
+            library/bookmetadataservice.cpp
+            library/bookmetadataservice.h
+            library/cloudfileavailability.cpp
+            library/cloudfileavailability.h
+            library/librarybook.h
+            library/libraryfileservice.cpp
+            library/libraryfileservice.h
+            library/libraryrepository.cpp
+            library/libraryrepository.h
+            reader/readingannotation.h
+            storage/documentstoragekey.cpp
+            storage/documentstoragekey.h
+            storage/localstatestore.cpp
+            storage/localstatestore.h
+            storage/readingannotationstore.cpp
+            storage/readingannotationstore.h
+            tests/libraryfileservicetest.cpp
+        )
+
+        target_link_libraries(tst_libraryfiles
+            PRIVATE
+                szhbooks_miniz
+                Qt6::Concurrent
+                Qt6::Core
+                Qt6::Gui
+                Qt6::Pdf
+                Qt6::Test
+                Qt6::Xml
+        )
+
+        add_test(NAME libraryfiles COMMAND tst_libraryfiles)
+        set_tests_properties(libraryfiles PROPERTIES
             ENVIRONMENT_MODIFICATION
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
         )
@@ -499,8 +551,12 @@ if(BUILD_TESTING)
                 VERSION 1.0
                 QML_FILES
                     library/CreateCollectionDialog.qml
+                    library/BookActionsDialog.qml
+                    library/CollectionActionsDialog.qml
                     library/LibraryBookCover.qml
                     library/LibraryBookDelegate.qml
+                    library/LibraryCollectionSidebar.qml
+                    library/LibraryImportProgress.qml
                     library/LibrarySyncBar.qml
                     library/SyncCenterDialog.qml
                     shell/ProfileRestoreDialog.qml

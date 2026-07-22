@@ -32,6 +32,7 @@ private slots:
     void mapsManagedBookPathsBetweenDevices();
     void mergesIndependentChangesAndPreservesConflicts();
     void scansNestedCollectionsAndImportsBooks();
+    void keepsRootStableDuringBatchImport();
     void writesConflictSnapshotForConcurrentChanges();
     void persistsActivityAndRetriesUnavailableFolder();
 };
@@ -168,6 +169,36 @@ void OneDriveSyncTest::scansNestedCollectionsAndImportsBooks()
     QCOMPARE(store.libraryBooks().size(), 1);
     QVERIFY(!service.importBook(importedUrl, QStringLiteral("Fiction/Classics")).isEmpty());
     QCOMPARE(store.libraryBooks().size(), 2);
+}
+
+void OneDriveSyncTest::keepsRootStableDuringBatchImport()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString rootPath = directory.filePath(QStringLiteral("OneDrive/SZHBooks"));
+    const QString nextRootPath = directory.filePath(QStringLiteral("OneDrive/OtherBooks"));
+    LocalStateStore store(directory.filePath(QStringLiteral("profile.ini")));
+    BookCoverProvider coverProvider(directory.filePath(QStringLiteral("covers")));
+    BookMetadataService metadataService(&coverProvider);
+    LibraryRepository repository(&store, &metadataService);
+    OneDriveLibraryService service(&store,
+                                   &repository,
+                                   directory.filePath(QStringLiteral("sync.ini")));
+    QVERIFY(service.setRootFolder(QUrl::fromLocalFile(rootPath)));
+
+    const QString sourcePath = directory.filePath(QStringLiteral("book.txt"));
+    QVERIFY(writeFile(sourcePath, "Book queued for import"));
+    QSignalSpy finishedSpy(service.fileService(),
+                           &LibraryFileService::batchFinished);
+    QVERIFY(service.fileService()->importBooks({QUrl::fromLocalFile(sourcePath)}));
+    QVERIFY(service.fileService()->busy());
+    QVERIFY(!service.setRootFolder(QUrl::fromLocalFile(nextRootPath)));
+    QCOMPARE(service.rootFolder(), QUrl::fromLocalFile(rootPath));
+    QVERIFY(!QFileInfo::exists(nextRootPath));
+
+    service.fileService()->cancel();
+    QTRY_COMPARE_WITH_TIMEOUT(finishedSpy.count(), 1, 10000);
 }
 
 void OneDriveSyncTest::writesConflictSnapshotForConcurrentChanges()

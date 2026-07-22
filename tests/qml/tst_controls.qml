@@ -111,6 +111,51 @@ TestCase {
     }
 
     QtObject {
+        id: mockFileService
+
+        property bool busy: false
+        property bool cancellationRequested: false
+        property int operationTotal: 0
+        property int operationCompleted: 0
+        property int importedCount: 0
+        property int duplicateCount: 0
+        property int failedCount: 0
+        property real progress: 0
+        property string currentFileName: ""
+        property string errorMessage: ""
+        property url lastImportedUrl: ""
+        property int moveCount: 0
+        property int renameCount: 0
+        property int removeCount: 0
+
+        function isManagedBook(sourceUrl) { return true }
+        function fileBaseName(sourceUrl) { return "novel" }
+        function createCollection(parentPath, name) {
+            mockSyncService.createCount += 1
+            mockSyncService.createdParent = parentPath
+            mockSyncService.createdName = name
+            return true
+        }
+        function moveBook(sourceUrl, collectionPath) {
+            moveCount += 1
+            return sourceUrl
+        }
+        function renameBook(sourceUrl, name) {
+            renameCount += 1
+            return sourceUrl
+        }
+        function removeBook(sourceUrl, deleteFile) {
+            removeCount += 1
+            return true
+        }
+        function renameCollection(collectionPath, name) {
+            return "Renamed"
+        }
+        function removeCollection(collectionPath) { return true }
+        function cancel() { cancellationRequested = true }
+    }
+
+    QtObject {
         id: mockSyncService
 
         property bool configured: false
@@ -131,6 +176,7 @@ TestCase {
         property date nextRetryAt: new Date(0)
         property var activityModel: mockActivityModel
         property var conflictModel: mockConflictModel
+        property var fileService: mockFileService
         property int syncCount: 0
         property int createCount: 0
         property string createdParent: ""
@@ -183,6 +229,33 @@ TestCase {
 
         SyncCenterDialog {
             syncService: mockSyncService
+        }
+    }
+
+    Component {
+        id: bookActionsComponent
+
+        BookActionsDialog {
+            fileService: mockFileService
+            syncService: mockSyncService
+        }
+    }
+
+    Component {
+        id: collectionActionsComponent
+
+        CollectionActionsDialog {
+            fileService: mockFileService
+        }
+    }
+
+    Component {
+        id: importProgressComponent
+
+        LibraryImportProgress {
+            width: 600
+            height: implicitHeight
+            fileService: mockFileService
         }
     }
 
@@ -307,6 +380,12 @@ TestCase {
         const chooseButton = findChild(bar, "chooseLibraryFolderButton")
         verify(suggestedButton)
         verify(chooseButton)
+        mockFileService.busy = true
+        compare(suggestedButton.enabled, false)
+        compare(chooseButton.enabled, false)
+        mockFileService.busy = false
+        tryCompare(suggestedButton, "enabled", true)
+        tryCompare(chooseButton, "enabled", true)
         suggestedButton.clicked()
         compare(mockSyncService.configured, true)
 
@@ -350,6 +429,47 @@ TestCase {
         compare(dialog.currentView, "activity")
         keyClick(Qt.Key_Escape)
         tryCompare(dialog, "opened", false)
+    }
+
+    function test_bookAndCollectionActionsOpenSafely() {
+        mockFileService.moveCount = 0
+        const bookDialog = createTemporaryObject(bookActionsComponent, stage)
+        verify(bookDialog)
+        bookDialog.openFor("file:///C:/OneDrive/SZHBooks/novel.txt",
+                           "Novel", "", true)
+        tryCompare(bookDialog, "opened", true)
+        const destination = findChild(bookDialog, "bookDestinationMenu")
+        const moveButton = findChild(bookDialog, "moveBookButton")
+        verify(destination)
+        verify(moveButton)
+        destination.value = "Fiction"
+        moveButton.clicked()
+        compare(mockFileService.moveCount, 1)
+        tryCompare(bookDialog, "opened", false)
+
+        const collectionDialog = createTemporaryObject(collectionActionsComponent, stage)
+        verify(collectionDialog)
+        collectionDialog.openFor("Fiction")
+        tryCompare(collectionDialog, "opened", true)
+        keyClick(Qt.Key_Escape)
+        tryCompare(collectionDialog, "opened", false)
+    }
+
+    function test_importProgressReportsAndCancels() {
+        mockFileService.busy = true
+        mockFileService.cancellationRequested = false
+        mockFileService.operationTotal = 4
+        mockFileService.operationCompleted = 1
+        mockFileService.progress = 0.25
+        mockFileService.currentFileName = "novel.epub"
+        const progress = createTemporaryObject(importProgressComponent, stage)
+        verify(progress)
+        compare(progress.fileService.busy, true)
+        verify(progress.implicitHeight > 0)
+        verify(progress.height > 0)
+        mockFileService.cancel()
+        verify(mockFileService.cancellationRequested)
+        mockFileService.busy = false
     }
 
     function test_applicationShortcutsRouteCommands() {

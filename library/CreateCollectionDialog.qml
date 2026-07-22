@@ -33,7 +33,8 @@ Popup {
     function createFolder() {
         const cleanName = folderName.text.trim()
         if (cleanName.length === 0
-                || !root.syncService.createCollection(root.parentPath, cleanName)) {
+                || !root.syncService.fileService.createCollection(root.parentPath,
+                                                                   cleanName)) {
             return
         }
         const path = root.parentPath.length > 0
@@ -135,10 +136,10 @@ Popup {
             }
 
             SZHButton {
-                objectName: "createCollectionButton"
-                text: qsTr("Create")
-                enabled: folderName.text.trim().length > 0
-                onClicked: root.createFolder()
+            objectName: "createCollectionButton"
+            text: qsTr("Create")
+            enabled: folderName.text.trim().length > 0 && !root.syncService.fileService.busy
+            onClicked: root.createFolder()
             }
         }
     }
