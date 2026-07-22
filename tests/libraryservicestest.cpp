@@ -209,7 +209,9 @@ void LibraryServicesTest::rendersPdfFirstPageCover()
         QPdfWriter writer(path);
         writer.setPageSize(QPageSize(QPageSize::A5));
         writer.setTitle(QStringLiteral("Covered PDF"));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
         writer.setAuthor(QStringLiteral("PDF Author"));
+#endif
         QPainter painter(&writer);
         QVERIFY(painter.isActive());
         painter.fillRect(painter.viewport(), Qt::white);
@@ -221,7 +223,11 @@ void LibraryServicesTest::rendersPdfFirstPageCover()
     BookMetadataService service(&covers);
     const BookMetadata metadata = service.inspect(QUrl::fromLocalFile(path));
     QCOMPARE(metadata.title, QStringLiteral("Covered PDF"));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     QCOMPARE(metadata.author, QStringLiteral("PDF Author"));
+#else
+    QVERIFY(metadata.author.isEmpty());
+#endif
     QCOMPARE(metadata.formatName, QStringLiteral("PDF"));
     verifyCoverFile(metadata);
 }
