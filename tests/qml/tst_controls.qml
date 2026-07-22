@@ -98,7 +98,16 @@ TestCase {
             progress: 0.42
             lastOpened: new Date(2026, 0, 1)
             fileAvailable: true
+            cloudPlaceholder: false
         }
+    }
+
+    ListModel {
+        id: mockActivityModel
+    }
+
+    ListModel {
+        id: mockConflictModel
     }
 
     QtObject {
@@ -117,6 +126,11 @@ TestCase {
         property string errorMessage: ""
         property date lastSyncedAt: new Date(2026, 0, 1, 12, 0)
         property int conflictCount: 0
+        property int cloudPlaceholderCount: 0
+        property bool retryScheduled: false
+        property date nextRetryAt: new Date(0)
+        property var activityModel: mockActivityModel
+        property var conflictModel: mockConflictModel
         property int syncCount: 0
         property int createCount: 0
         property string createdParent: ""
@@ -136,6 +150,14 @@ TestCase {
             createdName = name
             return true
         }
+        function retryNow() {
+            syncCount += 1
+            return true
+        }
+        function openRootFolder() { return true }
+        function openConflictsFolder() { return true }
+        function resolveConflict(conflictId, resolution) { return true }
+        function resolveAllConflicts(resolution) { return 0 }
     }
 
     Component {
@@ -152,6 +174,14 @@ TestCase {
         id: createCollectionComponent
 
         CreateCollectionDialog {
+            syncService: mockSyncService
+        }
+    }
+
+    Component {
+        id: syncCenterComponent
+
+        SyncCenterDialog {
             syncService: mockSyncService
         }
     }
@@ -306,6 +336,19 @@ TestCase {
         compare(mockSyncService.createCount, 1)
         compare(mockSyncService.createdParent, "Fiction")
         compare(mockSyncService.createdName, "Classics")
+        tryCompare(dialog, "opened", false)
+    }
+
+    function test_syncCenterOpensAndChangesViews() {
+        mockSyncService.configured = true
+        const dialog = createTemporaryObject(syncCenterComponent, stage)
+        verify(dialog)
+        dialog.open()
+        tryCompare(dialog, "opened", true)
+        compare(dialog.currentView, "status")
+        dialog.currentView = "activity"
+        compare(dialog.currentView, "activity")
+        keyClick(Qt.Key_Escape)
         tryCompare(dialog, "opened", false)
     }
 

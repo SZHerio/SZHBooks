@@ -16,6 +16,7 @@ Rectangle {
     required property real progress
     required property date lastOpened
     required property bool fileAvailable
+    required property bool cloudPlaceholder
 
     property color fallbackColor: Theme.accentColor
 
@@ -35,10 +36,12 @@ Rectangle {
     Accessible.role: Accessible.ListItem
     Accessible.name: root.title
     Accessible.description: root.fileAvailable
-                                ? qsTr("%1, %2% read")
-                                    .arg(root.author.length > 0
-                                         ? root.author : root.formatName)
-                                    .arg(Math.round(root.progress * 100))
+                                ? (root.cloudPlaceholder
+                                   ? qsTr("Online-only book. Downloads when opened.")
+                                   : qsTr("%1, %2% read")
+                                     .arg(root.author.length > 0
+                                          ? root.author : root.formatName)
+                                     .arg(Math.round(root.progress * 100)))
                                 : qsTr("File unavailable. Locate the book to continue.")
     Accessible.focusable: true
     Accessible.onPressAction: root.activate()
@@ -101,12 +104,14 @@ Rectangle {
 
             Label {
                 Layout.fillWidth: true
-                text: root.fileAvailable
-                      ? ([root.author, root.collectionPath]
+                text: root.cloudPlaceholder
+                      ? qsTr("Online-only  \u00b7  Downloads when opened")
+                      : root.fileAvailable
+                        ? ([root.author, root.collectionPath]
                          .filter(value => value.length > 0)
                          .join(qsTr("  \u00b7  "))
                          || Qt.formatDateTime(root.lastOpened, qsTr("dd MMM, HH:mm")))
-                      : root.sourcePath
+                        : root.sourcePath
                 color: root.fileAvailable ? Theme.mutedTextColor : Theme.dangerColor
                 font.family: Theme.uiFontFamily
                 font.pixelSize: Theme.captionFontSize

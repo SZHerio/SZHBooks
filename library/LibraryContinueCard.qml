@@ -56,12 +56,14 @@ Rectangle {
             }
 
             Label {
-                text: root.book.fileAvailable
-                      ? (root.book.formatName || "")
-                        + qsTr("  \u00b7  ")
-                        + Math.round((root.book.progress || 0) * 100)
-                        + qsTr("%")
-                      : qsTr("File unavailable")
+                text: root.book.cloudPlaceholder
+                      ? qsTr("Online-only  \u00b7  Downloads when opened")
+                      : root.book.fileAvailable
+                        ? (root.book.formatName || "")
+                          + qsTr("  \u00b7  ")
+                          + Math.round((root.book.progress || 0) * 100)
+                          + qsTr("%")
+                        : qsTr("File unavailable")
                 color: root.book.fileAvailable ? Theme.mutedTextColor : Theme.dangerColor
                 font.family: Theme.uiFontFamily
                 font.pixelSize: Theme.captionFontSize

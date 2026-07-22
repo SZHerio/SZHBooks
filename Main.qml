@@ -190,6 +190,12 @@ ApplicationWindow {
         }
     }
 
+    SyncCenterDialog {
+        id: syncCenterDialog
+
+        syncService: root.oneDriveLibraryService
+    }
+
     FileDialog {
         id: relinkDialog
 
@@ -344,6 +350,7 @@ ApplicationWindow {
         onCreateCollectionRequested: parentPath => {
             createCollectionDialog.openFor(parentPath)
         }
+        onSyncDetailsRequested: syncCenterDialog.open()
 
         Behavior on opacity {
             NumberAnimation {

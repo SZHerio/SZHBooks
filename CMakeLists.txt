@@ -68,6 +68,8 @@ target_sources(appSZHBooks PRIVATE
     library/bookmetadata.h
     library/bookmetadataservice.cpp
     library/bookmetadataservice.h
+    library/cloudfileavailability.cpp
+    library/cloudfileavailability.h
     library/librarybook.h
     library/librarymodel.cpp
     library/librarymodel.h
@@ -99,8 +101,12 @@ target_sources(appSZHBooks PRIVATE
     sync/portableprofilemapper.h
     sync/profilesyncengine.cpp
     sync/profilesyncengine.h
+    sync/syncactivitymodel.cpp
+    sync/syncactivitymodel.h
     sync/syncconfigurationstore.cpp
     sync/syncconfigurationstore.h
+    sync/syncconflictmodel.cpp
+    sync/syncconflictmodel.h
 )
 
 target_include_directories(appSZHBooks PRIVATE
@@ -120,6 +126,7 @@ qt_add_qml_module(appSZHBooks
         library/LibraryControls.qml
         library/LibrarySyncBar.qml
         library/LibraryView.qml
+        library/SyncCenterDialog.qml
         reader/EmptyReaderView.qml
         reader/PageNavigationControl.qml
         reader/PdfDocumentView.qml
@@ -240,6 +247,8 @@ if(BUILD_TESTING)
             library/bookmetadata.h
             library/bookmetadataservice.cpp
             library/bookmetadataservice.h
+            library/cloudfileavailability.cpp
+            library/cloudfileavailability.h
             library/librarybook.h
             library/librarymodel.cpp
             library/librarymodel.h
@@ -311,6 +320,8 @@ if(BUILD_TESTING)
             library/bookmetadata.h
             library/bookmetadataservice.cpp
             library/bookmetadataservice.h
+            library/cloudfileavailability.cpp
+            library/cloudfileavailability.h
             library/librarybook.h
             library/libraryrepository.cpp
             library/libraryrepository.h
@@ -328,8 +339,12 @@ if(BUILD_TESTING)
             sync/portableprofilemapper.h
             sync/profilesyncengine.cpp
             sync/profilesyncengine.h
+            sync/syncactivitymodel.cpp
+            sync/syncactivitymodel.h
             sync/syncconfigurationstore.cpp
             sync/syncconfigurationstore.h
+            sync/syncconflictmodel.cpp
+            sync/syncconflictmodel.h
             tests/onedrivesynctest.cpp
         )
 
@@ -487,12 +502,14 @@ if(BUILD_TESTING)
                     library/LibraryBookCover.qml
                     library/LibraryBookDelegate.qml
                     library/LibrarySyncBar.qml
+                    library/SyncCenterDialog.qml
                     shell/ProfileRestoreDialog.qml
                     shell/AppShortcuts.qml
                     ui/SZHButton.qml
                     ui/SZHIconButton.qml
                     ui/SZHMenuButton.qml
                     ui/SZHProgressBar.qml
+                    ui/SZHScrollBar.qml
                     ui/SZHSegmentedControl.qml
                     ui/SZHSlider.qml
                     ui/SZHTextField.qml

@@ -35,7 +35,8 @@ public:
         ProgressRole,
         LastOpenedRole,
         FileAvailableRole,
-        CollectionPathRole
+        CollectionPathRole,
+        CloudPlaceholderRole
     };
     Q_ENUM(Role)
 

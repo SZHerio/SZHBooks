@@ -17,4 +17,5 @@ struct LibraryBook final
     qreal progress = 0;
     QDateTime lastOpened;
     bool fileAvailable = false;
+    bool cloudPlaceholder = false;
 };

@@ -33,6 +33,7 @@ private slots:
     void mergesIndependentChangesAndPreservesConflicts();
     void scansNestedCollectionsAndImportsBooks();
     void writesConflictSnapshotForConcurrentChanges();
+    void persistsActivityAndRetriesUnavailableFolder();
 };
 
 void OneDriveSyncTest::mapsManagedBookPathsBetweenDevices()
@@ -203,6 +204,60 @@ void OneDriveSyncTest::writesConflictSnapshotForConcurrentChanges()
     QVERIFY(conflict.conflictKeys.contains(QStringLiteral("reading/fontSize")));
     QVERIFY(QFileInfo::exists(conflict.conflictFilePath));
     QCOMPARE(firstStore.textFontSize(), 24);
+
+    SyncConflictModel conflictModel;
+    conflictModel.load(rootPath);
+    QVERIFY(conflictModel.rowCount() > 0);
+    const QString conflictId = conflictModel.index(0, 0)
+                                   .data(SyncConflictModel::ConflictIdRole)
+                                   .toString();
+    SyncConflictChoice remoteChoice;
+    QVERIFY(conflictModel.choice(conflictId, true, &remoteChoice));
+    QCOMPARE(remoteChoice.key, QStringLiteral("reading/fontSize"));
+    QCOMPARE(remoteChoice.value.toInt(), 22);
+    QVERIFY(remoteChoice.present);
+
+    QString resolutionError;
+    QVERIFY2(conflictModel.markResolved(conflictId,
+                                        QStringLiteral("remote"),
+                                        &resolutionError),
+             qPrintable(resolutionError));
+    QCOMPARE(conflictModel.rowCount(), 0);
+}
+
+void OneDriveSyncTest::persistsActivityAndRetriesUnavailableFolder()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString configurationPath = directory.filePath(QStringLiteral("sync.ini"));
+    {
+        SyncActivityModel activity(configurationPath);
+        activity.append(QStringLiteral("syncCompleted"),
+                        QStringLiteral("info"),
+                        QStringLiteral("test"));
+        QCOMPARE(activity.rowCount(), 1);
+    }
+    SyncActivityModel restoredActivity(configurationPath);
+    QCOMPARE(restoredActivity.rowCount(), 1);
+    QCOMPARE(restoredActivity.index(0, 0).data(SyncActivityModel::EventRole).toString(),
+             QStringLiteral("syncCompleted"));
+
+    const QString rootPath = directory.filePath(QStringLiteral("OneDrive/SZHBooks"));
+    SyncConfigurationStore configuration(configurationPath);
+    configuration.setRootPath(rootPath);
+    LocalStateStore store(directory.filePath(QStringLiteral("profile.ini")));
+    BookCoverProvider coverProvider(directory.filePath(QStringLiteral("covers")));
+    BookMetadataService metadataService(&coverProvider);
+    LibraryRepository repository(&store, &metadataService);
+    OneDriveLibraryService service(&store, &repository, configurationPath);
+    QCOMPARE(service.status(), QStringLiteral("unavailable"));
+    QVERIFY(service.retryScheduled());
+
+    QVERIFY(QDir().mkpath(rootPath));
+    QVERIFY(service.retryNow());
+    QCOMPARE(service.status(), QStringLiteral("synced"));
+    QVERIFY(!service.retryScheduled());
 }
 
 QTEST_GUILESS_MAIN(OneDriveSyncTest)

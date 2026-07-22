@@ -69,6 +69,8 @@ QVariant LibraryModel::data(const QModelIndex &index, int role) const
         return book.fileAvailable;
     case CollectionPathRole:
         return book.collectionPath;
+    case CloudPlaceholderRole:
+        return book.cloudPlaceholder;
     default:
         return {};
     }
@@ -86,7 +88,8 @@ QHash<int, QByteArray> LibraryModel::roleNames() const
         {ProgressRole, "progress"},
         {LastOpenedRole, "lastOpened"},
         {FileAvailableRole, "fileAvailable"},
-        {CollectionPathRole, "collectionPath"}
+        {CollectionPathRole, "collectionPath"},
+        {CloudPlaceholderRole, "cloudPlaceholder"}
     };
 }
 
@@ -344,7 +347,8 @@ QVariantMap LibraryModel::toVariantMap(const LibraryBook &book)
         {QStringLiteral("progress"), book.progress},
         {QStringLiteral("lastOpened"), book.lastOpened},
         {QStringLiteral("fileAvailable"), book.fileAvailable},
-        {QStringLiteral("collectionPath"), book.collectionPath}
+        {QStringLiteral("collectionPath"), book.collectionPath},
+        {QStringLiteral("cloudPlaceholder"), book.cloudPlaceholder}
     };
 }
 

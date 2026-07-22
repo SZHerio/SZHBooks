@@ -296,6 +296,16 @@
       <source>Remove from library</source>
       <translation>Удалить из библиотеки</translation>
     </message>
+    <message>
+      <location filename="../library/LibraryBookDelegate.qml" line="40" />
+      <source>Online-only book. Downloads when opened.</source>
+      <translation>Книга хранится в облаке и загрузится при открытии.</translation>
+    </message>
+    <message>
+      <location filename="../library/LibraryBookDelegate.qml" line="118" />
+      <source>Online-only  ·  Downloads when opened</source>
+      <translation>Только в облаке  ·  Загрузится при открытии</translation>
+    </message>
   </context>
   <context>
     <name>LibraryBookListDelegate</name>
@@ -334,6 +344,16 @@
       <source>Remove from library</source>
       <translation>Удалить из библиотеки</translation>
     </message>
+    <message>
+      <location filename="../library/LibraryBookListDelegate.qml" line="40" />
+      <source>Online-only book. Downloads when opened.</source>
+      <translation>Книга хранится в облаке и загрузится при открытии.</translation>
+    </message>
+    <message>
+      <location filename="../library/LibraryBookListDelegate.qml" line="108" />
+      <source>Online-only  ·  Downloads when opened</source>
+      <translation>Только в облаке  ·  Загрузится при открытии</translation>
+    </message>
   </context>
   <context>
     <name>LibraryContinueCard</name>
@@ -361,6 +381,11 @@
       <location filename="../library/LibraryContinueCard.qml" line="78" />
       <source>Locate</source>
       <translation>Найти</translation>
+    </message>
+    <message>
+      <location filename="../library/LibraryContinueCard.qml" line="60" />
+      <source>Online-only  ·  Downloads when opened</source>
+      <translation>Только в облаке  ·  Загрузится при открытии</translation>
     </message>
   </context>
   <context>
@@ -549,6 +574,21 @@
       <location filename="../library/LibrarySyncBar.qml" line="112" />
       <source>Synchronize now</source>
       <translation>Синхронизировать</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="26" />
+      <source>Retry scheduled for %1</source>
+      <translation>Повторная попытка в %1</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="27" />
+      <source>HH:mm:ss</source>
+      <translation>HH:mm:ss</translation>
+    </message>
+    <message>
+      <location filename="../library/LibrarySyncBar.qml" line="125" />
+      <source>Synchronization details</source>
+      <translation>Сведения о синхронизации</translation>
     </message>
   </context>
   <context>
@@ -873,6 +913,21 @@
       <location filename="../sync/onedrivelibraryservice.cpp" line="675" />
       <source>OneDrive synchronization failed.</source>
       <translation>Не удалось синхронизировать библиотеку OneDrive.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="488" />
+      <source>Choose which version of the conflicting value to keep.</source>
+      <translation>Выберите, какую версию конфликтующего значения сохранить.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="494" />
+      <source>This synchronization conflict is no longer available.</source>
+      <translation>Этот конфликт синхронизации больше недоступен.</translation>
+    </message>
+    <message>
+      <location filename="../sync/onedrivelibraryservice.cpp" line="510" />
+      <source>Could not apply the selected conflict version: %1</source>
+      <translation>Не удалось применить выбранную версию конфликта: %1</translation>
     </message>
   </context>
   <context>
@@ -1548,5 +1603,65 @@
       <source>Go to end</source>
       <translation>В конец</translation>
     </message>
+  </context>
+  <context>
+    <name>SyncCenterDialog</name>
+    <message><source>OneDrive is not configured</source><translation>OneDrive не настроен</translation></message>
+    <message><source>Synchronizing library</source><translation>Библиотека синхронизируется</translation></message>
+    <message><source>Library folder is unavailable</source><translation>Папка библиотеки недоступна</translation></message>
+    <message><source>Conflicts need your choice</source><translation>Нужно разрешить конфликты</translation></message>
+    <message><source>Synchronization needs attention</source><translation>Синхронизация требует внимания</translation></message>
+    <message><source>Library is up to date</source><translation>Библиотека синхронизирована</translation></message>
+    <message><source>Library folder configured</source><translation>Папка библиотеки настроена</translation></message>
+    <message><source>Library folder available again</source><translation>Папка библиотеки снова доступна</translation></message>
+    <message><source>Library folder unavailable</source><translation>Папка библиотеки недоступна</translation></message>
+    <message><source>Synchronization started</source><translation>Синхронизация началась</translation></message>
+    <message><source>Synchronization completed</source><translation>Синхронизация завершена</translation></message>
+    <message><source>Synchronization failed</source><translation>Ошибка синхронизации</translation></message>
+    <message><source>Conflicts detected</source><translation>Обнаружены конфликты</translation></message>
+    <message><source>Conflict resolved</source><translation>Конфликт разрешён</translation></message>
+    <message><source>Books imported</source><translation>Книги импортированы</translation></message>
+    <message><source>Book moved</source><translation>Книга перемещена</translation></message>
+    <message><source>Book removed</source><translation>Книга удалена</translation></message>
+    <message><source>Folder created</source><translation>Папка создана</translation></message>
+    <message><source>Folder renamed</source><translation>Папка переименована</translation></message>
+    <message><source>Folder removed</source><translation>Папка удалена</translation></message>
+    <message><source>Library updated</source><translation>Библиотека обновлена</translation></message>
+    <message><source>Synchronization</source><translation>Синхронизация</translation></message>
+    <message><source>Close</source><translation>Закрыть</translation></message>
+    <message><source>Status</source><translation>Статус</translation></message>
+    <message><source>Conflicts</source><translation>Конфликты</translation></message>
+    <message><source>Activity</source><translation>Журнал</translation></message>
+    <message><source>Last synchronized %1</source><translation>Последняя синхронизация: %1</translation></message>
+    <message><source>dd MMM, HH:mm</source><translation>dd MMM, HH:mm</translation></message>
+    <message><source>Automatic retry at %1</source><translation>Автоматическая попытка в %1</translation></message>
+    <message><source>HH:mm:ss</source><translation>HH:mm:ss</translation></message>
+    <message><source>Managed books</source><translation>Управляемые книги</translation></message>
+    <message><source>Stored inside the selected OneDrive folder</source><translation>Хранятся в выбранной папке OneDrive</translation></message>
+    <message><source>Pending conflicts</source><translation>Неразрешённые конфликты</translation></message>
+    <message><source>Online-only books</source><translation>Книги только в облаке</translation></message>
+    <message><source>Open folder</source><translation>Открыть папку</translation></message>
+    <message><source>Review conflicts</source><translation>Просмотреть конфликты</translation></message>
+    <message><source>Retry now</source><translation>Повторить сейчас</translation></message>
+    <message><source>Synchronize now</source><translation>Синхронизировать</translation></message>
+    <message><source>Choose the value SZHBooks should keep</source><translation>Выберите значение, которое сохранит SZHBooks</translation></message>
+    <message><source>Keep all on this device</source><translation>Оставить всё с этого устройства</translation></message>
+    <message><source>Use all from OneDrive</source><translation>Взять всё из OneDrive</translation></message>
+    <message><source>This device</source><translation>Это устройство</translation></message>
+    <message><source>OneDrive</source><translation>OneDrive</translation></message>
+    <message><source>Keep this device</source><translation>Оставить с устройства</translation></message>
+    <message><source>Use OneDrive value</source><translation>Взять значение OneDrive</translation></message>
+    <message><source>No unresolved conflicts</source><translation>Неразрешённых конфликтов нет</translation></message>
+    <message><source>Open conflict files</source><translation>Открыть файлы конфликтов</translation></message>
+    <message><source>No synchronization activity yet</source><translation>В журнале синхронизации пока пусто</translation></message>
+    <message><source>Clear activity</source><translation>Очистить журнал</translation></message>
+  </context>
+  <context>
+    <name>SyncConflictModel</name>
+    <message><source>This synchronization conflict is no longer available.</source><translation>Этот конфликт синхронизации больше недоступен.</translation></message>
+    <message><source>Could not read the synchronization conflict.</source><translation>Не удалось прочитать конфликт синхронизации.</translation></message>
+    <message><source>Could not update the synchronization conflict.</source><translation>Не удалось обновить конфликт синхронизации.</translation></message>
+    <message><source>Not set</source><translation>Не задано</translation></message>
+    <message><source>Empty value</source><translation>Пустое значение</translation></message>
   </context>
 </TS>

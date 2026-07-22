@@ -1,6 +1,7 @@
 #include "libraryrepository.h"
 
 #include "bookmetadataservice.h"
+#include "cloudfileavailability.h"
 #include "../storage/documentstoragekey.h"
 #include "../storage/localstatestore.h"
 
@@ -27,7 +28,13 @@ QVector<LibraryBook> LibraryRepository::books()
 {
     QVector<LibraryBook> books = m_store->libraryBooks();
     for (LibraryBook &book : books) {
+        book.cloudPlaceholder = book.sourceUrl.isLocalFile()
+                                && CloudFileAvailability::isOnlineOnly(
+                                    book.sourceUrl.toLocalFile());
         if (!book.fileAvailable) {
+            continue;
+        }
+        if (book.cloudPlaceholder) {
             continue;
         }
 
@@ -92,7 +99,8 @@ void LibraryRepository::recordBookOpened(const QUrl &sourceUrl,
 
 bool LibraryRepository::registerBook(const QUrl &sourceUrl,
                                      const QString &collectionPath,
-                                     bool restoreExcluded)
+                                     bool restoreExcluded,
+                                     bool inspectMetadata)
 {
     if (!m_metadataService->supports(sourceUrl)) {
         return false;
@@ -101,7 +109,13 @@ bool LibraryRepository::registerBook(const QUrl &sourceUrl,
         if (m_store->containsLibraryBook(sourceUrl)) {
             m_store->setBookCollection(sourceUrl, collectionPath);
         } else if (restoreExcluded) {
-            const BookMetadata metadata = m_metadataService->inspect(sourceUrl);
+            const QFileInfo fileInfo(sourceUrl.toLocalFile());
+            const BookMetadata metadata = inspectMetadata
+                                              ? m_metadataService->inspect(sourceUrl)
+                                              : BookMetadata{
+                                                    fileInfo.completeBaseName(),
+                                                    QString(),
+                                                    fileInfo.suffix().toUpper()};
             m_store->recordBookOpened(sourceUrl,
                                       metadata.title,
                                       metadata.author,
@@ -118,7 +132,12 @@ bool LibraryRepository::registerBook(const QUrl &sourceUrl,
         return false;
     }
 
-    const BookMetadata metadata = m_metadataService->inspect(sourceUrl);
+    const QFileInfo fileInfo(sourceUrl.toLocalFile());
+    const BookMetadata metadata = inspectMetadata
+                                      ? m_metadataService->inspect(sourceUrl)
+                                      : BookMetadata{fileInfo.completeBaseName(),
+                                                     QString(),
+                                                     fileInfo.suffix().toUpper()};
     m_store->registerLibraryBook(sourceUrl,
                                  metadata.title,
                                  metadata.author,

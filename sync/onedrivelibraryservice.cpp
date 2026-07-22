@@ -1,11 +1,13 @@
 #include "onedrivelibraryservice.h"
 
 #include "portableprofilemapper.h"
+#include "../library/cloudfileavailability.h"
 #include "../library/librarybook.h"
 #include "../library/libraryrepository.h"
 #include "../storage/localstatestore.h"
 
 #include <QDir>
+#include <QDesktopServices>
 #include <QFile>
 #include <QFileInfo>
 #include <QRegularExpression>
@@ -13,6 +15,8 @@
 #include <QStandardPaths>
 
 #include <algorithm>
+#include <iterator>
+#include <utility>
 
 namespace {
 
@@ -58,6 +62,7 @@ OneDriveLibraryService::OneDriveLibraryService(LocalStateStore *store,
     , m_repository(repository)
     , m_configuration(configurationFilePath)
     , m_profileSync(store)
+    , m_activityModel(m_configuration.settingsFilePath())
     , m_rootPath(m_configuration.rootPath())
     , m_suggestedRootPath(suggestedRootPath(&m_oneDriveDetected))
     , m_lastSyncedAt(m_configuration.lastSyncedAt())
@@ -69,6 +74,7 @@ OneDriveLibraryService::OneDriveLibraryService(LocalStateStore *store,
     m_refreshTimer.setInterval(650);
     m_profileTimer.setSingleShot(true);
     m_profileTimer.setInterval(1200);
+    m_retryTimer.setSingleShot(true);
 
     connect(&m_refreshTimer,
             &QTimer::timeout,
@@ -78,6 +84,14 @@ OneDriveLibraryService::OneDriveLibraryService(LocalStateStore *store,
             &QTimer::timeout,
             this,
             &OneDriveLibraryService::synchronizeNow);
+    connect(&m_retryTimer,
+            &QTimer::timeout,
+            this,
+            [this]() {
+                m_nextRetryAt = {};
+                emit retryStateChanged();
+                synchronizeNow();
+            });
     connect(&m_watcher,
             &QFileSystemWatcher::directoryChanged,
             this,
@@ -90,14 +104,24 @@ OneDriveLibraryService::OneDriveLibraryService(LocalStateStore *store,
             &LocalStateStore::profileChanged,
             this,
             &OneDriveLibraryService::scheduleSynchronization);
+    connect(&m_conflictModel,
+            &SyncConflictModel::countChanged,
+            this,
+            &OneDriveLibraryService::conflictCountChanged);
 
     m_available = !m_rootPath.isEmpty()
                   && QFileInfo(m_rootPath).isDir();
     if (configured()) {
-        m_status = m_available ? QStringLiteral("pending") : QStringLiteral("error");
+        m_status = m_available ? QStringLiteral("pending")
+                               : QStringLiteral("unavailable");
+    }
+    if (configured()) {
+        refreshConflicts();
     }
     if (m_available) {
         QTimer::singleShot(0, this, &OneDriveLibraryService::synchronizeNow);
+    } else if (configured()) {
+        scheduleRetry();
     }
 }
 
@@ -165,7 +189,41 @@ QDateTime OneDriveLibraryService::lastSyncedAt() const
 
 int OneDriveLibraryService::conflictCount() const
 {
-    return m_conflictCount;
+    return m_conflictModel.rowCount();
+}
+
+SyncActivityModel *OneDriveLibraryService::activityModel()
+{
+    return &m_activityModel;
+}
+
+SyncConflictModel *OneDriveLibraryService::conflictModel()
+{
+    return &m_conflictModel;
+}
+
+bool OneDriveLibraryService::retryScheduled() const
+{
+    return m_retryTimer.isActive();
+}
+
+QDateTime OneDriveLibraryService::nextRetryAt() const
+{
+    return m_nextRetryAt;
+}
+
+QUrl OneDriveLibraryService::conflictsFolder() const
+{
+    return m_rootPath.isEmpty()
+               ? QUrl()
+               : QUrl::fromLocalFile(
+                     QDir(m_rootPath).filePath(metadataDirectoryName
+                                               + QStringLiteral("/conflicts")));
+}
+
+int OneDriveLibraryService::cloudPlaceholderCount() const
+{
+    return m_cloudPlaceholderCount;
 }
 
 bool OneDriveLibraryService::setRootFolder(const QUrl &folderUrl)
@@ -195,6 +253,7 @@ bool OneDriveLibraryService::setRootFolder(const QUrl &folderUrl)
     const bool availabilityChangedValue = !m_available;
     m_rootPath = rootPath;
     m_available = true;
+    resetRetry();
     m_configuration.setRootPath(rootPath);
     QDir().mkpath(QDir(rootPath).filePath(metadataDirectoryName));
     if (rootChanged) {
@@ -204,6 +263,10 @@ bool OneDriveLibraryService::setRootFolder(const QUrl &folderUrl)
         emit availabilityChanged();
     }
 
+    m_activityModel.append(QStringLiteral("folderConfigured"),
+                           QStringLiteral("info"),
+                           rootDisplayPath());
+    refreshConflicts();
     migrateExistingBooks();
     return synchronizeNow();
 }
@@ -239,6 +302,7 @@ bool OneDriveLibraryService::synchronizeNow()
 
     setSyncing(true);
     setStatus(QStringLiteral("syncing"));
+    m_activityModel.append(QStringLiteral("syncStarted"));
     m_profileTimer.stop();
     m_refreshTimer.stop();
 
@@ -253,7 +317,7 @@ bool OneDriveLibraryService::synchronizeNow()
         m_configuration.baseProfile(),
         m_configuration.deviceId());
     if (!result.success) {
-        setError(result.errorMessage);
+        setError(result.errorMessage, QStringLiteral("error"), result.retryable);
         setSyncing(false);
         refreshWatchPaths();
         return false;
@@ -265,22 +329,26 @@ bool OneDriveLibraryService::synchronizeNow()
         m_lastSyncedAt = result.syncedAt;
         emit lastSyncedAtChanged();
     }
-    if (m_conflictCount != result.conflictKeys.size()) {
-        m_conflictCount = result.conflictKeys.size();
-        emit conflictCountChanged();
-    }
+    refreshConflicts();
     if (result.localProfileChanged) {
         emit profileApplied();
         scanLibrary();
     }
     if (!result.conflictKeys.isEmpty()) {
         setStatus(QStringLiteral("attention"));
+        m_activityModel.append(QStringLiteral("conflictsDetected"),
+                               QStringLiteral("warning"),
+                               QString::number(result.conflictKeys.size()));
         emit conflictsDetected(QUrl::fromLocalFile(result.conflictFilePath),
                                result.conflictKeys.size());
+    } else if (conflictCount() > 0) {
+        setStatus(QStringLiteral("attention"));
     } else {
         setStatus(QStringLiteral("synced"));
     }
 
+    resetRetry();
+    m_activityModel.append(QStringLiteral("syncCompleted"));
     refreshWatchPaths();
     setSyncing(false);
     emit synchronizationCompleted();
@@ -382,6 +450,107 @@ QString OneDriveLibraryService::collectionForBook(const QUrl &sourceUrl) const
     return separator < 0 ? QString() : relativePath.left(separator);
 }
 
+bool OneDriveLibraryService::retryNow()
+{
+    if (!configured() || m_syncing) {
+        return false;
+    }
+    resetRetry();
+    return synchronizeNow();
+}
+
+bool OneDriveLibraryService::openRootFolder() const
+{
+    return available() && QDesktopServices::openUrl(rootFolder());
+}
+
+bool OneDriveLibraryService::openConflictsFolder() const
+{
+    if (!configured()) {
+        return false;
+    }
+    const QString path = QDir(m_rootPath).filePath(
+        metadataDirectoryName + QStringLiteral("/conflicts"));
+    return QDir().mkpath(path)
+           && QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+}
+
+bool OneDriveLibraryService::resolveConflict(const QString &conflictId,
+                                             const QString &resolution)
+{
+    clearError();
+    if (!ensureAvailable()) {
+        return false;
+    }
+
+    const bool useRemote = resolution == QLatin1String("remote");
+    if (!useRemote && resolution != QLatin1String("local")) {
+        setError(tr("Choose which version of the conflicting value to keep."));
+        return false;
+    }
+
+    SyncConflictChoice choice;
+    if (!m_conflictModel.choice(conflictId, useRemote, &choice)) {
+        setError(tr("This synchronization conflict is no longer available."));
+        return false;
+    }
+
+    if (useRemote) {
+        QVariantMap portable = PortableProfileMapper::toPortable(
+            m_store->profileValues(), m_rootPath);
+        if (choice.present) {
+            portable.insert(choice.key, choice.value);
+        } else {
+            portable.remove(choice.key);
+        }
+        const QVariantMap replacement = PortableProfileMapper::applyPortable(
+            m_store->profileValues(), portable, m_rootPath);
+        QString storageError;
+        if (!m_store->replaceProfileValues(replacement, &storageError)) {
+            setError(tr("Could not apply the selected conflict version: %1")
+                         .arg(storageError));
+            return false;
+        }
+    }
+
+    QString conflictError;
+    if (!m_conflictModel.markResolved(conflictId, resolution, &conflictError)) {
+        setError(conflictError);
+        return false;
+    }
+
+    m_activityModel.append(QStringLiteral("conflictResolved"),
+                           QStringLiteral("info"),
+                           choice.key);
+    if (useRemote) {
+        emit profileApplied();
+    }
+    setStatus(conflictCount() > 0 ? QStringLiteral("attention")
+                                  : QStringLiteral("pending"));
+    scheduleSynchronization();
+    return true;
+}
+
+int OneDriveLibraryService::resolveAllConflicts(const QString &resolution)
+{
+    QStringList conflictIds;
+    conflictIds.reserve(m_conflictModel.rowCount());
+    for (int row = 0; row < m_conflictModel.rowCount(); ++row) {
+        conflictIds.append(m_conflictModel.index(row, 0)
+                               .data(SyncConflictModel::ConflictIdRole)
+                               .toString());
+    }
+
+    int resolved = 0;
+    for (const QString &conflictId : std::as_const(conflictIds)) {
+        if (!resolveConflict(conflictId, resolution)) {
+            break;
+        }
+        ++resolved;
+    }
+    return resolved;
+}
+
 void OneDriveLibraryService::clearError()
 {
     if (m_errorMessage.isEmpty()) {
@@ -389,7 +558,8 @@ void OneDriveLibraryService::clearError()
     }
     m_errorMessage.clear();
     emit errorMessageChanged();
-    if (m_status == QLatin1String("error")) {
+    if (m_status == QLatin1String("error")
+        || m_status == QLatin1String("unavailable")) {
         setStatus(configured() ? QStringLiteral("pending")
                                : QStringLiteral("notConfigured"));
     }
@@ -483,9 +653,17 @@ bool OneDriveLibraryService::ensureAvailable()
     if (m_available != availableNow) {
         m_available = availableNow;
         emit availabilityChanged();
+        m_activityModel.append(availableNow
+                                   ? QStringLiteral("folderAvailable")
+                                   : QStringLiteral("folderUnavailable"),
+                               availableNow ? QStringLiteral("info")
+                                            : QStringLiteral("warning"),
+                               rootDisplayPath());
     }
     if (!availableNow) {
-        setError(tr("The OneDrive library folder is unavailable."));
+        setError(tr("The OneDrive library folder is unavailable."),
+                 QStringLiteral("unavailable"),
+                 true);
         return false;
     }
     return true;
@@ -498,7 +676,8 @@ bool OneDriveLibraryService::scanLibrary()
     }
 
     QStringList collections;
-    scanDirectory(m_rootPath, QString(), &collections);
+    int cloudPlaceholderCount = 0;
+    scanDirectory(m_rootPath, QString(), &collections, &cloudPlaceholderCount);
     std::sort(collections.begin(), collections.end(), [](const QString &left,
                                                          const QString &right) {
         return QString::localeAwareCompare(left, right) < 0;
@@ -507,13 +686,18 @@ bool OneDriveLibraryService::scanLibrary()
         m_collections = collections;
         emit collectionsChanged();
     }
+    if (m_cloudPlaceholderCount != cloudPlaceholderCount) {
+        m_cloudPlaceholderCount = cloudPlaceholderCount;
+        emit cloudPlaceholderCountChanged();
+    }
     refreshWatchPaths();
     return true;
 }
 
 void OneDriveLibraryService::scanDirectory(const QString &absolutePath,
                                            const QString &relativePath,
-                                           QStringList *collections)
+                                           QStringList *collections,
+                                           int *cloudPlaceholderCount)
 {
     const QDir directory(absolutePath);
     const QFileInfoList entries = directory.entryInfoList(
@@ -532,13 +716,24 @@ void OneDriveLibraryService::scanDirectory(const QString &absolutePath,
                 continue;
             }
             collections->append(childRelativePath);
-            scanDirectory(entry.absoluteFilePath(), childRelativePath, collections);
+            scanDirectory(entry.absoluteFilePath(),
+                          childRelativePath,
+                          collections,
+                          cloudPlaceholderCount);
             continue;
         }
 
         const QUrl sourceUrl = QUrl::fromLocalFile(entry.absoluteFilePath());
         if (m_repository->supports(sourceUrl)) {
-            m_repository->registerBook(sourceUrl, relativePath);
+            const bool onlineOnly = CloudFileAvailability::isOnlineOnly(
+                entry.absoluteFilePath());
+            if (onlineOnly) {
+                ++(*cloudPlaceholderCount);
+            }
+            m_repository->registerBook(sourceUrl,
+                                       relativePath,
+                                       false,
+                                       !onlineOnly);
         }
     }
 }
@@ -669,15 +864,59 @@ void OneDriveLibraryService::setStatus(const QString &status)
     emit statusChanged();
 }
 
-void OneDriveLibraryService::setError(const QString &errorMessage)
+void OneDriveLibraryService::setError(const QString &errorMessage,
+                                      const QString &status,
+                                      bool retry)
 {
     const QString message = errorMessage.trimmed().isEmpty()
                                 ? tr("OneDrive synchronization failed.")
                                 : errorMessage;
+    const bool changed = m_errorMessage != message || m_status != status;
     if (m_errorMessage != message) {
         m_errorMessage = message;
         emit errorMessageChanged();
     }
-    setStatus(QStringLiteral("error"));
-    emit operationFailed(m_errorMessage);
+    setStatus(status);
+    if (retry) {
+        scheduleRetry();
+    }
+    if (changed) {
+        m_activityModel.append(status == QLatin1String("unavailable")
+                                   ? QStringLiteral("folderUnavailable")
+                                   : QStringLiteral("syncFailed"),
+                               QStringLiteral("error"),
+                               message);
+        emit operationFailed(m_errorMessage);
+    }
+}
+
+void OneDriveLibraryService::scheduleRetry()
+{
+    if (!configured() || m_retryTimer.isActive()) {
+        return;
+    }
+    static constexpr int delays[] = {2, 5, 15, 30, 60};
+    const int index = qMin(m_retryAttempt,
+                           static_cast<int>(std::size(delays)) - 1);
+    const int delaySeconds = delays[index];
+    ++m_retryAttempt;
+    m_nextRetryAt = QDateTime::currentDateTimeUtc().addSecs(delaySeconds);
+    m_retryTimer.start(delaySeconds * 1000);
+    emit retryStateChanged();
+}
+
+void OneDriveLibraryService::resetRetry()
+{
+    const bool stateChanged = m_retryTimer.isActive() || m_nextRetryAt.isValid();
+    m_retryTimer.stop();
+    m_retryAttempt = 0;
+    m_nextRetryAt = {};
+    if (stateChanged) {
+        emit retryStateChanged();
+    }
+}
+
+void OneDriveLibraryService::refreshConflicts()
+{
+    m_conflictModel.load(m_rootPath);
 }

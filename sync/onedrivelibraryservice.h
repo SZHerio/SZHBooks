@@ -1,7 +1,9 @@
 #pragma once
 
 #include "profilesyncengine.h"
+#include "syncactivitymodel.h"
 #include "syncconfigurationstore.h"
+#include "syncconflictmodel.h"
 
 #include <QDateTime>
 #include <QFileSystemWatcher>
@@ -30,6 +32,12 @@ class OneDriveLibraryService final : public QObject
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(QDateTime lastSyncedAt READ lastSyncedAt NOTIFY lastSyncedAtChanged)
     Q_PROPERTY(int conflictCount READ conflictCount NOTIFY conflictCountChanged)
+    Q_PROPERTY(SyncActivityModel *activityModel READ activityModel CONSTANT)
+    Q_PROPERTY(SyncConflictModel *conflictModel READ conflictModel CONSTANT)
+    Q_PROPERTY(bool retryScheduled READ retryScheduled NOTIFY retryStateChanged)
+    Q_PROPERTY(QDateTime nextRetryAt READ nextRetryAt NOTIFY retryStateChanged)
+    Q_PROPERTY(QUrl conflictsFolder READ conflictsFolder NOTIFY rootFolderChanged)
+    Q_PROPERTY(int cloudPlaceholderCount READ cloudPlaceholderCount NOTIFY cloudPlaceholderCountChanged)
 
 public:
     explicit OneDriveLibraryService(LocalStateStore *store,
@@ -53,6 +61,12 @@ public:
     QString errorMessage() const;
     QDateTime lastSyncedAt() const;
     int conflictCount() const;
+    SyncActivityModel *activityModel();
+    SyncConflictModel *conflictModel();
+    bool retryScheduled() const;
+    QDateTime nextRetryAt() const;
+    QUrl conflictsFolder() const;
+    int cloudPlaceholderCount() const;
 
     Q_INVOKABLE bool setRootFolder(const QUrl &folderUrl);
     Q_INVOKABLE bool useSuggestedFolder();
@@ -63,6 +77,12 @@ public:
     Q_INVOKABLE bool createCollection(const QString &parentPath,
                                       const QString &name);
     Q_INVOKABLE QString collectionForBook(const QUrl &sourceUrl) const;
+    Q_INVOKABLE bool retryNow();
+    Q_INVOKABLE bool openRootFolder() const;
+    Q_INVOKABLE bool openConflictsFolder() const;
+    Q_INVOKABLE bool resolveConflict(const QString &conflictId,
+                                     const QString &resolution);
+    Q_INVOKABLE int resolveAllConflicts(const QString &resolution);
     Q_INVOKABLE void clearError();
 
 public slots:
@@ -77,6 +97,8 @@ signals:
     void errorMessageChanged();
     void lastSyncedAtChanged();
     void conflictCountChanged();
+    void retryStateChanged();
+    void cloudPlaceholderCountChanged();
     void profileApplied();
     void synchronizationCompleted();
     void conflictsDetected(const QUrl &conflictFile, int count);
@@ -91,7 +113,8 @@ private:
     bool scanLibrary();
     void scanDirectory(const QString &absolutePath,
                        const QString &relativePath,
-                       QStringList *collections);
+                       QStringList *collections,
+                       int *cloudPlaceholderCount);
     QString absoluteCollectionPath(const QString &collectionPath) const;
     QString destinationForCopy(const QFileInfo &sourceFile,
                                const QString &collectionPath) const;
@@ -99,15 +122,23 @@ private:
     void refreshWatchPaths();
     void setSyncing(bool syncing);
     void setStatus(const QString &status);
-    void setError(const QString &errorMessage);
+    void setError(const QString &errorMessage,
+                  const QString &status = QStringLiteral("error"),
+                  bool scheduleRetry = false);
+    void scheduleRetry();
+    void resetRetry();
+    void refreshConflicts();
 
     LocalStateStore *m_store = nullptr;
     LibraryRepository *m_repository = nullptr;
     SyncConfigurationStore m_configuration;
     ProfileSyncEngine m_profileSync;
+    SyncActivityModel m_activityModel;
+    SyncConflictModel m_conflictModel;
     QFileSystemWatcher m_watcher;
     QTimer m_refreshTimer;
     QTimer m_profileTimer;
+    QTimer m_retryTimer;
     QString m_rootPath;
     QString m_suggestedRootPath;
     QStringList m_collections;
@@ -117,5 +148,7 @@ private:
     bool m_oneDriveDetected = false;
     bool m_syncing = false;
     bool m_available = false;
-    int m_conflictCount = 0;
+    int m_retryAttempt = 0;
+    int m_cloudPlaceholderCount = 0;
+    QDateTime m_nextRetryAt;
 };

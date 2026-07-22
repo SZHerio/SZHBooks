@@ -28,6 +28,7 @@ struct RemoteProfile final
 {
     bool exists = false;
     bool valid = false;
+    bool retryable = false;
     QVariantMap settings;
     QString errorMessage;
 };
@@ -71,6 +72,7 @@ RemoteProfile readRemoteProfile(const QString &path)
         return result;
     }
     if (!fileInfo.isFile() || fileInfo.size() <= 0 || fileInfo.size() > maximumProfileSize) {
+        result.retryable = fileInfo.size() <= 0;
         result.errorMessage = QCoreApplication::translate(
             "ProfileSyncEngine", "The synchronized profile is empty or too large.");
         return result;
@@ -78,6 +80,7 @@ RemoteProfile readRemoteProfile(const QString &path)
 
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
+        result.retryable = true;
         result.errorMessage = QCoreApplication::translate(
             "ProfileSyncEngine", "Could not read the synchronized profile.");
         return result;
@@ -208,6 +211,7 @@ ProfileSyncResult ProfileSyncEngine::synchronize(const QString &libraryRootPath,
     const QString rootPath = QDir::cleanPath(QFileInfo(libraryRootPath).absoluteFilePath());
     const QFileInfo rootInfo(rootPath);
     if (!rootInfo.exists() || !rootInfo.isDir()) {
+        result.retryable = true;
         result.errorMessage = QCoreApplication::translate(
             "ProfileSyncEngine", "The selected synchronization folder is unavailable.");
         return result;
@@ -218,6 +222,7 @@ ProfileSyncResult ProfileSyncEngine::synchronize(const QString &libraryRootPath,
     const QString remotePath = profileFilePath(rootPath);
     const RemoteProfile remote = readRemoteProfile(remotePath);
     if (!remote.valid) {
+        result.retryable = remote.retryable;
         result.errorMessage = remote.errorMessage;
         return result;
     }
@@ -237,6 +242,7 @@ ProfileSyncResult ProfileSyncEngine::synchronize(const QString &libraryRootPath,
                               remote.settings,
                               &result.conflictFilePath,
                               &result.errorMessage)) {
+        result.retryable = true;
         return result;
     }
 
@@ -247,6 +253,7 @@ ProfileSyncResult ProfileSyncEngine::synchronize(const QString &libraryRootPath,
                                                     deviceId,
                                                     result.syncedAt)),
                              &result.errorMessage)) {
+            result.retryable = true;
             return result;
         }
         result.remoteProfileChanged = true;

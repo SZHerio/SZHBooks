@@ -15,6 +15,7 @@ Item {
     signal relinkRequested(url sourceUrl)
     signal chooseFolderRequested
     signal createCollectionRequested(string parentPath)
+    signal syncDetailsRequested
 
     function fallbackColor(row) {
         const colors = ["#111111", "#2b2b2b", "#444444", "#5d5d5d", "#242424", "#505050"]
@@ -100,6 +101,7 @@ Item {
             Layout.fillWidth: true
             syncService: root.syncService
             onChooseFolderRequested: root.chooseFolderRequested()
+            onDetailsRequested: root.syncDetailsRequested()
         }
     }
 

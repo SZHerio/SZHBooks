@@ -8,6 +8,7 @@ Rectangle {
     required property var syncService
 
     signal chooseFolderRequested
+    signal detailsRequested
 
     readonly property string statusText: {
         if (!root.syncService.configured) {
@@ -20,6 +21,10 @@ Rectangle {
         }
         if (root.syncService.syncing) {
             return qsTr("Synchronizing")
+        }
+        if (root.syncService.retryScheduled) {
+            return qsTr("Retry scheduled for %1")
+                    .arg(Qt.formatTime(root.syncService.nextRetryAt, qsTr("HH:mm:ss")))
         }
         if (root.syncService.status === "error") {
             return qsTr("Synchronization needs attention")
@@ -111,6 +116,14 @@ Rectangle {
             symbol: "\u21bb"
             toolTip: qsTr("Synchronize now")
             onClicked: root.syncService.synchronizeNow()
+        }
+
+        SZHIconButton {
+            objectName: "syncDetailsButton"
+            visible: root.syncService.configured
+            symbol: "\u22ef"
+            toolTip: qsTr("Synchronization details")
+            onClicked: root.detailsRequested()
         }
     }
 }

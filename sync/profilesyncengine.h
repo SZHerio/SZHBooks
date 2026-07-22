@@ -9,6 +9,7 @@ class ProfileStorage;
 struct ProfileSyncResult final
 {
     bool success = false;
+    bool retryable = false;
     bool localProfileChanged = false;
     bool remoteProfileChanged = false;
     QVariantMap mergedProfile;
