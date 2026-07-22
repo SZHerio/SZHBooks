@@ -33,6 +33,8 @@ public:
     explicit LocalStateStore(QObject *parent = nullptr);
     explicit LocalStateStore(const QString &settingsFilePath, QObject *parent = nullptr);
 
+    static QString defaultSettingsFilePath();
+
     bool darkMode() const;
     QString colorTheme() const;
     QString language() const;
@@ -140,7 +142,6 @@ signals:
     void profileReplaced();
 
 private:
-    static QString defaultSettingsFilePath();
     void loadCachedState();
     void emitProfileSignals();
 

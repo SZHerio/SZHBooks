@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SZHBooks VERSION 0.1.0 LANGUAGES C CXX)
+project(SZHBooks VERSION 1.0.0 LANGUAGES C CXX)
+
+option(SZHBOOKS_PORTABLE_BUILD
+    "Package SZHBooks with a profile stored beside the executable"
+    OFF
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -86,6 +91,10 @@ target_sources(appSZHBooks PRIVATE
     library/libraryscanservice.h
     notes/notescentermodel.cpp
     notes/notescentermodel.h
+    platform/applicationinfoservice.cpp
+    platform/applicationinfoservice.h
+    platform/applicationpaths.cpp
+    platform/applicationpaths.h
     platform/desktopintegration.cpp
     platform/desktopintegration.h
     search/librarysearchindex.cpp
@@ -166,6 +175,8 @@ qt_add_qml_module(appSZHBooks
         reader/TextNavigationControl.qml
         reader/TextDocumentView.qml
         shell/AppHeader.qml
+        shell/AboutDialog.qml
+        shell/ApplicationMenuPopup.qml
         shell/AppShortcuts.qml
         shell/ProfileRestoreDialog.qml
         shell/ReaderToolsPopup.qml
@@ -261,8 +272,83 @@ qt_generate_deploy_qml_app_script(
     TARGET appSZHBooks
     OUTPUT_SCRIPT szhbooks_deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
+    DEPLOY_TOOL_OPTIONS --no-compiler-runtime
 )
 install(SCRIPT ${szhbooks_deploy_script} COMPONENT szhbooks)
+
+if(MSVC)
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_COMPONENT szhbooks)
+    include(InstallRequiredSystemLibraries)
+endif()
+
+set(SZHBOOKS_PORTABLE_JSON false)
+if(SZHBOOKS_PORTABLE_BUILD)
+    set(SZHBOOKS_PORTABLE_JSON true)
+endif()
+
+configure_file(
+    packaging/release-manifest.json.in
+    ${CMAKE_CURRENT_BINARY_DIR}/release-manifest.json
+    @ONLY
+)
+
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/licenses)
+foreach(SZHBOOKS_DOCUMENT IN ITEMS README.md RELEASE_NOTES.md THIRD_PARTY_NOTICES.md)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/${SZHBOOKS_DOCUMENT}
+        ${CMAKE_BINARY_DIR}/docs/${SZHBOOKS_DOCUMENT}
+        COPYONLY
+    )
+endforeach()
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/packaging/licenses/Qt-LICENSE.txt
+    ${CMAKE_BINARY_DIR}/docs/licenses/Qt-LICENSE.txt
+    COPYONLY
+)
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/miniz/LICENSE
+    ${CMAKE_BINARY_DIR}/docs/licenses/miniz-LICENSE.txt
+    COPYONLY
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/release-manifest.json
+    DESTINATION .
+    COMPONENT szhbooks
+)
+install(FILES
+    README.md
+    RELEASE_NOTES.md
+    THIRD_PARTY_NOTICES.md
+    DESTINATION docs
+    COMPONENT szhbooks
+)
+install(FILES
+    packaging/licenses/Qt-LICENSE.txt
+    DESTINATION docs/licenses
+    COMPONENT szhbooks
+)
+install(FILES
+    third_party/miniz/LICENSE
+    DESTINATION docs/licenses
+    RENAME miniz-LICENSE.txt
+    COMPONENT szhbooks
+)
+
+if(SZHBOOKS_PORTABLE_BUILD)
+    configure_file(
+        packaging/portable/portable.flag
+        ${CMAKE_BINARY_DIR}/portable.flag
+        COPYONLY
+    )
+    install(FILES packaging/portable/portable.flag
+        DESTINATION .
+        COMPONENT szhbooks
+    )
+else()
+    file(REMOVE ${CMAKE_BINARY_DIR}/portable.flag)
+endif()
 
 include(CTest)
 
@@ -333,6 +419,23 @@ if(BUILD_TESTING)
 
         add_test(NAME diagnosticservice COMMAND tst_diagnosticservice)
         set_tests_properties(diagnosticservice PROPERTIES
+            ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+        )
+
+        qt_add_executable(tst_applicationpaths
+            platform/applicationpaths.cpp
+            platform/applicationpaths.h
+            tests/applicationpathstest.cpp
+        )
+        target_link_libraries(tst_applicationpaths
+            PRIVATE
+                Qt6::Core
+                Qt6::Test
+        )
+
+        add_test(NAME applicationpaths COMMAND tst_applicationpaths)
+        set_tests_properties(applicationpaths PROPERTIES
             ENVIRONMENT_MODIFICATION
                 "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
         )
@@ -723,6 +826,8 @@ if(BUILD_TESTING)
                     library/SyncCenterDialog.qml
                     notes/NotesCenterDialog.qml
                     search/LibrarySearchDialog.qml
+                    shell/AboutDialog.qml
+                    shell/ApplicationMenuPopup.qml
                     shell/ProfileRestoreDialog.qml
                     shell/AppShortcuts.qml
                     reader/PageNavigationControl.qml
@@ -739,7 +844,10 @@ if(BUILD_TESTING)
                     ui/SZHSurface.qml
                     ui/SZHTextArea.qml
                     ui/SZHTextField.qml
+                    ui/SZHBrandLogo.qml
                     ui/Theme.qml
+                RESOURCES
+                    assets/branding/szhbooks-logo-sheet-transparent.png
             )
 
             target_link_libraries(tst_qmlui
@@ -789,9 +897,16 @@ set(CPACK_PACKAGE_NAME "SZHBooks")
 set(CPACK_PACKAGE_VENDOR "SZHerio")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A calm, local-first desktop reader")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_FILE_NAME "SZHBooks-${PROJECT_VERSION}-win64")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "SZHBooks")
-set(CPACK_GENERATOR "ZIP;IFW")
+set(CPACK_PACKAGE_CHECKSUM "SHA256")
+
+if(SZHBOOKS_PORTABLE_BUILD)
+    set(CPACK_PACKAGE_FILE_NAME "SZHBooks-${PROJECT_VERSION}-portable-win64")
+    set(CPACK_GENERATOR "ZIP")
+else()
+    set(CPACK_PACKAGE_FILE_NAME "SZHBooks-${PROJECT_VERSION}-win64")
+    set(CPACK_GENERATOR "IFW")
+endif()
 
 set(CPACK_IFW_PACKAGE_TITLE "SZHBooks")
 set(CPACK_IFW_PACKAGE_PUBLISHER "SZHerio")
@@ -820,15 +935,17 @@ cpack_add_component(szhbooks
     REQUIRED
 )
 
-include(CPackIFW)
-cpack_ifw_configure_component(szhbooks
-    ESSENTIAL
-    FORCED_INSTALLATION
-    NAME "com.szhbooks.reader"
-    DISPLAY_NAME "SZHBooks"
-    DESCRIPTION "A calm, local-first desktop reader"
-    VERSION ${PROJECT_VERSION}
-    SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/packaging/installer/component.qs"
-)
+if(NOT SZHBOOKS_PORTABLE_BUILD)
+    include(CPackIFW)
+    cpack_ifw_configure_component(szhbooks
+        ESSENTIAL
+        FORCED_INSTALLATION
+        NAME "com.szhbooks.reader"
+        DISPLAY_NAME "SZHBooks"
+        DESCRIPTION "A calm, local-first desktop reader"
+        VERSION ${PROJECT_VERSION}
+        SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/packaging/installer/component.qs"
+    )
+endif()
 
 include(CPack)

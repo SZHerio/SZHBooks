@@ -10,8 +10,17 @@ set(required_files
     "Qt6Gui.dll"
     "Qt6Qml.dll"
     "Qt6Quick.dll"
+    "msvcp140.dll"
+    "vcruntime140.dll"
+    "vcruntime140_1.dll"
     "plugins/platforms/qwindows.dll"
     "plugins/sqldrivers/qsqlite.dll"
+    "release-manifest.json"
+    "docs/README.md"
+    "docs/RELEASE_NOTES.md"
+    "docs/THIRD_PARTY_NOTICES.md"
+    "docs/licenses/Qt-LICENSE.txt"
+    "docs/licenses/miniz-LICENSE.txt"
 )
 
 foreach(relative_path IN LISTS required_files)
@@ -25,4 +34,31 @@ if(executable_size LESS 100000)
     message(FATAL_ERROR "Installed SZHBooks.exe is unexpectedly small")
 endif()
 
-message(STATUS "Verified SZHBooks install tree at ${install_root}")
+file(READ "${install_root}/release-manifest.json" release_manifest)
+string(JSON manifest_version GET "${release_manifest}" version)
+string(JSON manifest_portable GET "${release_manifest}" portable)
+
+if(DEFINED SZHBOOKS_EXPECTED_VERSION
+   AND NOT manifest_version STREQUAL SZHBOOKS_EXPECTED_VERSION)
+    message(FATAL_ERROR
+        "Expected version ${SZHBOOKS_EXPECTED_VERSION}, found ${manifest_version}")
+endif()
+
+if(SZHBOOKS_EXPECT_PORTABLE)
+    if(NOT EXISTS "${install_root}/portable.flag")
+        message(FATAL_ERROR "Portable install is missing portable.flag")
+    endif()
+    if(NOT manifest_portable)
+        message(FATAL_ERROR "Portable release manifest is marked as installed")
+    endif()
+else()
+    if(EXISTS "${install_root}/portable.flag")
+        message(FATAL_ERROR "Installed package unexpectedly contains portable.flag")
+    endif()
+    if(manifest_portable)
+        message(FATAL_ERROR "Installed release manifest is marked as portable")
+    endif()
+endif()
+
+message(STATUS
+    "Verified SZHBooks ${manifest_version} install tree at ${install_root}")

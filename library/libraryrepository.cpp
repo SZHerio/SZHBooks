@@ -12,9 +12,18 @@
 LibraryRepository::LibraryRepository(LocalStateStore *store,
                                      BookMetadataService *metadataService,
                                      QObject *parent)
+    : LibraryRepository(store, metadataService, QString(), parent)
+{
+}
+
+LibraryRepository::LibraryRepository(LocalStateStore *store,
+                                     BookMetadataService *metadataService,
+                                     const QString &customCoverDirectory,
+                                     QObject *parent)
     : QObject(parent)
     , m_store(store)
     , m_metadataService(metadataService)
+    , m_customCoverStore(customCoverDirectory)
 {
     Q_ASSERT(m_store);
     Q_ASSERT(m_metadataService);

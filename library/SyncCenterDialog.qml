@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -187,7 +189,7 @@ Dialog {
 
                     Rectangle {
                         Layout.fillWidth: true
-                        height: 1
+                        implicitHeight: 1
                         color: Theme.borderColor
                     }
 
@@ -316,6 +318,8 @@ Dialog {
                         ScrollBar.vertical: SZHScrollBar {}
 
                         delegate: Rectangle {
+                            id: conflictDelegate
+
                             required property string conflictId
                             required property string settingKey
                             required property string localValue
@@ -337,7 +341,7 @@ Dialog {
 
                                 Label {
                                     Layout.fillWidth: true
-                                    text: settingKey
+                                    text: conflictDelegate.settingKey
                                     color: Theme.textColor
                                     font.family: Theme.uiFontFamily
                                     font.pixelSize: Theme.bodyFontSize
@@ -365,7 +369,7 @@ Dialog {
                                     }
                                     Label {
                                         Layout.fillWidth: true
-                                        text: localValue
+                                        text: conflictDelegate.localValue
                                         color: Theme.textColor
                                         font.family: Theme.uiFontFamily
                                         font.pixelSize: Theme.bodyFontSize
@@ -373,7 +377,7 @@ Dialog {
                                     }
                                     Label {
                                         Layout.fillWidth: true
-                                        text: remoteValue
+                                        text: conflictDelegate.remoteValue
                                         color: Theme.textColor
                                         font.family: Theme.uiFontFamily
                                         font.pixelSize: Theme.bodyFontSize
@@ -384,14 +388,14 @@ Dialog {
                                         text: qsTr("Keep this device")
                                         variant: "secondary"
                                         onClicked: root.syncService.resolveConflict(
-                                                       conflictId, "local")
+                                                       conflictDelegate.conflictId, "local")
                                     }
                                     SZHButton {
                                         Layout.fillWidth: true
                                         text: qsTr("Use OneDrive value")
                                         variant: "secondary"
                                         onClicked: root.syncService.resolveConflict(
-                                                       conflictId, "remote")
+                                                       conflictDelegate.conflictId, "remote")
                                     }
                                 }
                             }
@@ -432,6 +436,8 @@ Dialog {
                         ScrollBar.vertical: SZHScrollBar {}
 
                         delegate: Item {
+                            id: activityDelegate
+
                             required property string event
                             required property string severity
                             required property string detail
@@ -453,8 +459,8 @@ Dialog {
 
                                     Label {
                                         Layout.fillWidth: true
-                                        text: root.activityTitle(event)
-                                        color: severity === "error"
+                                        text: root.activityTitle(activityDelegate.event)
+                                        color: activityDelegate.severity === "error"
                                                ? Theme.dangerColor : Theme.textColor
                                         font.family: Theme.uiFontFamily
                                         font.pixelSize: Theme.bodyFontSize
@@ -462,8 +468,8 @@ Dialog {
                                     }
                                     Label {
                                         Layout.fillWidth: true
-                                        visible: detail.length > 0
-                                        text: detail
+                                        visible: activityDelegate.detail.length > 0
+                                        text: activityDelegate.detail
                                         color: Theme.mutedTextColor
                                         font.family: Theme.uiFontFamily
                                         font.pixelSize: Theme.captionFontSize
@@ -472,7 +478,8 @@ Dialog {
                                 }
 
                                 Label {
-                                    text: Qt.formatDateTime(timestamp, qsTr("dd MMM, HH:mm"))
+                                    text: Qt.formatDateTime(activityDelegate.timestamp,
+                                                            qsTr("dd MMM, HH:mm"))
                                     color: Theme.mutedTextColor
                                     font.family: Theme.uiFontFamily
                                     font.pixelSize: Theme.captionFontSize

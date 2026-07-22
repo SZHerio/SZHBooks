@@ -84,6 +84,32 @@ TestCase {
         }
     }
 
+    QtObject {
+        id: mockApplicationInfo
+
+        property string applicationVersion: "1.0.0"
+        property string qtVersion: "6.10.2"
+        property string systemArchitecture: "x86_64"
+        property bool portableMode: true
+        property string profileDirectoryPath: "C:\\SZHBooks\\data"
+        property url profileDirectoryUrl: "file:///C:/SZHBooks/data"
+        property bool thirdPartyNoticesAvailable: true
+        property string copyrightNotice: "Copyright 2026 SZHerio. All rights reserved."
+        property int profileOpenCount: 0
+        property int noticesOpenCount: 0
+
+        function openProfileDirectory() { profileOpenCount += 1; return true }
+        function openThirdPartyNotices() { noticesOpenCount += 1; return true }
+    }
+
+    Component {
+        id: aboutDialogComponent
+
+        AboutDialog {
+            applicationInfo: mockApplicationInfo
+        }
+    }
+
     Component {
         id: bookDelegateComponent
 
@@ -518,6 +544,28 @@ TestCase {
         const cancel = findChild(dialog, "cancelRestoreButton")
         verify(cancel)
         tryCompare(cancel, "activeFocus", true)
+        keyClick(Qt.Key_Escape)
+        tryCompare(dialog, "opened", false)
+    }
+
+    function test_aboutDialogShowsReleaseAndPortableMode() {
+        const dialog = createTemporaryObject(aboutDialogComponent, stage)
+        verify(dialog)
+        dialog.open()
+        tryCompare(dialog, "opened", true)
+
+        const version = findChild(dialog, "aboutVersionLabel")
+        const profileButton = findChild(dialog, "openProfileFolderButton")
+        const noticesButton = findChild(dialog, "openNoticesButton")
+        verify(version)
+        verify(profileButton)
+        verify(noticesButton)
+        compare(version.text, "1.0.0")
+        verify(dialog.width <= stage.width - Theme.spaceXl)
+
+        mockApplicationInfo.profileOpenCount = 0
+        profileButton.clicked()
+        compare(mockApplicationInfo.profileOpenCount, 1)
         keyClick(Qt.Key_Escape)
         tryCompare(dialog, "opened", false)
     }

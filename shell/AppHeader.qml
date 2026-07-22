@@ -16,6 +16,7 @@ Rectangle {
     readonly property bool readerPopupOpen: searchPopup.opened
                                                 || readingSettings.opened
                                                 || readerTools.opened
+                                                || applicationMenu.opened
 
     signal openRequested
     signal libraryRequested
@@ -25,11 +26,13 @@ Rectangle {
     signal restoreProfileRequested
     signal notesCenterRequested
     signal librarySearchRequested
+    signal aboutRequested
 
     function closeReaderPopups() {
         searchPopup.close()
         readingSettings.close()
         readerTools.close()
+        applicationMenu.close()
     }
 
     function openSearch() {
@@ -320,6 +323,22 @@ Rectangle {
             onChrome: true
             onClicked: root.darkModeToggled(!root.darkMode)
         }
+
+        SZHIconButton {
+            id: applicationMenuButton
+
+            symbol: "\u22ee"
+            symbolPixelSize: Theme.titleFontSize
+            toolTip: qsTr("Application menu")
+            onChrome: true
+            selected: applicationMenu.opened
+            onClicked: {
+                const wasOpen = applicationMenu.opened
+                root.closeReaderPopups()
+                if (!wasOpen)
+                    applicationMenu.open()
+            }
+        }
     }
 
     Rectangle {
@@ -379,6 +398,24 @@ Rectangle {
         }
         onChaptersRequested: root.toggleChapterNavigation()
         onSettingsRequested: root.toggleReadingSettings()
+    }
+
+    ApplicationMenuPopup {
+        id: applicationMenu
+
+        parent: root
+        x: Math.max(Theme.spaceMd, root.width - width - Theme.spaceLg)
+        y: root.height + Theme.spaceXs
+        diagnosticService: root.diagnosticService
+        onBackupRequested: root.backupProfileRequested()
+        onRestoreRequested: root.restoreProfileRequested()
+        onAboutRequested: root.aboutRequested()
+        onAboutToShow: {
+            const buttonPosition = applicationMenuButton.mapToItem(root, 0, 0)
+            x = Math.max(Theme.spaceMd,
+                         Math.min(root.width - width - Theme.spaceMd,
+                                  buttonPosition.x + applicationMenuButton.width - width))
+        }
     }
 
 }

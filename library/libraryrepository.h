@@ -21,6 +21,10 @@ public:
     explicit LibraryRepository(LocalStateStore *store,
                                BookMetadataService *metadataService,
                                QObject *parent = nullptr);
+    LibraryRepository(LocalStateStore *store,
+                      BookMetadataService *metadataService,
+                      const QString &customCoverDirectory,
+                      QObject *parent = nullptr);
 
     QVector<LibraryBook> books();
     std::optional<LibraryBook> book(const QUrl &sourceUrl);

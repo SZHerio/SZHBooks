@@ -2,112 +2,222 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU" sourcelanguage="en_US">
 <context>
+    <name>AboutDialog</name>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="53"/>
+        <source>SZHBooks</source>
+        <translation>SZHBooks</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="62"/>
+        <source>Desktop reader</source>
+        <translation>Настольная читалка</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="74"/>
+        <location filename="../shell/AboutDialog.qml" line="193"/>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="92"/>
+        <source>Version</source>
+        <translation>Версия</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="109"/>
+        <source>Runtime</source>
+        <translation>Среда выполнения</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="126"/>
+        <source>Storage</source>
+        <translation>Хранение</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="135"/>
+        <source>Portable</source>
+        <translation>Портативный режим</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="135"/>
+        <source>Installed</source>
+        <translation>Установленная версия</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="142"/>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="173"/>
+        <source>Profile folder</source>
+        <translation>Папка профиля</translation>
+    </message>
+    <message>
+        <location filename="../shell/AboutDialog.qml" line="181"/>
+        <source>Licenses</source>
+        <translation>Лицензии</translation>
+    </message>
+</context>
+<context>
     <name>AppHeader</name>
     <message>
-        <location filename="../shell/AppHeader.qml" line="121"/>
-        <location filename="../shell/AppHeader.qml" line="142"/>
+        <location filename="../shell/AppHeader.qml" line="124"/>
+        <location filename="../shell/AppHeader.qml" line="145"/>
         <source>Library</source>
         <translation>Библиотека</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="129"/>
+        <location filename="../shell/AppHeader.qml" line="132"/>
         <source>Add book</source>
         <translation>Добавить книгу</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="129"/>
+        <location filename="../shell/AppHeader.qml" line="132"/>
         <source>Open book</source>
         <translation>Открыть книгу</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="145"/>
+        <location filename="../shell/AppHeader.qml" line="148"/>
         <source>  ·  </source>
         <translation>  ·  </translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="172"/>
+        <location filename="../shell/AppHeader.qml" line="175"/>
         <source>Search in book (Ctrl+F)</source>
         <translation>Поиск в книге (Ctrl+F)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="183"/>
+        <location filename="../shell/AppHeader.qml" line="186"/>
         <source>Remove bookmark (Ctrl+B)</source>
         <translation>Удалить закладку (Ctrl+B)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="184"/>
+        <location filename="../shell/AppHeader.qml" line="187"/>
         <source>Add bookmark (Ctrl+B)</source>
         <translation>Добавить закладку (Ctrl+B)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="195"/>
+        <location filename="../shell/AppHeader.qml" line="198"/>
         <source>Reading marks</source>
         <translation>Метки чтения</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="209"/>
+        <location filename="../shell/AppHeader.qml" line="212"/>
         <source>Zoom out</source>
         <translation>Уменьшить масштаб</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="210"/>
+        <location filename="../shell/AppHeader.qml" line="213"/>
         <source>Decrease font size</source>
         <translation>Уменьшить шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="235"/>
+        <location filename="../shell/AppHeader.qml" line="238"/>
         <source>Zoom in</source>
         <translation>Увеличить масштаб</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="236"/>
+        <location filename="../shell/AppHeader.qml" line="239"/>
         <source>Increase font size</source>
         <translation>Увеличить шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="247"/>
+        <location filename="../shell/AppHeader.qml" line="250"/>
         <source>Fit page to width</source>
         <translation>По ширине страницы</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="259"/>
+        <location filename="../shell/AppHeader.qml" line="262"/>
         <source>Chapters</source>
         <translation>Главы</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="270"/>
+        <location filename="../shell/AppHeader.qml" line="273"/>
         <source>Reading settings</source>
         <translation>Настройки чтения</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="282"/>
+        <location filename="../shell/AppHeader.qml" line="285"/>
         <source>Reader tools</source>
         <translation>Инструменты чтения</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="292"/>
+        <location filename="../shell/AppHeader.qml" line="295"/>
         <source>Focus mode (F11)</source>
         <translation>Режим фокуса (F11)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="318"/>
+        <location filename="../shell/AppHeader.qml" line="321"/>
         <source>Use white theme (Ctrl+Shift+D)</source>
         <translation>Включить белую тему (Ctrl+Shift+D)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="319"/>
+        <location filename="../shell/AppHeader.qml" line="322"/>
         <source>Use black theme (Ctrl+Shift+D)</source>
         <translation>Включить чёрную тему (Ctrl+Shift+D)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="309"/>
+        <location filename="../shell/AppHeader.qml" line="332"/>
+        <source>Application menu</source>
+        <translation>Меню приложения</translation>
+    </message>
+    <message>
+        <location filename="../shell/AppHeader.qml" line="312"/>
         <source>Notes center</source>
         <translation>Центр заметок</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="301"/>
+        <location filename="../shell/AppHeader.qml" line="304"/>
         <source>Search library (Ctrl+Shift+F)</source>
         <translation>Поиск по библиотеке (Ctrl+Shift+F)</translation>
+    </message>
+</context>
+<context>
+    <name>ApplicationInfoService</name>
+    <message>
+        <location filename="../platform/applicationinfoservice.cpp" line="64"/>
+        <source>The profile folder could not be created.</source>
+        <translation>Не удалось создать папку профиля.</translation>
+    </message>
+    <message>
+        <location filename="../platform/applicationinfoservice.cpp" line="68"/>
+        <source>The profile folder could not be opened.</source>
+        <translation>Не удалось открыть папку профиля.</translation>
+    </message>
+    <message>
+        <location filename="../platform/applicationinfoservice.cpp" line="74"/>
+        <source>Third-party notices are unavailable.</source>
+        <translation>Сведения о сторонних компонентах недоступны.</translation>
+    </message>
+    <message>
+        <location filename="../platform/applicationinfoservice.cpp" line="78"/>
+        <source>Third-party notices could not be opened.</source>
+        <translation>Не удалось открыть сведения о сторонних компонентах.</translation>
+    </message>
+</context>
+<context>
+    <name>ApplicationMenuPopup</name>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="33"/>
+        <source>Back up profile</source>
+        <translation>Создать резервную копию</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="45"/>
+        <source>Restore profile</source>
+        <translation>Восстановить профиль</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="67"/>
+        <source>Diagnostics folder</source>
+        <translation>Папка диагностики</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="79"/>
+        <source>About SZHBooks</source>
+        <translation>О SZHBooks</translation>
     </message>
 </context>
 <context>
@@ -1112,42 +1222,42 @@
 <context>
     <name>LibraryRepository</name>
     <message>
-        <location filename="../library/libraryrepository.cpp" line="162"/>
+        <location filename="../library/libraryrepository.cpp" line="171"/>
         <source>The missing library item is no longer available.</source>
         <translation>Отсутствующая книга больше не доступна.</translation>
     </message>
     <message>
-        <location filename="../library/libraryrepository.cpp" line="165"/>
+        <location filename="../library/libraryrepository.cpp" line="174"/>
         <source>Choose a local book file.</source>
         <translation>Выберите локальный файл книги.</translation>
     </message>
     <message>
-        <location filename="../library/libraryrepository.cpp" line="170"/>
+        <location filename="../library/libraryrepository.cpp" line="179"/>
         <source>The selected file does not exist.</source>
         <translation>Выбранный файл не существует.</translation>
     </message>
     <message>
-        <location filename="../library/libraryrepository.cpp" line="175"/>
+        <location filename="../library/libraryrepository.cpp" line="184"/>
         <source>The selected file format is not supported.</source>
         <translation>Формат выбранного файла не поддерживается.</translation>
     </message>
     <message>
-        <location filename="../library/libraryrepository.cpp" line="179"/>
+        <location filename="../library/libraryrepository.cpp" line="188"/>
         <source>This book is already in your library.</source>
         <translation>Эта книга уже есть в библиотеке.</translation>
     </message>
     <message>
-        <location filename="../library/libraryrepository.cpp" line="182"/>
+        <location filename="../library/libraryrepository.cpp" line="191"/>
         <source>Could not update the library item.</source>
         <translation>Не удалось обновить книгу в библиотеке.</translation>
     </message>
     <message>
-        <location filename="../library/libraryrepository.cpp" line="196"/>
+        <location filename="../library/libraryrepository.cpp" line="205"/>
         <source>Select at least one book.</source>
         <translation>Выберите хотя бы одну книгу.</translation>
     </message>
     <message>
-        <location filename="../library/libraryrepository.cpp" line="209"/>
+        <location filename="../library/libraryrepository.cpp" line="218"/>
         <source>The selected book is no longer in the library.</source>
         <translation>Выбранной книги больше нет в библиотеке.</translation>
     </message>
@@ -1563,32 +1673,32 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../Main.qml" line="39"/>
+        <location filename="../Main.qml" line="40"/>
         <source>Supported books (*.txt *.fb2 *.epub *.pdf *.html *.htm *.md *.markdown *.docx)</source>
         <translation>Поддерживаемые книги (*.txt *.fb2 *.epub *.pdf *.html *.htm *.md *.markdown *.docx)</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="40"/>
+        <location filename="../Main.qml" line="41"/>
         <source>Text files (*.txt *.md *.markdown *.html *.htm)</source>
         <translation>Текстовые файлы (*.txt *.md *.markdown *.html *.htm)</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="41"/>
+        <location filename="../Main.qml" line="42"/>
         <source>Electronic books (*.fb2 *.epub)</source>
         <translation>Электронные книги (*.fb2 *.epub)</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="42"/>
+        <location filename="../Main.qml" line="43"/>
         <source>PDF files (*.pdf)</source>
         <translation>Файлы PDF (*.pdf)</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="43"/>
+        <location filename="../Main.qml" line="44"/>
         <source>Word documents (*.docx)</source>
         <translation>Документы Word (*.docx)</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="52"/>
+        <location filename="../Main.qml" line="53"/>
         <location filename="../tests/localizationcontrollertest.cpp" line="29"/>
         <location filename="../tests/localizationcontrollertest.cpp" line="35"/>
         <location filename="../tests/localizationcontrollertest.cpp" line="39"/>
@@ -1596,103 +1706,104 @@
         <translation>Библиотека - SZHBooks</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="54"/>
+        <location filename="../Main.qml" line="55"/>
         <source> - SZHBooks</source>
         <translation> - SZHBooks</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="55"/>
+        <location filename="../Main.qml" line="56"/>
+        <location filename="../Main.qml" line="380"/>
         <source>SZHBooks</source>
         <translation>SZHBooks</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="196"/>
+        <location filename="../Main.qml" line="197"/>
         <source>Profile recovered</source>
         <translation>Профиль восстановлен</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="197"/>
+        <location filename="../Main.qml" line="198"/>
         <source>The damaged local profile was restored from the latest automatic backup.</source>
         <translation>Повреждённый локальный профиль восстановлен из последней автоматической резервной копии.</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="201"/>
+        <location filename="../Main.qml" line="202"/>
         <source>Profile reset for safety</source>
         <translation>Профиль сброшен для безопасности</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="202"/>
+        <location filename="../Main.qml" line="203"/>
         <source>The damaged database was preserved for diagnostics. You can restore a .szhbackup profile from settings.</source>
         <translation>Повреждённая база сохранена для диагностики. Профиль .szhbackup можно восстановить в настройках.</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="231"/>
+        <location filename="../Main.qml" line="232"/>
         <source>Open book</source>
         <translation>Открыть книгу</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="241"/>
+        <location filename="../Main.qml" line="242"/>
         <source>Choose OneDrive library folder</source>
         <translation>Выберите папку библиотеки OneDrive</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="285"/>
+        <location filename="../Main.qml" line="286"/>
         <source>Locate moved book</source>
         <translation>Найти перемещённую книгу</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="297"/>
+        <location filename="../Main.qml" line="298"/>
         <source>Back up local profile</source>
         <translation>Создать резервную копию профиля</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="300"/>
-        <location filename="../Main.qml" line="312"/>
+        <location filename="../Main.qml" line="301"/>
+        <location filename="../Main.qml" line="313"/>
         <source>SZHBooks profile (*.szhbackup)</source>
         <translation>Профиль SZHBooks (*.szhbackup)</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="310"/>
+        <location filename="../Main.qml" line="311"/>
         <source>Restore local profile</source>
         <translation>Восстановить локальный профиль</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="342"/>
+        <location filename="../Main.qml" line="349"/>
         <source>Backup saved</source>
         <translation>Резервная копия сохранена</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="343"/>
+        <location filename="../Main.qml" line="350"/>
         <source>Settings, library, positions and notes were saved.</source>
         <translation>Настройки, библиотека, позиции и заметки сохранены.</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="351"/>
+        <location filename="../Main.qml" line="358"/>
         <source>Profile restored</source>
         <translation>Профиль восстановлен</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="352"/>
+        <location filename="../Main.qml" line="359"/>
         <source>Your local reading data is ready.</source>
         <translation>Локальные данные чтения готовы.</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="357"/>
+        <location filename="../Main.qml" line="364"/>
         <source>Profile operation failed</source>
         <translation>Операция с профилем не выполнена</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="365"/>
+        <location filename="../Main.qml" line="372"/>
         <source>Diagnostics</source>
         <translation>Диагностика</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="380"/>
+        <location filename="../Main.qml" line="395"/>
         <source>Synchronization conflict preserved</source>
         <translation>Конфликт синхронизации сохранён</translation>
     </message>
     <message numerus="yes">
-        <location filename="../Main.qml" line="381"/>
+        <location filename="../Main.qml" line="396"/>
         <source>%n conflicting value(s) were kept in %1.</source>
         <translation>
             <numerusform>%n конфликтующее значение сохранено в %1.</numerusform>
@@ -1701,63 +1812,63 @@
         </translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="387"/>
+        <location filename="../Main.qml" line="402"/>
         <source>OneDrive synchronization</source>
         <translation>Синхронизация OneDrive</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="523"/>
+        <location filename="../Main.qml" line="539"/>
         <source>Exit focus mode (F11)</source>
         <translation>Выйти из режима фокуса (F11)</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="547"/>
+        <location filename="../Main.qml" line="563"/>
         <source>Could not open book</source>
         <translation>Не удалось открыть книгу</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="549"/>
-        <location filename="../Main.qml" line="569"/>
+        <location filename="../Main.qml" line="565"/>
+        <location filename="../Main.qml" line="585"/>
         <source>Choose another</source>
         <translation>Выбрать другую</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="567"/>
+        <location filename="../Main.qml" line="583"/>
         <source>Could not update library</source>
         <translation>Не удалось обновить библиотеку</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="93"/>
+        <location filename="../Main.qml" line="94"/>
         <source>Choose a library folder</source>
         <translation>Выберите папку библиотеки</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="94"/>
+        <location filename="../Main.qml" line="95"/>
         <source>Batch import stores books inside the managed library folder.</source>
         <translation>При пакетном импорте книги сохраняются в управляемой папке библиотеки.</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="405"/>
+        <location filename="../Main.qml" line="420"/>
         <source>Import canceled</source>
         <translation>Импорт отменён</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="406"/>
+        <location filename="../Main.qml" line="421"/>
         <source>%1 of %2 file(s) processed.</source>
         <translation>Обработано файлов: %1 из %2.</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="412"/>
+        <location filename="../Main.qml" line="427"/>
         <source>Import complete</source>
         <translation>Импорт завершён</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="413"/>
+        <location filename="../Main.qml" line="428"/>
         <source>Added: %1  ·  Duplicates: %2  ·  Failed: %3</source>
         <translation>Добавлено: %1  ·  Дубликаты: %2  ·  Ошибки: %3</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="423"/>
+        <location filename="../Main.qml" line="438"/>
         <source>Library operation</source>
         <translation>Операция с библиотекой</translation>
     </message>
@@ -1916,17 +2027,22 @@
         <translation>Документ Markdown (*.md)</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="527"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="551"/>
         <source>Delete reading mark?</source>
         <translation>Удалить метку чтения?</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="532"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="560"/>
         <source>This bookmark, highlight or note will be removed from every synchronized device.</source>
         <translation>Эта закладка, выделение или заметка будет удалена со всех синхронизированных устройств.</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="543"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="578"/>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <location filename="../notes/NotesCenterDialog.qml" line="584"/>
         <source>Delete</source>
         <translation>Удалить</translation>
     </message>
@@ -2776,253 +2892,253 @@
 <context>
     <name>SyncCenterDialog</name>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="13"/>
+        <location filename="../library/SyncCenterDialog.qml" line="15"/>
         <source>OneDrive is not configured</source>
         <translation>OneDrive не настроен</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="15"/>
+        <location filename="../library/SyncCenterDialog.qml" line="17"/>
         <source>Synchronizing library</source>
         <translation>Библиотека синхронизируется</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="17"/>
+        <location filename="../library/SyncCenterDialog.qml" line="19"/>
         <source>Library folder is unavailable</source>
         <translation>Папка библиотеки недоступна</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="19"/>
+        <location filename="../library/SyncCenterDialog.qml" line="21"/>
         <source>Conflicts need your choice</source>
         <translation>Нужно разрешить конфликты</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="21"/>
+        <location filename="../library/SyncCenterDialog.qml" line="23"/>
         <source>Synchronization needs attention</source>
         <translation>Синхронизация требует внимания</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="22"/>
+        <location filename="../library/SyncCenterDialog.qml" line="24"/>
         <source>Library is up to date</source>
         <translation>Библиотека синхронизирована</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="27"/>
+        <location filename="../library/SyncCenterDialog.qml" line="29"/>
         <source>Library folder configured</source>
         <translation>Папка библиотеки настроена</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="28"/>
+        <location filename="../library/SyncCenterDialog.qml" line="30"/>
         <source>Library folder available again</source>
         <translation>Папка библиотеки снова доступна</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="29"/>
+        <location filename="../library/SyncCenterDialog.qml" line="31"/>
         <source>Library folder unavailable</source>
         <translation>Папка библиотеки недоступна</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="30"/>
+        <location filename="../library/SyncCenterDialog.qml" line="32"/>
         <source>Synchronization started</source>
         <translation>Синхронизация началась</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="31"/>
+        <location filename="../library/SyncCenterDialog.qml" line="33"/>
         <source>Synchronization completed</source>
         <translation>Синхронизация завершена</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="32"/>
+        <location filename="../library/SyncCenterDialog.qml" line="34"/>
         <source>Synchronization failed</source>
         <translation>Ошибка синхронизации</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="33"/>
+        <location filename="../library/SyncCenterDialog.qml" line="35"/>
         <source>Conflicts detected</source>
         <translation>Обнаружены конфликты</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="34"/>
+        <location filename="../library/SyncCenterDialog.qml" line="36"/>
         <source>Conflict resolved</source>
         <translation>Конфликт разрешён</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="35"/>
+        <location filename="../library/SyncCenterDialog.qml" line="37"/>
         <source>Books imported</source>
         <translation>Книги импортированы</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="36"/>
+        <location filename="../library/SyncCenterDialog.qml" line="38"/>
         <source>Book moved</source>
         <translation>Книга перемещена</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="37"/>
+        <location filename="../library/SyncCenterDialog.qml" line="39"/>
         <source>Book renamed</source>
         <translation>Книга переименована</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="38"/>
+        <location filename="../library/SyncCenterDialog.qml" line="40"/>
         <source>Book removed</source>
         <translation>Книга удалена</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="39"/>
+        <location filename="../library/SyncCenterDialog.qml" line="41"/>
         <source>Folder created</source>
         <translation>Папка создана</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="40"/>
+        <location filename="../library/SyncCenterDialog.qml" line="42"/>
         <source>Folder renamed</source>
         <translation>Папка переименована</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="41"/>
+        <location filename="../library/SyncCenterDialog.qml" line="43"/>
         <source>Folder removed</source>
         <translation>Папка удалена</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="43"/>
+        <location filename="../library/SyncCenterDialog.qml" line="45"/>
         <source>Library updated</source>
         <translation>Библиотека обновлена</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="75"/>
+        <location filename="../library/SyncCenterDialog.qml" line="77"/>
         <source>Synchronization</source>
         <translation>Синхронизация</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="94"/>
+        <location filename="../library/SyncCenterDialog.qml" line="96"/>
         <source>Close</source>
         <translation>Закрыть</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="121"/>
+        <location filename="../library/SyncCenterDialog.qml" line="123"/>
         <source>Status</source>
         <translation>Статус</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="122"/>
+        <location filename="../library/SyncCenterDialog.qml" line="124"/>
         <source>Conflicts</source>
         <translation>Конфликты</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="123"/>
+        <location filename="../library/SyncCenterDialog.qml" line="125"/>
         <source>Activity</source>
         <translation>Журнал</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="158"/>
+        <location filename="../library/SyncCenterDialog.qml" line="160"/>
         <source>Last synchronized %1</source>
         <translation>Последняя синхронизация: %1</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="160"/>
-        <location filename="../library/SyncCenterDialog.qml" line="475"/>
+        <location filename="../library/SyncCenterDialog.qml" line="162"/>
+        <location filename="../library/SyncCenterDialog.qml" line="482"/>
         <source>dd MMM, HH:mm</source>
         <translation>dd MMM, HH:mm</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="169"/>
+        <location filename="../library/SyncCenterDialog.qml" line="171"/>
         <source>Automatic retry at %1</source>
         <translation>Автоматическая попытка в %1</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="171"/>
+        <location filename="../library/SyncCenterDialog.qml" line="173"/>
         <source>HH:mm:ss</source>
         <translation>HH:mm:ss</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="201"/>
+        <location filename="../library/SyncCenterDialog.qml" line="203"/>
         <source>Managed books</source>
         <translation>Управляемые книги</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="208"/>
+        <location filename="../library/SyncCenterDialog.qml" line="210"/>
         <source>Stored inside the selected OneDrive folder</source>
         <translation>Хранятся в выбранной папке OneDrive</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="216"/>
+        <location filename="../library/SyncCenterDialog.qml" line="218"/>
         <source>Pending conflicts</source>
         <translation>Неразрешённые конфликты</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="231"/>
+        <location filename="../library/SyncCenterDialog.qml" line="233"/>
         <source>Online-only books</source>
         <translation>Книги только в облаке</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="254"/>
+        <location filename="../library/SyncCenterDialog.qml" line="256"/>
         <source>Open folder</source>
         <translation>Открыть папку</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="261"/>
+        <location filename="../library/SyncCenterDialog.qml" line="263"/>
         <source>Review conflicts</source>
         <translation>Просмотреть конфликты</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="268"/>
+        <location filename="../library/SyncCenterDialog.qml" line="270"/>
         <source>Retry now</source>
         <translation>Повторить сейчас</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="268"/>
+        <location filename="../library/SyncCenterDialog.qml" line="270"/>
         <source>Synchronize now</source>
         <translation>Синхронизировать</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="291"/>
+        <location filename="../library/SyncCenterDialog.qml" line="293"/>
         <source>Choose the value SZHBooks should keep</source>
         <translation>Выберите значение, которое сохранит SZHBooks</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="298"/>
+        <location filename="../library/SyncCenterDialog.qml" line="300"/>
         <source>Keep all on this device</source>
         <translation>Оставить всё с этого устройства</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="304"/>
+        <location filename="../library/SyncCenterDialog.qml" line="306"/>
         <source>Use all from OneDrive</source>
         <translation>Взять всё из OneDrive</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="355"/>
+        <location filename="../library/SyncCenterDialog.qml" line="359"/>
         <source>This device</source>
         <translation>Это устройство</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="361"/>
+        <location filename="../library/SyncCenterDialog.qml" line="365"/>
         <source>OneDrive</source>
         <translation>OneDrive</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="384"/>
+        <location filename="../library/SyncCenterDialog.qml" line="388"/>
         <source>Keep this device</source>
         <translation>Оставить с устройства</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="391"/>
+        <location filename="../library/SyncCenterDialog.qml" line="395"/>
         <source>Use OneDrive value</source>
         <translation>Взять значение OneDrive</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="403"/>
+        <location filename="../library/SyncCenterDialog.qml" line="407"/>
         <source>No unresolved conflicts</source>
         <translation>Неразрешённых конфликтов нет</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="412"/>
+        <location filename="../library/SyncCenterDialog.qml" line="416"/>
         <source>Open conflict files</source>
         <translation>Открыть файлы конфликтов</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="494"/>
+        <location filename="../library/SyncCenterDialog.qml" line="501"/>
         <source>No synchronization activity yet</source>
         <translation>В журнале синхронизации пока пусто</translation>
     </message>
     <message>
-        <location filename="../library/SyncCenterDialog.qml" line="503"/>
+        <location filename="../library/SyncCenterDialog.qml" line="510"/>
         <source>Clear activity</source>
         <translation>Очистить журнал</translation>
     </message>
@@ -3089,6 +3205,24 @@
         <location filename="../reader/TextNavigationControl.qml" line="43"/>
         <source>Go to end</source>
         <translation>В конец</translation>
+    </message>
+</context>
+<context>
+    <name>main</name>
+    <message>
+        <location filename="../main.cpp" line="63"/>
+        <source>SZHBooks desktop reader</source>
+        <translation>Настольная читалка SZHBooks</translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="68"/>
+        <source>Keep profile data beside the application executable.</source>
+        <translation>Хранить данные профиля рядом с исполняемым файлом приложения.</translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="74"/>
+        <source>Books to open.</source>
+        <translation>Книги, которые нужно открыть.</translation>
     </message>
 </context>
 </TS>

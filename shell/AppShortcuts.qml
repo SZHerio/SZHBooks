@@ -20,19 +20,19 @@ Item {
     visible: false
 
     Shortcut {
-        sequence: StandardKey.Open
+        sequences: [StandardKey.Open]
         onActivated: root.openRequested()
     }
 
     Shortcut {
         enabled: !root.showingLibrary && root.readerWorkspace.hasDocument
-        sequence: StandardKey.Find
+        sequences: [StandardKey.Find]
         onActivated: root.appHeader.openSearch()
     }
 
     Shortcut {
         enabled: root.showingLibrary
-        sequence: StandardKey.Find
+        sequences: [StandardKey.Find]
         onActivated: root.libraryFilterRequested()
     }
 
@@ -43,13 +43,13 @@ Item {
 
     Shortcut {
         enabled: !root.showingLibrary && root.readerWorkspace.hasDocument
-        sequence: StandardKey.ZoomIn
+        sequences: [StandardKey.ZoomIn]
         onActivated: root.readerWorkspace.increaseScale()
     }
 
     Shortcut {
         enabled: !root.showingLibrary && root.readerWorkspace.hasDocument
-        sequence: StandardKey.ZoomOut
+        sequences: [StandardKey.ZoomOut]
         onActivated: root.readerWorkspace.decreaseScale()
     }
 

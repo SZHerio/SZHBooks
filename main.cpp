@@ -1,3 +1,5 @@
+#include <QCommandLineParser>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QIcon>
 #include <QQmlApplicationEngine>
@@ -8,6 +10,8 @@
 #include <QWindow>
 #include <QtMath>
 
+#include <memory>
+
 #include "library/bookcoverprovider.h"
 #include "diagnostics/diagnosticservice.h"
 #include "library/bookmetadataservice.h"
@@ -16,6 +20,8 @@
 #include "library/libraryscanservice.h"
 #include "localization/localizationcontroller.h"
 #include "notes/notescentermodel.h"
+#include "platform/applicationinfoservice.h"
+#include "platform/applicationpaths.h"
 #include "platform/desktopintegration.h"
 #include "reader/readingsearchcontroller.h"
 #include "reader/readingdocumentformatter.h"
@@ -52,9 +58,39 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(QStringLiteral(
         ":/qt/qml/SZHBooks/assets/branding/szhbooks-icon.png")));
 
-    DiagnosticService diagnosticService;
-    DesktopIntegration desktopIntegration(BookMetadataService::supportedSuffixes());
-    LocalStateStore localState;
+    QCommandLineParser commandLine;
+    commandLine.setApplicationDescription(
+        QCoreApplication::translate("main", "SZHBooks desktop reader"));
+    commandLine.addHelpOption();
+    commandLine.addVersionOption();
+    const QCommandLineOption portableOption(
+        QStringLiteral("portable"),
+        QCoreApplication::translate(
+            "main",
+            "Keep profile data beside the application executable."));
+    commandLine.addOption(portableOption);
+    commandLine.addPositionalArgument(
+        QStringLiteral("books"),
+        QCoreApplication::translate("main", "Books to open."),
+        QStringLiteral("[books...]"));
+    commandLine.process(app);
+
+    const ApplicationPaths applicationPaths(app.applicationDirPath(),
+                                            commandLine.isSet(portableOption));
+    DiagnosticService diagnosticService(applicationPaths.diagnosticLogDirectory());
+    DesktopIntegration desktopIntegration(
+        BookMetadataService::supportedSuffixes(),
+        applicationPaths.desktopSettingsFilePath());
+    const QString localSettingsFilePath = applicationPaths.portableMode()
+                                              ? applicationPaths.settingsFilePath()
+                                              : LocalStateStore::defaultSettingsFilePath();
+    LocalStateStore localState(localSettingsFilePath);
+    ApplicationInfoService applicationInfo(
+        applicationPaths,
+        QFileInfo(localState.settingsFilePath()).absolutePath());
+    qInfo().noquote() << "Storage mode:"
+                      << (applicationPaths.portableMode() ? "portable" : "installed")
+                      << "Profile:" << localState.databaseFilePath();
     if (localState.profileRecoveryState() != QLatin1String("healthy")) {
         qWarning().noquote() << localState.profileRecoveryMessage();
     }
@@ -68,9 +104,11 @@ int main(int argc, char *argv[])
                      &LocalStateStore::scrollSpeedChanged,
                      &app,
                      applyScrollSpeed);
-    BookCoverProvider coverProvider;
+    BookCoverProvider coverProvider(applicationPaths.coverCacheDirectory());
     BookMetadataService metadataService(&coverProvider);
-    LibraryRepository libraryRepository(&localState, &metadataService);
+    LibraryRepository libraryRepository(&localState,
+                                        &metadataService,
+                                        applicationPaths.customCoverDirectory());
     LibraryScanService libraryScanService(&metadataService);
     LibraryModel libraryModel(&libraryRepository);
     libraryModel.setScanService(&libraryScanService);
@@ -82,7 +120,10 @@ int main(int argc, char *argv[])
     LibrarySearchModel librarySearchModel(
         &libraryRepository,
         LibrarySearchIndex::databasePathForProfile(localState.databaseFilePath()));
-    OneDriveLibraryService oneDriveLibraryService(&localState, &libraryRepository);
+    OneDriveLibraryService oneDriveLibraryService(
+        &localState,
+        &libraryRepository,
+        applicationPaths.syncSettingsFilePath());
 
     QObject::connect(&localState,
                      &LocalStateStore::profileReplaced,
@@ -144,9 +185,9 @@ int main(int argc, char *argv[])
                          }
                      });
 
-    QQmlApplicationEngine engine;
-    LocalizationController localizationController(&localState, &engine);
-    engine.setInitialProperties({
+    auto engine = std::make_unique<QQmlApplicationEngine>();
+    LocalizationController localizationController(&localState, engine.get());
+    engine->setInitialProperties({
         {QStringLiteral("readerController"),
          QVariant::fromValue(static_cast<QObject *>(&reader))},
         {QStringLiteral("localStateStore"),
@@ -172,22 +213,26 @@ int main(int argc, char *argv[])
         {QStringLiteral("desktopIntegration"),
          QVariant::fromValue(static_cast<QObject *>(&desktopIntegration))},
         {QStringLiteral("diagnosticService"),
-         QVariant::fromValue(static_cast<QObject *>(&diagnosticService))}
+         QVariant::fromValue(static_cast<QObject *>(&diagnosticService))},
+        {QStringLiteral("applicationInfo"),
+         QVariant::fromValue(static_cast<QObject *>(&applicationInfo))}
     });
 
     QObject::connect(
-        &engine,
+        engine.get(),
         &QQmlApplicationEngine::objectCreationFailed,
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    engine.loadFromModule("SZHBooks", "Main");
+    engine->loadFromModule("SZHBooks", "Main");
 
-    if (!engine.rootObjects().isEmpty()) {
+    if (!engine->rootObjects().isEmpty()) {
         desktopIntegration.attachWindow(
-            qobject_cast<QWindow *>(engine.rootObjects().constFirst()));
+            qobject_cast<QWindow *>(engine->rootObjects().constFirst()));
         desktopIntegration.setReady();
     }
 
-    return app.exec();
+    const int exitCode = app.exec();
+    engine.reset();
+    return exitCode;
 }

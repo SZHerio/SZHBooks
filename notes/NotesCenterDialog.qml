@@ -518,37 +518,81 @@ Dialog {
         onAccepted: root.notesModel.exportFiltered(selectedFile, root.exportFormat)
     }
 
-    Dialog {
+    Popup {
         id: deleteConfirmDialog
 
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: parent ? Math.round((parent.width - width) / 2) : 0
+        y: parent ? Math.round((parent.height - height) / 2) : 0
+        width: Math.max(0, Math.min(368,
+                                     (parent ? parent.width : 400) - Theme.spaceXl))
+        padding: Theme.spaceLg
         modal: true
-        title: qsTr("Delete reading mark?")
-        standardButtons: Dialog.Cancel
+        dim: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape
 
-        contentItem: Label {
-            width: 320
-            text: qsTr("This bookmark, highlight or note will be removed from every synchronized device.")
-            color: Theme.textColor
-            font.family: Theme.uiFontFamily
-            font.pixelSize: Theme.bodyFontSize
-            wrapMode: Text.Wrap
+        Overlay.modal: Rectangle {
+            color: Theme.darkMode ? "#99000000" : "#66000000"
         }
 
-        footer: DialogButtonBox {
-            standardButtons: DialogButtonBox.Cancel
+        background: Rectangle {
+            color: Theme.surfaceColor
+            radius: Theme.radiusLg
+            border.color: Theme.borderColor
+            border.width: 1
+        }
 
-            SZHButton {
-                text: qsTr("Delete")
-                onClicked: {
-                    const sourceUrl = root.selectedAnnotation.sourceUrl
-                    const annotationId = root.selectedAnnotation.annotationId
-                    deleteConfirmDialog.close()
-                    if (root.notesModel.removeAnnotation(sourceUrl, annotationId))
-                        root.selectFirstVisible()
+        contentItem: ColumnLayout {
+            spacing: Theme.spaceMd
+
+            Label {
+                Layout.fillWidth: true
+                text: qsTr("Delete reading mark?")
+                color: Theme.textColor
+                font.family: Theme.uiFontFamily
+                font.pixelSize: Theme.titleFontSize
+                font.weight: Font.DemiBold
+            }
+
+            Label {
+                Layout.fillWidth: true
+                text: qsTr("This bookmark, highlight or note will be removed from every synchronized device.")
+                color: Theme.mutedTextColor
+                font.family: Theme.uiFontFamily
+                font.pixelSize: Theme.bodyFontSize
+                wrapMode: Text.Wrap
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spaceXs
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                SZHButton {
+                    id: cancelDeleteButton
+
+                    text: qsTr("Cancel")
+                    variant: "secondary"
+                    onClicked: deleteConfirmDialog.close()
+                }
+
+                SZHButton {
+                    text: qsTr("Delete")
+                    onClicked: {
+                        const sourceUrl = root.selectedAnnotation.sourceUrl
+                        const annotationId = root.selectedAnnotation.annotationId
+                        deleteConfirmDialog.close()
+                        if (root.notesModel.removeAnnotation(sourceUrl, annotationId))
+                            root.selectFirstVisible()
+                    }
                 }
             }
         }
+
+        onOpened: cancelDeleteButton.forceActiveFocus()
     }
 }

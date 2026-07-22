@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "product": "SZHBooks",
+  "version": "@PROJECT_VERSION@",
+  "channel": "stable",
+  "portable": @SZHBOOKS_PORTABLE_JSON@
+}

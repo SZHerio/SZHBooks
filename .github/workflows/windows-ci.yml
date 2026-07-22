@@ -60,21 +60,46 @@ jobs:
         shell: pwsh
         run: |
           cmake --install build/ci --prefix "$pwd/build/ci-install" --config Release
-          cmake -DSZHBOOKS_INSTALL_ROOT="$pwd/build/ci-install" -P cmake/verify_install.cmake
+          cmake -DSZHBOOKS_INSTALL_ROOT="$pwd/build/ci-install" -DSZHBOOKS_EXPECTED_VERSION:STRING=1.0.0 -P cmake/verify_install.cmake
 
-      - name: Build ZIP and installer
+      - name: Build installer
         working-directory: build/ci
         shell: pwsh
+        run: cpack -G IFW -C Release
+
+      - name: Configure portable build
+        shell: pwsh
+        run: >-
+          cmake -S . -B build/portable -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_TESTING=OFF
+          -DSZHBOOKS_PORTABLE_BUILD=ON
+
+      - name: Build portable application
+        run: cmake --build build/portable --parallel
+
+      - name: Verify portable install tree
+        shell: pwsh
         run: |
-          cpack -G ZIP -C Release
-          cpack -G IFW -C Release
+          cmake --install build/portable --prefix "$pwd/build/portable-install" --config Release
+          cmake -DSZHBOOKS_INSTALL_ROOT="$pwd/build/portable-install" -DSZHBOOKS_EXPECTED_VERSION:STRING=1.0.0 -DSZHBOOKS_EXPECT_PORTABLE:BOOL=ON -P cmake/verify_install.cmake
+
+      - name: Build portable ZIP
+        working-directory: build/portable
+        shell: pwsh
+        run: cpack -G ZIP -C Release
 
       - name: Verify packages
         shell: pwsh
         run: |
-          $packages = Get-ChildItem build/ci -File | Where-Object { $_.Extension -in '.zip', '.exe' }
-          if (($packages | Where-Object Extension -eq '.zip').Count -lt 1) { throw 'ZIP package is missing.' }
-          if (($packages | Where-Object Extension -eq '.exe').Count -lt 1) { throw 'IFW installer is missing.' }
+          $packages = @(
+            Get-Item build/ci/SZHBooks-1.0.0-win64.exe
+            Get-Item build/ci/SZHBooks-1.0.0-win64.exe.sha256
+            Get-Item build/portable/SZHBooks-1.0.0-portable-win64.zip
+            Get-Item build/portable/SZHBooks-1.0.0-portable-win64.zip.sha256
+          )
+          $payloads = $packages | Where-Object { $_.Extension -in '.exe', '.zip' }
+          if (($payloads | Where-Object Length -lt 1000).Count -gt 0) { throw 'A release artifact is unexpectedly small.' }
           $packages | Format-Table Name, Length
 
       - name: Upload packages
@@ -82,7 +107,9 @@ jobs:
         with:
           name: SZHBooks-windows-${{ github.sha }}
           path: |
-            build/ci/*.zip
             build/ci/*.exe
+            build/ci/*.sha256
+            build/portable/*.zip
+            build/portable/*.sha256
           if-no-files-found: error
           retention-days: 14

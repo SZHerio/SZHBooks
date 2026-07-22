@@ -19,6 +19,7 @@ ApplicationWindow {
     required property var oneDriveLibraryService
     required property var desktopIntegration
     required property var diagnosticService
+    required property var applicationInfo
 
     property bool showingLibrary: true
     property bool focusMode: false
@@ -327,6 +328,12 @@ ApplicationWindow {
         onClosed: root.pendingProfileRestoreUrl = ""
     }
 
+    AboutDialog {
+        id: aboutDialog
+
+        applicationInfo: root.applicationInfo
+    }
+
     Connections {
         target: root.desktopIntegration
 
@@ -363,6 +370,14 @@ ApplicationWindow {
 
         function onOperationFailed(errorMessage) {
             root.showProfileNotice(qsTr("Diagnostics"), errorMessage, "error")
+        }
+    }
+
+    Connections {
+        target: root.applicationInfo
+
+        function onOperationFailed(errorMessage) {
+            root.showProfileNotice(qsTr("SZHBooks"), errorMessage, "error")
         }
     }
 
@@ -446,6 +461,7 @@ ApplicationWindow {
         onRestoreProfileRequested: profileRestoreFileDialog.open()
         onNotesCenterRequested: notesCenterDialog.open()
         onLibrarySearchRequested: librarySearchDialog.open()
+        onAboutRequested: aboutDialog.open()
     }
 
     footer: ReaderStatusBar {
