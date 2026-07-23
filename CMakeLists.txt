@@ -158,6 +158,7 @@ qt_add_qml_module(appSZHBooks
         library/LibraryCollectionSidebar.qml
         library/LibraryControls.qml
         library/LibraryImportProgress.qml
+        library/LibraryOptionsPopup.qml
         library/LibraryScanProgress.qml
         library/LibrarySyncBar.qml
         library/LibraryView.qml

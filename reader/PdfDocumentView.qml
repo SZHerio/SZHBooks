@@ -6,6 +6,8 @@ import QtQuick.Layouts
 Item {
     id: root
 
+    readonly property bool hardScrollBoundsApplied: hardScrollBounds.applied
+
     required property url source
 
     property int pendingPage: 0
@@ -181,6 +183,37 @@ Item {
             anchors.fill: parent
             anchors.margins: Theme.spaceSm
             document: pdfDocument
+        }
+
+        QtObject {
+            id: hardScrollBounds
+
+            property bool applied: false
+
+            function applyTo(item) {
+                if (!item) {
+                    return
+                }
+                if (item.boundsBehavior !== undefined
+                        && item.boundsMovement !== undefined
+                        && item.contentY !== undefined) {
+                    item.boundsBehavior = Flickable.StopAtBounds
+                    item.boundsMovement = Flickable.StopAtBounds
+                    applied = true
+                }
+                const children = item.children
+                if (!children) {
+                    return
+                }
+                for (let index = 0; index < children.length; ++index) {
+                    applyTo(children[index])
+                }
+            }
+
+            Component.onCompleted: Qt.callLater(function() {
+                // PdfMultiPageView does not expose its TableView scrolling policy.
+                hardScrollBounds.applyTo(pdfViewer)
+            })
         }
     }
 

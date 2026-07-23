@@ -28,6 +28,10 @@ Rectangle {
     property color fallbackColor: Theme.accentColor
     property bool selectionMode: false
     property bool keyboardCurrent: false
+    readonly property bool highlighted: rowMouseArea.containsMouse
+                                        || activeFocus
+                                        || keyboardCurrent
+                                        || selected
 
     signal openRequested(url sourceUrl)
     signal relinkRequested(url sourceUrl)
@@ -67,11 +71,10 @@ Rectangle {
     Accessible.focusable: true
     Accessible.selected: root.selected || root.keyboardCurrent
     Accessible.onPressAction: root.activate()
-    color: rowMouseArea.containsMouse ? Theme.surfaceMutedColor : Theme.surfaceColor
+    color: Theme.surfaceColor
     radius: Theme.radiusMd
-    border.color: activeFocus || keyboardCurrent || selected
-                  ? Theme.focusColor : Theme.borderColor
-    border.width: activeFocus || keyboardCurrent || selected ? 2 : 1
+    border.color: highlighted ? Theme.interactionColor : "transparent"
+    border.width: highlighted ? 2 : 0
     opacity: fileAvailable ? 1 : 0.72
     Drag.active: bookDragHandler.active && !root.selectionMode
     Drag.source: root
@@ -83,12 +86,6 @@ Rectangle {
     Drag.supportedActions: Qt.MoveAction
     Drag.hotSpot.x: width / 2
     Drag.hotSpot.y: height / 2
-
-    Behavior on color {
-        ColorAnimation {
-            duration: Theme.motionFast
-        }
-    }
 
     Keys.onReturnPressed: root.selectionMode ? root.selectionToggled(root.sourceUrl) : root.activate()
     Keys.onEnterPressed: root.selectionMode ? root.selectionToggled(root.sourceUrl) : root.activate()
@@ -112,12 +109,9 @@ Rectangle {
             root.focusRequested(root.index)
             if (root.selectionMode || (mouse.modifiers & Qt.ControlModifier)) {
                 root.selectionToggled(root.sourceUrl)
-            }
-        }
-        onDoubleClicked: {
-            root.focusRequested(root.index)
-            if (!root.selectionMode)
+            } else {
                 root.activate()
+            }
         }
     }
 

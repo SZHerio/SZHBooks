@@ -450,6 +450,8 @@ ApplicationWindow {
         settingsStore: root.localStateStore
         localizationController: root.localizationController
         diagnosticService: root.diagnosticService
+        libraryModel: root.libraryModel
+        syncService: root.oneDriveLibraryService
         darkMode: root.localStateStore.darkMode
         showingLibrary: root.showingLibrary
         visible: !root.focusMode
@@ -461,6 +463,14 @@ ApplicationWindow {
         onRestoreProfileRequested: profileRestoreFileDialog.open()
         onNotesCenterRequested: notesCenterDialog.open()
         onLibrarySearchRequested: librarySearchDialog.open()
+        onChooseFolderRequested: libraryFolderDialog.open()
+        onCreateCollectionRequested: {
+            createCollectionDialog.openFor(root.libraryModel.collectionFilter)
+        }
+        onSelectionModeRequested: {
+            root.libraryModel.selectionMode = !root.libraryModel.selectionMode
+        }
+        onSyncDetailsRequested: syncCenterDialog.open()
         onAboutRequested: aboutDialog.open()
     }
 

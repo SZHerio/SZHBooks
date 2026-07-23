@@ -68,6 +68,7 @@ Popup {
         contentHeight: settingsColumn.implicitHeight
         clip: true
         boundsBehavior: Flickable.StopAtBounds
+        boundsMovement: Flickable.StopAtBounds
         flickableDirection: Flickable.VerticalFlick
         ScrollBar.vertical: SZHScrollBar {
         }
@@ -83,7 +84,8 @@ Popup {
 
             Label {
                 Layout.fillWidth: true
-                text: qsTr("Reading settings")
+                text: root.textSettingsAvailable
+                      ? qsTr("Reading settings") : qsTr("Settings")
                 color: Theme.textColor
                 font.family: Theme.uiFontFamily
                 font.pixelSize: Theme.bodyLargeFontSize

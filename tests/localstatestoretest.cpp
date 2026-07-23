@@ -25,6 +25,7 @@ private slots:
     void persistsPreferencesAndLastBook();
     void migratesLegacyTheme();
     void migratesRemovedSepiaTheme();
+    void migratesExistingLanguageToRussianOnce();
     void migratesLegacyScrollSpeed();
     void migratesProfileDataToSqlite();
     void migratesSqliteMetadataSchema();
@@ -115,7 +116,7 @@ void LocalStateStoreTest::migratesRemovedSepiaTheme()
 
     LocalStateStore store(settingsPath);
     QCOMPARE(store.colorTheme(), QStringLiteral("light"));
-    QCOMPARE(store.language(), QStringLiteral("system"));
+    QCOMPARE(store.language(), QStringLiteral("ru"));
     QVERIFY(!store.darkMode());
     store.sync();
 
@@ -123,7 +124,27 @@ void LocalStateStoreTest::migratesRemovedSepiaTheme()
     QCOMPARE(migratedSettings.value(QStringLiteral("appearance/colorTheme")).toString(),
              QStringLiteral("light"));
     QCOMPARE(migratedSettings.value(QStringLiteral("appearance/language")).toString(),
-             QStringLiteral("system"));
+             QStringLiteral("ru"));
+}
+
+void LocalStateStoreTest::migratesExistingLanguageToRussianOnce()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString settingsPath = directory.filePath(QStringLiteral("settings.ini"));
+    {
+        QSettings settings(settingsPath, QSettings::IniFormat);
+        settings.setValue(QStringLiteral("appearance/language"), QStringLiteral("en"));
+    }
+
+    LocalStateStore migrated(settingsPath);
+    QCOMPARE(migrated.language(), QStringLiteral("ru"));
+    migrated.setLanguage(QStringLiteral("system"));
+    migrated.sync();
+
+    LocalStateStore restored(settingsPath);
+    QCOMPARE(restored.language(), QStringLiteral("system"));
 }
 
 void LocalStateStoreTest::migratesLegacyScrollSpeed()
@@ -396,7 +417,7 @@ void LocalStateStoreTest::resetsReadingPreferences()
     store.resetReadingPreferences();
 
     QCOMPARE(store.colorTheme(), QStringLiteral("light"));
-    QCOMPARE(store.language(), QStringLiteral("system"));
+    QCOMPARE(store.language(), QStringLiteral("ru"));
     QCOMPARE(store.readingFont(), QStringLiteral("serif"));
     QCOMPARE(store.textFontSize(), 18);
     QCOMPARE(store.lineHeight(), 1.5);

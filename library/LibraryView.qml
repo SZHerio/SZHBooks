@@ -95,6 +95,8 @@ Item {
             root.libraryModel.selectionMode = false
         } else if (librarySearchField.text.length > 0) {
             librarySearchField.clear()
+        } else if (libraryOptions.opened) {
+            libraryOptions.close()
         }
     }
 
@@ -139,9 +141,7 @@ Item {
         color: Theme.windowColor
 
         Behavior on color {
-            ColorAnimation {
-                duration: Theme.motionNormal
-            }
+            ColorAnimation { duration: Theme.motionNormal }
         }
     }
 
@@ -171,6 +171,311 @@ Item {
         }
     }
 
+    ColumnLayout {
+        id: libraryTopArea
+
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.topMargin: Theme.spaceSm
+        anchors.leftMargin: root.width < 900 ? Theme.spaceLg : Theme.spaceXl
+        anchors.rightMargin: root.width < 900 ? Theme.spaceLg : Theme.spaceXl
+        spacing: Theme.spaceXs
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: Theme.libraryToolbarHeight
+            spacing: Theme.spaceSm
+
+            Label {
+                text: qsTr("Library")
+                color: Theme.textColor
+                font.family: Theme.uiFontFamily
+                font.pixelSize: Theme.titleFontSize
+                font.weight: Font.DemiBold
+            }
+
+            Label {
+                text: root.libraryModel.totalCount
+                color: Theme.mutedTextColor
+                font.family: Theme.uiFontFamily
+                font.pixelSize: Theme.captionFontSize
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            SZHTextField {
+                id: librarySearchField
+
+                objectName: "libraryFilterField"
+                Layout.preferredWidth: root.width < 900 ? 220 : 300
+                Layout.minimumWidth: 160
+                placeholderText: qsTr("Search library")
+                accessibleName: qsTr("Filter library books")
+                text: root.libraryModel.filterText
+                onTextEdited: root.libraryModel.filterText = text
+                Keys.onDownPressed: root.focusBooks()
+            }
+
+            SZHIconButton {
+                id: libraryOptionsButton
+
+                objectName: "libraryOptionsButton"
+                symbol: "\u2637"
+                toolTip: qsTr("Library options")
+                selected: libraryOptions.opened || root.libraryModel.hasActiveFilters
+                onClicked: libraryOptions.opened
+                           ? libraryOptions.close() : libraryOptions.open()
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: selectionRow.implicitHeight + Theme.spaceSm * 2
+            visible: root.libraryModel.selectionMode
+            color: Theme.surfaceColor
+            border.color: Theme.interactionColor
+            border.width: 1
+            radius: Theme.radiusMd
+
+            RowLayout {
+                id: selectionRow
+
+                anchors.fill: parent
+                anchors.margins: Theme.spaceSm
+                spacing: Theme.spaceXs
+
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("%n book(s) selected", "", root.libraryModel.selectionCount)
+                    color: Theme.textColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.bodyFontSize
+                    font.weight: Font.DemiBold
+                }
+
+                SZHButton {
+                    text: qsTr("Select all")
+                    variant: "secondary"
+                    onClicked: root.libraryModel.selectAllVisible()
+                }
+
+                SZHButton {
+                    text: qsTr("Edit details")
+                    enabled: root.libraryModel.selectionCount > 0
+                    onClicked: metadataDialog.openForSelection()
+                }
+
+                SZHIconButton {
+                    symbol: "\u00d7"
+                    toolTip: qsTr("Finish selecting")
+                    onClicked: root.libraryModel.selectionMode = false
+                }
+            }
+        }
+
+        LibraryImportProgress {
+            Layout.fillWidth: true
+            fileService: root.fileService
+        }
+
+        LibraryScanProgress {
+            Layout.fillWidth: true
+            libraryModel: root.libraryModel
+        }
+    }
+
+    Item {
+        id: booksContent
+
+        anchors.top: libraryTopArea.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.topMargin: Theme.spaceSm
+        anchors.leftMargin: root.width < 900 ? Theme.spaceLg : Theme.spaceXl
+        anchors.rightMargin: root.width < 900 ? Theme.spaceLg : Theme.spaceXl
+        anchors.bottomMargin: Theme.spaceLg
+
+        GridView {
+            id: bookGrid
+
+            readonly property real availableGridWidth: Math.max(1, width)
+            readonly property int minimumCellWidth: root.width < 900 ? 210 : 236
+            readonly property int columnCount: Math.max(1,
+                                                        Math.floor(availableGridWidth
+                                                                   / minimumCellWidth))
+
+            anchors.fill: parent
+            clip: true
+            model: root.libraryModel
+            cellWidth: Math.floor(availableGridWidth / columnCount)
+            cellHeight: 370
+            boundsBehavior: Flickable.StopAtBounds
+            boundsMovement: Flickable.StopAtBounds
+            activeFocusOnTab: true
+            keyNavigationEnabled: true
+            visible: root.libraryModel.count > 0 && root.libraryModel.viewMode === "grid"
+            currentIndex: count > 0 ? 0 : -1
+            Accessible.role: Accessible.List
+            Accessible.name: qsTr("Library books, grid view")
+            ScrollBar.vertical: SZHScrollBar {}
+
+            Keys.onReturnPressed: root.activateBookAt(currentIndex)
+            Keys.onEnterPressed: root.activateBookAt(currentIndex)
+            Keys.onSpacePressed: root.toggleBookAt(currentIndex)
+            Keys.onPressed: event => {
+                if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_A) {
+                    root.selectAllBooks()
+                    event.accepted = true
+                } else if (currentIndex >= 0
+                           && (event.key === Qt.Key_Menu
+                               || (event.key === Qt.Key_F10
+                                   && (event.modifiers & Qt.ShiftModifier)))) {
+                    root.showBookActionsAt(currentIndex)
+                    event.accepted = true
+                }
+            }
+
+            populate: Transition {
+                ParallelAnimation {
+                    NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Theme.motionNormal }
+                    NumberAnimation { property: "scale"; from: 0.97; to: 1; duration: Theme.motionNormal; easing.type: Easing.OutCubic }
+                }
+            }
+
+            delegate: LibraryBookDelegate {
+                width: bookGrid.cellWidth - Theme.spaceMd
+                height: bookGrid.cellHeight - Theme.spaceMd
+                fallbackColor: root.fallbackColor(index)
+                selectionMode: root.libraryModel.selectionMode
+                keyboardCurrent: GridView.isCurrentItem && bookGrid.activeFocus
+                onFocusRequested: row => {
+                    bookGrid.currentIndex = row
+                    bookGrid.forceActiveFocus(Qt.MouseFocusReason)
+                }
+                onOpenRequested: sourceUrl => root.openRequested(sourceUrl)
+                onRelinkRequested: sourceUrl => root.relinkRequested(sourceUrl)
+                onSelectionToggled: sourceUrl => root.libraryModel.toggleSelection(sourceUrl)
+                onActionsRequested: (sourceUrl, title, collectionPath, fileAvailable) => {
+                    bookActionsDialog.openFor(sourceUrl, title, collectionPath, fileAvailable)
+                }
+            }
+        }
+
+        ListView {
+            id: bookList
+
+            anchors.fill: parent
+            clip: true
+            model: root.libraryModel
+            spacing: Theme.spaceXs
+            boundsBehavior: Flickable.StopAtBounds
+            boundsMovement: Flickable.StopAtBounds
+            activeFocusOnTab: true
+            keyNavigationEnabled: true
+            visible: root.libraryModel.count > 0 && root.libraryModel.viewMode === "list"
+            currentIndex: count > 0 ? 0 : -1
+            Accessible.role: Accessible.List
+            Accessible.name: qsTr("Library books, list view")
+            ScrollBar.vertical: SZHScrollBar {}
+
+            Keys.onReturnPressed: root.activateBookAt(currentIndex)
+            Keys.onEnterPressed: root.activateBookAt(currentIndex)
+            Keys.onSpacePressed: root.toggleBookAt(currentIndex)
+            Keys.onPressed: event => {
+                if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_A) {
+                    root.selectAllBooks()
+                    event.accepted = true
+                } else if (currentIndex >= 0
+                           && (event.key === Qt.Key_Menu
+                               || (event.key === Qt.Key_F10
+                                   && (event.modifiers & Qt.ShiftModifier)))) {
+                    root.showBookActionsAt(currentIndex)
+                    event.accepted = true
+                }
+            }
+
+            delegate: LibraryBookListDelegate {
+                width: bookList.width
+                height: 82
+                fallbackColor: root.fallbackColor(index)
+                selectionMode: root.libraryModel.selectionMode
+                keyboardCurrent: ListView.isCurrentItem && bookList.activeFocus
+                onFocusRequested: row => {
+                    bookList.currentIndex = row
+                    bookList.forceActiveFocus(Qt.MouseFocusReason)
+                }
+                onOpenRequested: sourceUrl => root.openRequested(sourceUrl)
+                onRelinkRequested: sourceUrl => root.relinkRequested(sourceUrl)
+                onSelectionToggled: sourceUrl => root.libraryModel.toggleSelection(sourceUrl)
+                onActionsRequested: (sourceUrl, title, collectionPath, fileAvailable) => {
+                    bookActionsDialog.openFor(sourceUrl, title, collectionPath, fileAvailable)
+                }
+            }
+        }
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            visible: root.libraryModel.totalCount === 0
+            spacing: Theme.spaceSm
+
+            SZHBrandLogo {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: 84
+                Layout.preferredHeight: 84
+                iconOnly: true
+                darkVariant: Theme.darkMode
+                opacity: 0.72
+            }
+
+            Label {
+                Layout.alignment: Qt.AlignHCenter
+                text: qsTr("Your library is empty")
+                color: Theme.mutedTextColor
+                font.family: Theme.readingFontFamily
+                font.pixelSize: Theme.titleFontSize
+                font.weight: Font.DemiBold
+            }
+        }
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            visible: root.libraryModel.totalCount > 0 && root.libraryModel.count === 0
+            spacing: Theme.spaceMd
+
+            Label {
+                Layout.alignment: Qt.AlignHCenter
+                text: qsTr("No books match these filters")
+                color: Theme.mutedTextColor
+                font.family: Theme.uiFontFamily
+                font.pixelSize: Theme.bodyLargeFontSize
+            }
+
+            SZHButton {
+                Layout.alignment: Qt.AlignHCenter
+                variant: "secondary"
+                text: qsTr("Clear filters")
+                onClicked: root.libraryModel.clearFilters()
+            }
+        }
+    }
+
+    LibraryOptionsPopup {
+        id: libraryOptions
+
+        parent: root
+        x: Math.max(Theme.spaceLg, root.width - width - Theme.spaceXl)
+        y: libraryTopArea.y + Theme.libraryToolbarHeight + Theme.spaceXs
+        libraryModel: root.libraryModel
+        syncService: root.syncService
+        onCollectionActionsRequested: {
+            collectionActionsDialog.openFor(root.libraryModel.collectionFilter)
+        }
+    }
+
     Rectangle {
         z: 50
         anchors.fill: parent
@@ -178,7 +483,7 @@ Item {
         visible: externalBookDropArea.containsDrag
         color: Theme.surfaceColor
         opacity: 0.96
-        border.color: Theme.strongBorderColor
+        border.color: Theme.interactionColor
         border.width: 2
         radius: Theme.radiusLg
 
@@ -225,406 +530,6 @@ Item {
                 font.pixelSize: Theme.bodyFontSize
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
-            }
-        }
-    }
-
-    ColumnLayout {
-        id: libraryToolbar
-
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.topMargin: Theme.spaceLg
-        anchors.leftMargin: root.width < 900 ? Theme.spaceLg : Theme.spaceXl
-        anchors.rightMargin: root.width < 900 ? Theme.spaceLg : Theme.spaceXl
-        spacing: Theme.spaceMd
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Theme.spaceMd
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: Theme.space2xs
-
-                Label {
-                    text: qsTr("Library")
-                    color: Theme.textColor
-                    font.family: Theme.uiFontFamily
-                    font.pixelSize: Theme.displayFontSize
-                    font.weight: Font.DemiBold
-                }
-
-                Label {
-                    text: qsTr("%n book(s)", "", root.libraryModel.totalCount)
-                    color: Theme.mutedTextColor
-                    font.family: Theme.uiFontFamily
-                    font.pixelSize: Theme.captionFontSize
-                }
-            }
-
-            SZHTextField {
-                id: librarySearchField
-
-                objectName: "libraryFilterField"
-                Layout.preferredWidth: root.width < 900 ? 180 : 300
-                Layout.minimumWidth: 140
-                placeholderText: qsTr("Search library")
-                accessibleName: qsTr("Filter library books")
-                text: root.libraryModel.filterText
-                onTextEdited: root.libraryModel.filterText = text
-                Keys.onDownPressed: root.focusBooks()
-            }
-
-            SZHIconButton {
-                enabled: root.syncService.configured && root.syncService.available && !root.fileService.busy
-                symbol: "+"
-                toolTip: qsTr("New folder")
-                onClicked: root.createCollectionRequested(root.libraryModel.collectionFilter)
-            }
-
-            SZHIconButton {
-                enabled: root.libraryModel.collectionFilter.length > 0 && root.libraryModel.collectionFilter !== "." && !root.fileService.busy
-                symbol: "\u22ef"
-                toolTip: qsTr("Folder actions")
-                onClicked: collectionActionsDialog.openFor(root.libraryModel.collectionFilter)
-            }
-
-            SZHIconButton {
-                visible: root.libraryModel.totalCount > 0
-                symbol: root.libraryModel.selectionMode ? "\u00d7" : "\u2713"
-                toolTip: root.libraryModel.selectionMode ? qsTr("Finish selecting") : qsTr("Select books")
-                onClicked: root.libraryModel.selectionMode = !root.libraryModel.selectionMode
-            }
-
-            SZHButton {
-                text: qsTr("Add book")
-                symbol: "+"
-                onClicked: root.addRequested()
-            }
-        }
-
-        LibraryControls {
-            Layout.fillWidth: true
-            libraryModel: root.libraryModel
-            syncService: root.syncService
-            showCollectionControl: root.width < 960
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: selectionRow.implicitHeight + Theme.spaceSm * 2
-            visible: root.libraryModel.selectionMode
-            color: Theme.surfaceMutedColor
-            radius: Theme.radiusMd
-
-            RowLayout {
-                id: selectionRow
-
-                anchors.fill: parent
-                anchors.margins: Theme.spaceSm
-                spacing: Theme.spaceXs
-
-                Label {
-                    Layout.fillWidth: true
-                    text: qsTr("%n book(s) selected", "", root.libraryModel.selectionCount)
-                    color: Theme.textColor
-                    font.family: Theme.uiFontFamily
-                    font.pixelSize: Theme.bodyFontSize
-                    font.weight: Font.DemiBold
-                }
-
-                SZHButton {
-                    text: qsTr("Select all")
-                    variant: "secondary"
-                    onClicked: root.libraryModel.selectAllVisible()
-                }
-
-                SZHButton {
-                    text: qsTr("Edit details")
-                    enabled: root.libraryModel.selectionCount > 0
-                    onClicked: metadataDialog.openForSelection()
-                }
-
-                SZHButton {
-                    text: qsTr("Done")
-                    variant: "secondary"
-                    onClicked: root.libraryModel.selectionMode = false
-                }
-            }
-        }
-
-        LibrarySyncBar {
-            Layout.fillWidth: true
-            syncService: root.syncService
-            onChooseFolderRequested: root.chooseFolderRequested()
-            onDetailsRequested: root.syncDetailsRequested()
-        }
-
-        LibraryImportProgress {
-            Layout.fillWidth: true
-            fileService: root.fileService
-        }
-
-        LibraryScanProgress {
-            Layout.fillWidth: true
-            libraryModel: root.libraryModel
-        }
-    }
-
-    Item {
-        id: contentArea
-
-        anchors.top: libraryToolbar.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.topMargin: Theme.spaceLg
-        anchors.leftMargin: root.width < 900 ? Theme.spaceLg : Theme.spaceXl
-        anchors.rightMargin: root.width < 900 ? Theme.spaceLg : Theme.spaceXl
-        anchors.bottomMargin: Theme.spaceLg
-
-        LibraryCollectionSidebar {
-            id: collectionSidebar
-
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            width: 210
-            visible: root.width >= 960 && root.syncService.configured
-            syncService: root.syncService
-            selectedCollection: root.libraryModel.collectionFilter
-            onCollectionSelected: collectionPath => {
-                root.libraryModel.collectionFilter = collectionPath
-            }
-            onCreateCollectionRequested: parentPath => {
-                root.createCollectionRequested(parentPath)
-            }
-            onBookDropped: (sourceUrl, collectionPath) => {
-                const movedUrl = root.fileService.moveBook(sourceUrl, collectionPath)
-                if (movedUrl.toString().length > 0) {
-                    root.libraryModel.collectionFilter = collectionPath
-                    root.libraryModel.refresh()
-                }
-            }
-        }
-
-        Item {
-            id: booksContent
-
-            anchors.top: parent.top
-            anchors.left: collectionSidebar.visible ? collectionSidebar.right : parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: collectionSidebar.visible ? Theme.spaceLg : 0
-
-            ColumnLayout {
-                anchors.fill: parent
-                visible: root.libraryModel.totalCount > 0
-                spacing: Theme.spaceSm
-
-                Label {
-                    visible: !root.libraryModel.hasActiveFilters
-                    text: qsTr("Continue reading")
-                    color: Theme.textColor
-                    font.family: Theme.uiFontFamily
-                    font.pixelSize: Theme.bodyLargeFontSize
-                    font.weight: Font.DemiBold
-                }
-
-                LibraryContinueCard {
-                    visible: !root.libraryModel.hasActiveFilters
-                    Layout.fillWidth: true
-                    book: root.libraryModel.recentBook
-                    onOpenRequested: sourceUrl => root.openRequested(sourceUrl)
-                    onRelinkRequested: sourceUrl => root.relinkRequested(sourceUrl)
-                }
-
-                Label {
-                    text: root.libraryModel.hasActiveFilters ? qsTr("Results") : qsTr("All books")
-                    color: Theme.textColor
-                    font.family: Theme.uiFontFamily
-                    font.pixelSize: Theme.bodyLargeFontSize
-                    font.weight: Font.DemiBold
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    GridView {
-                        id: bookGrid
-
-                        readonly property real availableGridWidth: Math.max(1, width)
-                        readonly property int columnCount: Math.max(1, Math.floor(availableGridWidth / 188))
-
-                        anchors.fill: parent
-                        clip: true
-                        model: root.libraryModel
-                        cellWidth: Math.floor(availableGridWidth / columnCount)
-                        cellHeight: 300
-                        boundsBehavior: Flickable.StopAtBounds
-                        activeFocusOnTab: true
-                        keyNavigationEnabled: true
-                        visible: root.libraryModel.count > 0 && root.libraryModel.viewMode === "grid"
-                        currentIndex: count > 0 ? 0 : -1
-                        Accessible.role: Accessible.List
-                        Accessible.name: qsTr("Library books, grid view")
-                        ScrollBar.vertical: SZHScrollBar {}
-
-                        Keys.onReturnPressed: {
-                            root.activateBookAt(currentIndex)
-                        }
-                        Keys.onEnterPressed: {
-                            root.activateBookAt(currentIndex)
-                        }
-                        Keys.onSpacePressed: {
-                            root.toggleBookAt(currentIndex)
-                        }
-                        Keys.onPressed: event => {
-                            if ((event.modifiers & Qt.ControlModifier)
-                                    && event.key === Qt.Key_A) {
-                                root.selectAllBooks()
-                                event.accepted = true
-                            } else if (currentIndex >= 0
-                                    && (event.key === Qt.Key_Menu
-                                        || (event.key === Qt.Key_F10
-                                            && (event.modifiers & Qt.ShiftModifier)))) {
-                                root.showBookActionsAt(currentIndex)
-                                event.accepted = true
-                            }
-                        }
-
-                        delegate: LibraryBookDelegate {
-                            width: bookGrid.cellWidth - Theme.spaceSm
-                            height: bookGrid.cellHeight - Theme.spaceSm
-                            fallbackColor: root.fallbackColor(index)
-                            selectionMode: root.libraryModel.selectionMode
-                            keyboardCurrent: GridView.isCurrentItem && bookGrid.activeFocus
-                            onFocusRequested: row => {
-                                bookGrid.currentIndex = row
-                                bookGrid.forceActiveFocus(Qt.MouseFocusReason)
-                            }
-                            onOpenRequested: sourceUrl => root.openRequested(sourceUrl)
-                            onRelinkRequested: sourceUrl => root.relinkRequested(sourceUrl)
-                            onSelectionToggled: sourceUrl => root.libraryModel.toggleSelection(sourceUrl)
-                            onActionsRequested: (sourceUrl, title, collectionPath, fileAvailable) => {
-                                bookActionsDialog.openFor(sourceUrl, title, collectionPath, fileAvailable)
-                            }
-                        }
-                    }
-
-                    ListView {
-                        id: bookList
-
-                        anchors.fill: parent
-                        clip: true
-                        model: root.libraryModel
-                        spacing: Theme.spaceXs
-                        boundsBehavior: Flickable.StopAtBounds
-                        activeFocusOnTab: true
-                        keyNavigationEnabled: true
-                        visible: root.libraryModel.count > 0 && root.libraryModel.viewMode === "list"
-                        currentIndex: count > 0 ? 0 : -1
-                        Accessible.role: Accessible.List
-                        Accessible.name: qsTr("Library books, list view")
-                        ScrollBar.vertical: SZHScrollBar {}
-
-                        Keys.onReturnPressed: {
-                            root.activateBookAt(currentIndex)
-                        }
-                        Keys.onEnterPressed: {
-                            root.activateBookAt(currentIndex)
-                        }
-                        Keys.onSpacePressed: {
-                            root.toggleBookAt(currentIndex)
-                        }
-                        Keys.onPressed: event => {
-                            if ((event.modifiers & Qt.ControlModifier)
-                                    && event.key === Qt.Key_A) {
-                                root.selectAllBooks()
-                                event.accepted = true
-                            } else if (currentIndex >= 0
-                                    && (event.key === Qt.Key_Menu
-                                        || (event.key === Qt.Key_F10
-                                            && (event.modifiers & Qt.ShiftModifier)))) {
-                                root.showBookActionsAt(currentIndex)
-                                event.accepted = true
-                            }
-                        }
-
-                        delegate: LibraryBookListDelegate {
-                            width: bookList.width
-                            height: 82
-                            fallbackColor: root.fallbackColor(index)
-                            selectionMode: root.libraryModel.selectionMode
-                            keyboardCurrent: ListView.isCurrentItem && bookList.activeFocus
-                            onFocusRequested: row => {
-                                bookList.currentIndex = row
-                                bookList.forceActiveFocus(Qt.MouseFocusReason)
-                            }
-                            onOpenRequested: sourceUrl => root.openRequested(sourceUrl)
-                            onRelinkRequested: sourceUrl => root.relinkRequested(sourceUrl)
-                            onSelectionToggled: sourceUrl => root.libraryModel.toggleSelection(sourceUrl)
-                            onActionsRequested: (sourceUrl, title, collectionPath, fileAvailable) => {
-                                bookActionsDialog.openFor(sourceUrl, title, collectionPath, fileAvailable)
-                            }
-                        }
-                    }
-                }
-            }
-
-            ColumnLayout {
-                anchors.centerIn: parent
-                width: Math.min(420, booksContent.width - Theme.space2xl * 2)
-                visible: root.libraryModel.totalCount === 0
-                spacing: Theme.spaceMd
-
-                SZHBrandLogo {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: 76
-                    Layout.preferredHeight: 76
-                    iconOnly: true
-                    darkVariant: Theme.darkMode
-                }
-
-                Label {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("Your library is empty")
-                    color: Theme.textColor
-                    font.family: Theme.readingFontFamily
-                    font.pixelSize: Theme.displayFontSize
-                    font.weight: Font.DemiBold
-                }
-
-                SZHButton {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("Add book")
-                    symbol: "+"
-                    onClicked: root.addRequested()
-                }
-            }
-
-            ColumnLayout {
-                anchors.centerIn: parent
-                visible: root.libraryModel.totalCount > 0 && root.libraryModel.count === 0
-                spacing: Theme.spaceMd
-
-                Label {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("No books match these filters")
-                    color: Theme.mutedTextColor
-                    font.family: Theme.uiFontFamily
-                    font.pixelSize: Theme.bodyLargeFontSize
-                }
-
-                SZHButton {
-                    Layout.alignment: Qt.AlignHCenter
-                    variant: "secondary"
-                    text: qsTr("Clear filters")
-                    onClicked: root.libraryModel.clearFilters()
-                }
             }
         }
     }

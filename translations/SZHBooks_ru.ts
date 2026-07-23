@@ -63,115 +63,75 @@
 <context>
     <name>AppHeader</name>
     <message>
-        <location filename="../shell/AppHeader.qml" line="124"/>
-        <location filename="../shell/AppHeader.qml" line="145"/>
-        <source>Library</source>
-        <translation>Библиотека</translation>
+        <location filename="../shell/AppHeader.qml" line="127"/>
+        <location filename="../shell/AppHeader.qml" line="130"/>
+        <source>SZHBooks menu</source>
+        <translation>Меню SZHBooks</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="132"/>
-        <source>Add book</source>
-        <translation>Добавить книгу</translation>
-    </message>
-    <message>
-        <location filename="../shell/AppHeader.qml" line="132"/>
-        <source>Open book</source>
-        <translation>Открыть книгу</translation>
-    </message>
-    <message>
-        <location filename="../shell/AppHeader.qml" line="148"/>
+        <location filename="../shell/AppHeader.qml" line="180"/>
         <source>  ·  </source>
         <translation>  ·  </translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="175"/>
+        <location filename="../shell/AppHeader.qml" line="200"/>
         <source>Search in book (Ctrl+F)</source>
         <translation>Поиск в книге (Ctrl+F)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="186"/>
+        <location filename="../shell/AppHeader.qml" line="211"/>
         <source>Remove bookmark (Ctrl+B)</source>
         <translation>Удалить закладку (Ctrl+B)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="187"/>
+        <location filename="../shell/AppHeader.qml" line="212"/>
         <source>Add bookmark (Ctrl+B)</source>
         <translation>Добавить закладку (Ctrl+B)</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="198"/>
+        <location filename="../shell/AppHeader.qml" line="221"/>
         <source>Reading marks</source>
         <translation>Метки чтения</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="212"/>
+        <location filename="../shell/AppHeader.qml" line="234"/>
         <source>Zoom out</source>
         <translation>Уменьшить масштаб</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="213"/>
+        <location filename="../shell/AppHeader.qml" line="234"/>
         <source>Decrease font size</source>
         <translation>Уменьшить шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="238"/>
+        <location filename="../shell/AppHeader.qml" line="257"/>
         <source>Zoom in</source>
         <translation>Увеличить масштаб</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="239"/>
+        <location filename="../shell/AppHeader.qml" line="257"/>
         <source>Increase font size</source>
         <translation>Увеличить шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="250"/>
+        <location filename="../shell/AppHeader.qml" line="267"/>
         <source>Fit page to width</source>
         <translation>По ширине страницы</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="262"/>
+        <location filename="../shell/AppHeader.qml" line="278"/>
         <source>Chapters</source>
         <translation>Главы</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="273"/>
-        <source>Reading settings</source>
-        <translation>Настройки чтения</translation>
-    </message>
-    <message>
-        <location filename="../shell/AppHeader.qml" line="285"/>
+        <location filename="../shell/AppHeader.qml" line="291"/>
         <source>Reader tools</source>
         <translation>Инструменты чтения</translation>
     </message>
     <message>
-        <location filename="../shell/AppHeader.qml" line="295"/>
+        <location filename="../shell/AppHeader.qml" line="301"/>
         <source>Focus mode (F11)</source>
         <translation>Режим фокуса (F11)</translation>
-    </message>
-    <message>
-        <location filename="../shell/AppHeader.qml" line="321"/>
-        <source>Use white theme (Ctrl+Shift+D)</source>
-        <translation>Включить белую тему (Ctrl+Shift+D)</translation>
-    </message>
-    <message>
-        <location filename="../shell/AppHeader.qml" line="322"/>
-        <source>Use black theme (Ctrl+Shift+D)</source>
-        <translation>Включить чёрную тему (Ctrl+Shift+D)</translation>
-    </message>
-    <message>
-        <location filename="../shell/AppHeader.qml" line="332"/>
-        <source>Application menu</source>
-        <translation>Меню приложения</translation>
-    </message>
-    <message>
-        <location filename="../shell/AppHeader.qml" line="312"/>
-        <source>Notes center</source>
-        <translation>Центр заметок</translation>
-    </message>
-    <message>
-        <location filename="../shell/AppHeader.qml" line="304"/>
-        <source>Search library (Ctrl+Shift+F)</source>
-        <translation>Поиск по библиотеке (Ctrl+Shift+F)</translation>
     </message>
 </context>
 <context>
@@ -200,22 +160,57 @@
 <context>
     <name>ApplicationMenuPopup</name>
     <message>
-        <location filename="../shell/ApplicationMenuPopup.qml" line="33"/>
-        <source>Back up profile</source>
-        <translation>Создать резервную копию</translation>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="49"/>
+        <source>Library</source>
+        <translation>Библиотека</translation>
     </message>
     <message>
-        <location filename="../shell/ApplicationMenuPopup.qml" line="45"/>
-        <source>Restore profile</source>
-        <translation>Восстановить профиль</translation>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="58"/>
+        <source>Add book</source>
+        <translation>Добавить книгу</translation>
     </message>
     <message>
-        <location filename="../shell/ApplicationMenuPopup.qml" line="67"/>
-        <source>Diagnostics folder</source>
-        <translation>Папка диагностики</translation>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="68"/>
+        <source>Search library</source>
+        <translation>Поиск по библиотеке</translation>
     </message>
     <message>
-        <location filename="../shell/ApplicationMenuPopup.qml" line="79"/>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="78"/>
+        <source>Notes center</source>
+        <translation>Центр заметок</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="88"/>
+        <source>Finish selecting</source>
+        <translation>Завершить выбор</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="88"/>
+        <source>Select books</source>
+        <translation>Выбрать книги</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="109"/>
+        <source>New folder</source>
+        <translation>Новая папка</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="120"/>
+        <source>OneDrive library folder</source>
+        <translation>Папка библиотеки OneDrive</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="131"/>
+        <source>Synchronization details</source>
+        <translation>Сведения о синхронизации</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="150"/>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <location filename="../shell/ApplicationMenuPopup.qml" line="159"/>
         <source>About SZHBooks</source>
         <translation>О SZHBooks</translation>
     </message>
@@ -710,57 +705,52 @@
 <context>
     <name>LibraryBookDelegate</name>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="62"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="66"/>
         <source>%1, %2% read</source>
         <translation>%1, прочитано %2%</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="66"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="70"/>
         <source>File unavailable. Locate the book to continue.</source>
         <translation>Файл недоступен. Найдите книгу, чтобы продолжить.</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="181"/>
-        <source>  ·  </source>
-        <translation>  ·  </translation>
+        <location filename="../library/LibraryBookDelegate.qml" line="168"/>
+        <source>Online-only</source>
+        <translation>Только в облаке</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="182"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="171"/>
         <source>File unavailable</source>
         <translation>Файл недоступен</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="199"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="184"/>
         <source>%</source>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="217"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="202"/>
         <source>Locate file</source>
         <translation>Найти файл</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="61"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="65"/>
         <source>Online-only book. Downloads when opened.</source>
         <translation>Книга хранится в облаке и загрузится при открытии.</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="174"/>
-        <source>Online-only  ·  Downloads when opened</source>
-        <translation>Только в облаке  ·  Загрузится при открытии</translation>
-    </message>
-    <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="232"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="217"/>
         <source>Book actions</source>
         <translation>Действия с книгой</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="244"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="229"/>
         <source>Select %1</source>
         <translation>Выбрать «%1»</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookDelegate.qml" line="209"/>
+        <location filename="../library/LibraryBookDelegate.qml" line="194"/>
         <source>Reading progress</source>
         <translation>Прогресс чтения</translation>
     </message>
@@ -768,57 +758,57 @@
 <context>
     <name>LibraryBookListDelegate</name>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="62"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="66"/>
         <source>%1, %2% read</source>
         <translation>%1, прочитано %2%</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="66"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="70"/>
         <source>File unavailable. Locate the book to continue.</source>
         <translation>Файл недоступен. Найдите книгу, чтобы продолжить.</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="181"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="175"/>
         <source>  ·  </source>
         <translation>  ·  </translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="182"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="176"/>
         <source>dd MMM, HH:mm</source>
         <translation>dd MMM, HH:mm</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="214"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="208"/>
         <source>%</source>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="227"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="221"/>
         <source>Locate</source>
         <translation>Найти</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="61"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="65"/>
         <source>Online-only book. Downloads when opened.</source>
         <translation>Книга хранится в облаке и загрузится при открытии.</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="172"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="166"/>
         <source>Online-only  ·  Downloads when opened</source>
         <translation>Только в облаке  ·  Загрузится при открытии</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="234"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="228"/>
         <source>Book actions</source>
         <translation>Действия с книгой</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="151"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="145"/>
         <source>Select %1</source>
         <translation>Выбрать «%1»</translation>
     </message>
     <message>
-        <location filename="../library/LibraryBookListDelegate.qml" line="209"/>
+        <location filename="../library/LibraryBookListDelegate.qml" line="203"/>
         <source>Reading progress</source>
         <translation>Прогресс чтения</translation>
     </message>
@@ -1220,6 +1210,29 @@
     </message>
 </context>
 <context>
+    <name>LibraryOptionsPopup</name>
+    <message>
+        <location filename="../library/LibraryOptionsPopup.qml" line="33"/>
+        <source>Library options</source>
+        <translation>Параметры библиотеки</translation>
+    </message>
+    <message>
+        <location filename="../library/LibraryOptionsPopup.qml" line="42"/>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <location filename="../library/LibraryOptionsPopup.qml" line="61"/>
+        <source>Folder actions</source>
+        <translation>Действия с папкой</translation>
+    </message>
+    <message>
+        <location filename="../library/LibraryOptionsPopup.qml" line="75"/>
+        <source>Clear filters</source>
+        <translation>Сбросить фильтры</translation>
+    </message>
+</context>
+<context>
     <name>LibraryRepository</name>
     <message>
         <location filename="../library/libraryrepository.cpp" line="171"/>
@@ -1362,32 +1375,32 @@
         <translation>Введите не менее 2 символов</translation>
     </message>
     <message>
-        <location filename="../search/LibrarySearchDialog.qml" line="266"/>
+        <location filename="../search/LibrarySearchDialog.qml" line="267"/>
         <source>Page %1</source>
         <translation>Страница %1</translation>
     </message>
     <message>
-        <location filename="../search/LibrarySearchDialog.qml" line="267"/>
+        <location filename="../search/LibrarySearchDialog.qml" line="268"/>
         <source>%1%</source>
         <translation>%1%</translation>
     </message>
     <message>
-        <location filename="../search/LibrarySearchDialog.qml" line="280"/>
+        <location filename="../search/LibrarySearchDialog.qml" line="281"/>
         <source>Match in book details</source>
         <translation>Совпадение в сведениях о книге</translation>
     </message>
     <message>
-        <location filename="../search/LibrarySearchDialog.qml" line="320"/>
+        <location filename="../search/LibrarySearchDialog.qml" line="321"/>
         <source>Type a word or phrase to search the whole library</source>
         <translation>Введите слово или фразу для поиска по всей библиотеке</translation>
     </message>
     <message>
-        <location filename="../search/LibrarySearchDialog.qml" line="322"/>
+        <location filename="../search/LibrarySearchDialog.qml" line="323"/>
         <source>The index is updating. Results will appear here.</source>
         <translation>Индекс обновляется. Результаты появятся здесь.</translation>
     </message>
     <message>
-        <location filename="../search/LibrarySearchDialog.qml" line="323"/>
+        <location filename="../search/LibrarySearchDialog.qml" line="324"/>
         <source>No matches found</source>
         <translation>Совпадений не найдено</translation>
     </message>
@@ -1492,82 +1505,37 @@
     <name>LibraryView</name>
     <message>
         <location filename="../library/LibraryView.qml" line="26"/>
-        <location filename="../library/LibraryView.qml" line="252"/>
+        <location filename="../library/LibraryView.qml" line="191"/>
         <source>Library</source>
         <translation>Библиотека</translation>
     </message>
-    <message numerus="yes">
-        <location filename="../library/LibraryView.qml" line="260"/>
-        <source>%n book(s)</source>
-        <translation>
-            <numerusform>%n книга</numerusform>
-            <numerusform>%n книги</numerusform>
-            <numerusform>%n книг</numerusform>
-        </translation>
-    </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="273"/>
+        <location filename="../library/LibraryView.qml" line="215"/>
         <source>Search library</source>
         <translation>Поиск в библиотеке</translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="283"/>
-        <source>New folder</source>
-        <translation>Новая папка</translation>
-    </message>
-    <message>
-        <location filename="../library/LibraryView.qml" line="302"/>
-        <location filename="../library/LibraryView.qml" line="603"/>
-        <source>Add book</source>
-        <translation>Добавить книгу</translation>
-    </message>
-    <message>
-        <location filename="../library/LibraryView.qml" line="429"/>
-        <source>Continue reading</source>
-        <translation>Продолжить чтение</translation>
-    </message>
-    <message>
-        <location filename="../library/LibraryView.qml" line="445"/>
-        <source>Results</source>
-        <translation>Результаты</translation>
-    </message>
-    <message>
-        <location filename="../library/LibraryView.qml" line="445"/>
-        <source>All books</source>
-        <translation>Все книги</translation>
-    </message>
-    <message>
-        <location filename="../library/LibraryView.qml" line="594"/>
+        <location filename="../library/LibraryView.qml" line="436"/>
         <source>Your library is empty</source>
         <translation>Ваша библиотека пуста</translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="616"/>
+        <location filename="../library/LibraryView.qml" line="451"/>
         <source>No books match these filters</source>
         <translation>Нет книг по выбранным фильтрам</translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="625"/>
+        <location filename="../library/LibraryView.qml" line="460"/>
         <source>Clear filters</source>
         <translation>Сбросить фильтры</translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="290"/>
-        <source>Folder actions</source>
-        <translation>Действия с папкой</translation>
-    </message>
-    <message>
-        <location filename="../library/LibraryView.qml" line="297"/>
+        <location filename="../library/LibraryView.qml" line="273"/>
         <source>Finish selecting</source>
         <translation>Завершить выбор</translation>
     </message>
-    <message>
-        <location filename="../library/LibraryView.qml" line="297"/>
-        <source>Select books</source>
-        <translation>Выбрать книги</translation>
-    </message>
     <message numerus="yes">
-        <location filename="../library/LibraryView.qml" line="331"/>
+        <location filename="../library/LibraryView.qml" line="252"/>
         <source>%n book(s) selected</source>
         <translation>
             <numerusform>Выбрана %n книга</numerusform>
@@ -1576,22 +1544,17 @@
         </translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="339"/>
+        <location filename="../library/LibraryView.qml" line="260"/>
         <source>Select all</source>
         <translation>Выбрать все</translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="345"/>
+        <location filename="../library/LibraryView.qml" line="266"/>
         <source>Edit details</source>
         <translation>Изменить сведения</translation>
     </message>
-    <message>
-        <location filename="../library/LibraryView.qml" line="351"/>
-        <source>Done</source>
-        <translation>Готово</translation>
-    </message>
     <message numerus="yes">
-        <location filename="../library/LibraryView.qml" line="207"/>
+        <location filename="../library/LibraryView.qml" line="512"/>
         <source>%n supported book(s) ready to add</source>
         <translation>
             <numerusform>%n поддерживаемая книга готова к добавлению</numerusform>
@@ -1600,12 +1563,12 @@
         </translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="209"/>
+        <location filename="../library/LibraryView.qml" line="514"/>
         <source>No supported book files</source>
         <translation>Нет файлов поддерживаемых форматов</translation>
     </message>
     <message numerus="yes">
-        <location filename="../library/LibraryView.qml" line="221"/>
+        <location filename="../library/LibraryView.qml" line="526"/>
         <source>%n unsupported file(s) will be skipped</source>
         <translation>
             <numerusform>%n неподдерживаемый файл будет пропущен</numerusform>
@@ -1614,17 +1577,22 @@
         </translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="274"/>
+        <location filename="../library/LibraryView.qml" line="216"/>
         <source>Filter library books</source>
         <translation>Фильтр книг библиотеки</translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="473"/>
+        <location filename="../library/LibraryView.qml" line="227"/>
+        <source>Library options</source>
+        <translation>Параметры библиотеки</translation>
+    </message>
+    <message>
+        <location filename="../library/LibraryView.qml" line="323"/>
         <source>Library books, grid view</source>
         <translation>Книги библиотеки, сетка</translation>
     </message>
     <message>
-        <location filename="../library/LibraryView.qml" line="531"/>
+        <location filename="../library/LibraryView.qml" line="382"/>
         <source>Library books, list view</source>
         <translation>Книги библиотеки, список</translation>
     </message>
@@ -1655,17 +1623,17 @@
 <context>
     <name>LocalStateStore</name>
     <message>
-        <location filename="../storage/localstatestore.cpp" line="397"/>
+        <location filename="../storage/localstatestore.cpp" line="407"/>
         <source>The settings file could not be updated.</source>
         <translation>Не удалось обновить файл настроек.</translation>
     </message>
     <message>
-        <location filename="../storage/localstatestore.cpp" line="388"/>
+        <location filename="../storage/localstatestore.cpp" line="398"/>
         <source>The profile database could not be updated.</source>
         <translation>Не удалось обновить базу данных профиля.</translation>
     </message>
     <message>
-        <location filename="../storage/localstatestore.cpp" line="788"/>
+        <location filename="../storage/localstatestore.cpp" line="798"/>
         <source>Could not update the selected book metadata.</source>
         <translation>Не удалось обновить сведения о выбранных книгах.</translation>
     </message>
@@ -1817,23 +1785,23 @@
         <translation>Синхронизация OneDrive</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="539"/>
+        <location filename="../Main.qml" line="549"/>
         <source>Exit focus mode (F11)</source>
         <translation>Выйти из режима фокуса (F11)</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="563"/>
+        <location filename="../Main.qml" line="573"/>
         <source>Could not open book</source>
         <translation>Не удалось открыть книгу</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="565"/>
-        <location filename="../Main.qml" line="585"/>
+        <location filename="../Main.qml" line="575"/>
+        <location filename="../Main.qml" line="595"/>
         <source>Choose another</source>
         <translation>Выбрать другую</translation>
     </message>
     <message>
-        <location filename="../Main.qml" line="583"/>
+        <location filename="../Main.qml" line="593"/>
         <source>Could not update library</source>
         <translation>Не удалось обновить библиотеку</translation>
     </message>
@@ -1940,109 +1908,109 @@
         <translation>Заметки</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="260"/>
-        <location filename="../notes/NotesCenterDialog.qml" line="300"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="261"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="301"/>
         <source>Bookmark</source>
         <translation>Закладка</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="260"/>
-        <location filename="../notes/NotesCenterDialog.qml" line="300"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="261"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="301"/>
         <source>Highlight</source>
         <translation>Выделение</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="284"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="285"/>
         <source>Page %1</source>
         <translation>Страница %1</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="285"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="286"/>
         <source>%1%</source>
         <translation>%1%</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="349"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="350"/>
         <source>No reading marks yet</source>
         <translation>Меток чтения пока нет</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="350"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="351"/>
         <source>No notes match the current filter</source>
         <translation>Нет заметок, соответствующих фильтру</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="421"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="422"/>
         <source>Label</source>
         <translation>Метка</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="432"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="433"/>
         <source>Reading mark label</source>
         <translation>Название метки</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="442"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="443"/>
         <source>Note</source>
         <translation>Заметка</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="454"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="455"/>
         <source>Write a note</source>
         <translation>Напишите заметку</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="473"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="474"/>
         <source>Open</source>
         <translation>Открыть</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="479"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="480"/>
         <source>Save</source>
         <translation>Сохранить</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="488"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="489"/>
         <source>Delete reading mark</source>
         <translation>Удалить метку чтения</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="498"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="499"/>
         <source>Select a reading mark</source>
         <translation>Выберите метку чтения</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="512"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="513"/>
         <source>Export reading notes</source>
         <translation>Экспорт заметок о чтении</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="516"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="517"/>
         <source>HTML document (*.html)</source>
         <translation>Документ HTML (*.html)</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="517"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="518"/>
         <source>Markdown document (*.md)</source>
         <translation>Документ Markdown (*.md)</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="551"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="552"/>
         <source>Delete reading mark?</source>
         <translation>Удалить метку чтения?</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="560"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="561"/>
         <source>This bookmark, highlight or note will be removed from every synchronized device.</source>
         <translation>Эта закладка, выделение или заметка будет удалена со всех синхронизированных устройств.</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="578"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="579"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../notes/NotesCenterDialog.qml" line="584"/>
+        <location filename="../notes/NotesCenterDialog.qml" line="585"/>
         <source>Delete</source>
         <translation>Удалить</translation>
     </message>
@@ -2224,27 +2192,27 @@
 <context>
     <name>PdfDocumentView</name>
     <message>
-        <location filename="../reader/PdfDocumentView.qml" line="39"/>
+        <location filename="../reader/PdfDocumentView.qml" line="41"/>
         <source>The PDF could not be opened.</source>
         <translation>Не удалось открыть PDF.</translation>
     </message>
     <message>
-        <location filename="../reader/PdfDocumentView.qml" line="208"/>
+        <location filename="../reader/PdfDocumentView.qml" line="241"/>
         <source>Password required</source>
         <translation>Требуется пароль</translation>
     </message>
     <message>
-        <location filename="../reader/PdfDocumentView.qml" line="209"/>
+        <location filename="../reader/PdfDocumentView.qml" line="242"/>
         <source>Could not open PDF</source>
         <translation>Не удалось открыть PDF</translation>
     </message>
     <message>
-        <location filename="../reader/PdfDocumentView.qml" line="219"/>
+        <location filename="../reader/PdfDocumentView.qml" line="252"/>
         <source>This document is protected. Enter its password to continue.</source>
         <translation>Документ защищён. Введите пароль, чтобы продолжить.</translation>
     </message>
     <message>
-        <location filename="../reader/PdfDocumentView.qml" line="229"/>
+        <location filename="../reader/PdfDocumentView.qml" line="262"/>
         <source>Enter password</source>
         <translation>Введите пароль</translation>
     </message>
@@ -2439,88 +2407,88 @@
         <translation>Закрыть боковую панель</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="195"/>
+        <location filename="../reader/ReaderSidebar.qml" line="196"/>
         <source>%</source>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="207"/>
+        <location filename="../reader/ReaderSidebar.qml" line="208"/>
         <source>This book has no table of contents</source>
         <translation>В этой книге нет оглавления</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="226"/>
+        <location filename="../reader/ReaderSidebar.qml" line="227"/>
         <source>Remove bookmark here</source>
         <translation>Удалить закладку здесь</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="227"/>
+        <location filename="../reader/ReaderSidebar.qml" line="228"/>
         <source>Bookmark current location</source>
         <translation>Добавить закладку здесь</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="306"/>
-        <location filename="../reader/ReaderSidebar.qml" line="491"/>
+        <location filename="../reader/ReaderSidebar.qml" line="308"/>
+        <location filename="../reader/ReaderSidebar.qml" line="494"/>
         <source>%1%</source>
         <translation>%1%</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="257"/>
-        <location filename="../reader/ReaderSidebar.qml" line="316"/>
-        <location filename="../reader/ReaderSidebar.qml" line="490"/>
+        <location filename="../reader/ReaderSidebar.qml" line="259"/>
+        <location filename="../reader/ReaderSidebar.qml" line="318"/>
+        <location filename="../reader/ReaderSidebar.qml" line="493"/>
         <source>Page %1</source>
         <translation>Страница %1</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="141"/>
-        <location filename="../reader/ReaderSidebar.qml" line="254"/>
-        <location filename="../reader/ReaderSidebar.qml" line="259"/>
-        <location filename="../reader/ReaderSidebar.qml" line="317"/>
+        <location filename="../reader/ReaderSidebar.qml" line="142"/>
+        <location filename="../reader/ReaderSidebar.qml" line="256"/>
+        <location filename="../reader/ReaderSidebar.qml" line="261"/>
+        <location filename="../reader/ReaderSidebar.qml" line="319"/>
         <source>%1% read</source>
         <translation>Прочитано %1%</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="332"/>
+        <location filename="../reader/ReaderSidebar.qml" line="334"/>
         <source>Delete bookmark</source>
         <translation>Удалить закладку</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="351"/>
+        <location filename="../reader/ReaderSidebar.qml" line="353"/>
         <source>No bookmarks in this book</source>
         <translation>В этой книге нет закладок</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="397"/>
+        <location filename="../reader/ReaderSidebar.qml" line="399"/>
         <source>Add a note</source>
         <translation>Добавить заметку</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="409"/>
+        <location filename="../reader/ReaderSidebar.qml" line="411"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="419"/>
+        <location filename="../reader/ReaderSidebar.qml" line="421"/>
         <source>Save</source>
         <translation>Сохранить</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="419"/>
+        <location filename="../reader/ReaderSidebar.qml" line="421"/>
         <source>Add note</source>
         <translation>Добавить заметку</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="533"/>
+        <location filename="../reader/ReaderSidebar.qml" line="536"/>
         <source>Edit note</source>
         <translation>Изменить заметку</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="539"/>
+        <location filename="../reader/ReaderSidebar.qml" line="542"/>
         <source>Delete note</source>
         <translation>Удалить заметку</translation>
     </message>
     <message>
-        <location filename="../reader/ReaderSidebar.qml" line="561"/>
+        <location filename="../reader/ReaderSidebar.qml" line="564"/>
         <source>No highlights or notes in this book</source>
         <translation>В этой книге нет выделений или заметок</translation>
     </message>
@@ -2546,54 +2514,44 @@
 <context>
     <name>ReaderToolsPopup</name>
     <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="38"/>
+        <location filename="../shell/ReaderToolsPopup.qml" line="36"/>
         <source>Zoom</source>
         <translation>Масштаб</translation>
     </message>
     <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="38"/>
+        <location filename="../shell/ReaderToolsPopup.qml" line="36"/>
         <source>Text size</source>
         <translation>Размер текста</translation>
     </message>
     <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="48"/>
+        <location filename="../shell/ReaderToolsPopup.qml" line="46"/>
         <source>Zoom out</source>
         <translation>Уменьшить масштаб</translation>
     </message>
     <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="49"/>
+        <location filename="../shell/ReaderToolsPopup.qml" line="47"/>
         <source>Decrease font size</source>
         <translation>Уменьшить шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="67"/>
+        <location filename="../shell/ReaderToolsPopup.qml" line="65"/>
         <source>Zoom in</source>
         <translation>Увеличить масштаб</translation>
     </message>
     <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="68"/>
+        <location filename="../shell/ReaderToolsPopup.qml" line="66"/>
         <source>Increase font size</source>
         <translation>Увеличить шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="79"/>
+        <location filename="../shell/ReaderToolsPopup.qml" line="77"/>
         <source>Fit to width</source>
         <translation>По ширине</translation>
     </message>
     <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="93"/>
-        <source>Open book</source>
-        <translation>Открыть книгу</translation>
-    </message>
-    <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="102"/>
+        <location filename="../shell/ReaderToolsPopup.qml" line="92"/>
         <source>Chapters</source>
         <translation>Главы</translation>
-    </message>
-    <message>
-        <location filename="../shell/ReaderToolsPopup.qml" line="110"/>
-        <source>Reading settings</source>
-        <translation>Настройки чтения</translation>
     </message>
 </context>
 <context>
@@ -2687,124 +2645,129 @@
         <translation>Страницы</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="99"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="101"/>
         <source>Reading mode</source>
         <translation>Режим чтения</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="116"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="118"/>
         <source>For this book</source>
         <translation>Для этой книги</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="86"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="88"/>
         <source>Reading settings</source>
         <translation>Настройки чтения</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="127"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="88"/>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="129"/>
         <source>Font</source>
         <translation>Шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="149"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="151"/>
         <source>Font size</source>
         <translation>Размер шрифта</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="157"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="159"/>
         <source>Decrease font size</source>
         <translation>Уменьшить шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="175"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="177"/>
         <source>Increase font size</source>
         <translation>Увеличить шрифт</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="188"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="190"/>
         <source>Alignment</source>
         <translation>Выравнивание</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="213"/>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="230"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="215"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="232"/>
         <source>Paragraph spacing</source>
         <translation>Интервал между абзацами</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="220"/>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="257"/>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="331"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="222"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="259"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="333"/>
         <source> px</source>
         <translation> пкс</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="250"/>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="267"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="252"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="269"/>
         <source>First-line indent</source>
         <translation>Отступ первой строки</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="287"/>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="304"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="289"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="306"/>
         <source>Line spacing</source>
         <translation>Межстрочный интервал</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="324"/>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="341"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="326"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="343"/>
         <source>Text width</source>
         <translation>Ширина текста</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="360"/>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="377"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="362"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="379"/>
         <source>Scroll speed</source>
         <translation>Скорость прокрутки</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="367"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="369"/>
         <source>%1%</source>
         <translation>%1%</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="391"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="393"/>
         <source>Theme</source>
         <translation>Тема</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="410"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="412"/>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="437"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="439"/>
         <source>Local data</source>
         <translation>Локальные данные</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="446"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="448"/>
         <source>Back up settings, library, positions and notes. Book files stay on this device.</source>
         <translation>Сохранить настройки, библиотеку, позиции и заметки. Файлы книг останутся на этом устройстве.</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="459"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="461"/>
         <source>Back up</source>
         <translation>Создать копию</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="467"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="469"/>
         <source>Restore</source>
         <translation>Восстановить</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="476"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="478"/>
         <source>Open diagnostics folder</source>
         <translation>Открыть папку диагностики</translation>
     </message>
     <message>
-        <location filename="../shell/ReadingSettingsPopup.qml" line="484"/>
+        <location filename="../shell/ReadingSettingsPopup.qml" line="486"/>
         <source>Restore defaults</source>
         <translation>Сбросить настройки</translation>
     </message>
@@ -2820,7 +2783,7 @@
 <context>
     <name>SZHMenuButton</name>
     <message>
-        <location filename="../ui/SZHMenuButton.qml" line="25"/>
+        <location filename="../ui/SZHMenuButton.qml" line="26"/>
         <source>: </source>
         <translation>: </translation>
     </message>
@@ -3174,12 +3137,12 @@
 <context>
     <name>TextDocumentView</name>
     <message>
-        <location filename="../reader/TextDocumentView.qml" line="517"/>
+        <location filename="../reader/TextDocumentView.qml" line="528"/>
         <source>Previous page</source>
         <translation>Предыдущая страница</translation>
     </message>
     <message>
-        <location filename="../reader/TextDocumentView.qml" line="530"/>
+        <location filename="../reader/TextDocumentView.qml" line="541"/>
         <source>Next page</source>
         <translation>Следующая страница</translation>
     </message>

@@ -154,7 +154,7 @@ Dialog {
                     objectName: "librarySearchField"
                     Layout.fillWidth: true
                     placeholderText: qsTr("Search every book")
-                    onTextChanged: searchDelay.restart()
+                    onTextChanged: root.searchModel.query = text
 
                     Keys.onReturnPressed: {
                         if (root.searchModel.count > 0)
@@ -214,6 +214,7 @@ Dialog {
             spacing: Theme.space2xs
             model: root.searchModel
             boundsBehavior: Flickable.StopAtBounds
+            boundsMovement: Flickable.StopAtBounds
 
             ScrollBar.vertical: SZHScrollBar {}
 
@@ -330,11 +331,4 @@ Dialog {
         }
     }
 
-    Timer {
-        id: searchDelay
-
-        interval: 180
-        repeat: false
-        onTriggered: root.searchModel.query = queryField.text
-    }
 }

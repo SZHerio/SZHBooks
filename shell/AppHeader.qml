@@ -10,9 +10,12 @@ Rectangle {
     required property var settingsStore
     required property var localizationController
     required property var diagnosticService
+    required property var libraryModel
+    required property var syncService
     property bool darkMode: false
     property bool showingLibrary: false
     readonly property bool compactMode: width < 1080
+    readonly property bool compactBrand: width < 760
     readonly property bool readerPopupOpen: searchPopup.opened
                                                 || readingSettings.opened
                                                 || readerTools.opened
@@ -26,6 +29,10 @@ Rectangle {
     signal restoreProfileRequested
     signal notesCenterRequested
     signal librarySearchRequested
+    signal chooseFolderRequested
+    signal createCollectionRequested
+    signal selectionModeRequested
+    signal syncDetailsRequested
     signal aboutRequested
 
     function closeReaderPopups() {
@@ -36,17 +43,15 @@ Rectangle {
     }
 
     function openSearch() {
-        if (root.showingLibrary || !root.readerWorkspace.hasDocument) {
+        if (root.showingLibrary || !root.readerWorkspace.hasDocument)
             return
-        }
         root.closeReaderPopups()
         searchPopup.openAndFocus()
     }
 
     function openAnnotations(tab) {
-        if (root.showingLibrary || !root.readerWorkspace.hasDocument) {
+        if (root.showingLibrary || !root.readerWorkspace.hasDocument)
             return
-        }
         root.closeReaderPopups()
         root.readerWorkspace.openSidebar(tab === "highlights" ? "notes" : "bookmarks")
     }
@@ -59,27 +64,31 @@ Rectangle {
     function toggleReadingSettings() {
         const wasOpen = readingSettings.opened
         root.closeReaderPopups()
-        if (!wasOpen) {
+        if (!wasOpen)
             readingSettings.open()
-        }
     }
 
     function toggleReaderTools() {
         const wasOpen = readerTools.opened
         root.closeReaderPopups()
-        if (!wasOpen) {
+        if (!wasOpen)
             readerTools.open()
-        }
+    }
+
+    function toggleApplicationMenu() {
+        const wasOpen = applicationMenu.opened
+        root.closeReaderPopups()
+        if (!wasOpen)
+            applicationMenu.open()
     }
 
     implicitHeight: Theme.toolbarHeight
     color: Theme.chromeColor
 
     onShowingLibraryChanged: {
-        if (root.showingLibrary) {
-            root.closeReaderPopups()
+        root.closeReaderPopups()
+        if (root.showingLibrary)
             root.readerWorkspace.closeSidebar()
-        }
     }
 
     Connections {
@@ -93,60 +102,82 @@ Rectangle {
         }
 
         function onHasDocumentChanged() {
-            if (!root.readerWorkspace.hasDocument) {
+            if (!root.readerWorkspace.hasDocument)
                 root.closeReaderPopups()
-            }
-        }
-    }
-
-    Behavior on color {
-        ColorAnimation {
-            duration: Theme.motionNormal
         }
     }
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: Theme.spaceLg
+        anchors.leftMargin: Theme.spaceMd
         anchors.rightMargin: Theme.spaceLg
         spacing: Theme.spaceSm
 
-        SZHBrandLogo {
-            iconOnly: root.width < 1080
-            darkVariant: Theme.darkMode
-            Layout.preferredWidth: iconOnly ? 42 : 176
-            Layout.preferredHeight: 42
-            Layout.rightMargin: Theme.spaceXs
-        }
+        Button {
+            id: brandMenuButton
 
-        SZHIconButton {
-            symbol: "\u25a6"
-            toolTip: qsTr("Library")
-            onChrome: true
-            selected: root.showingLibrary
-            onClicked: root.libraryRequested()
-        }
+            objectName: "brandMenuButton"
+            readonly property bool interactionActive: hovered || down || applicationMenu.opened
+            Layout.preferredWidth: root.compactBrand ? 50 : 190
+            Layout.preferredHeight: 46
+            padding: 0
+            hoverEnabled: true
+            focusPolicy: Qt.StrongFocus
+            Accessible.role: Accessible.ButtonMenu
+            Accessible.name: qsTr("SZHBooks menu")
+            onClicked: root.toggleApplicationMenu()
 
-        SZHButton {
-            visible: root.showingLibrary || !root.compactMode
-            text: root.showingLibrary ? qsTr("Add book") : qsTr("Open book")
-            variant: "chrome"
-            onClicked: {
-                root.closeReaderPopups()
-                root.openRequested()
+            ToolTip.text: qsTr("SZHBooks menu")
+            ToolTip.visible: hovered
+            ToolTip.delay: Theme.tooltipDelay
+
+            contentItem: Item {
+                SZHBrandLogo {
+                    anchors.left: parent.left
+                    anchors.leftMargin: root.compactBrand ? Theme.space2xs : Theme.spaceXs
+                    anchors.right: menuChevron.left
+                    anchors.rightMargin: Theme.space2xs
+                    anchors.verticalCenter: parent.verticalCenter
+                    height: 38
+                    iconOnly: root.compactBrand
+                    darkVariant: brandMenuButton.interactionActive
+                                 ? !Theme.darkMode : Theme.darkMode
+                }
+
+                Text {
+                    id: menuChevron
+
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.spaceXs
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Theme.iconFontSize
+                    text: applicationMenu.opened ? "\u25b4" : "\u25be"
+                    color: brandMenuButton.interactionActive
+                           ? Theme.interactionTextColor : Theme.chromeMutedTextColor
+                    font.family: Theme.uiFontFamily
+                    font.pixelSize: Theme.captionFontSize
+                    horizontalAlignment: Text.AlignHCenter
+                }
+            }
+
+            background: Rectangle {
+                color: brandMenuButton.interactionActive
+                       ? Theme.interactionColor : "transparent"
+                radius: Theme.radiusMd
+                border.color: brandMenuButton.activeFocus
+                              ? Theme.focusColor : "transparent"
+                border.width: brandMenuButton.activeFocus ? 2 : 0
             }
         }
 
         Label {
+            visible: !root.showingLibrary
             Layout.fillWidth: true
             Layout.leftMargin: Theme.spaceSm
             Layout.rightMargin: Theme.spaceSm
-            text: root.showingLibrary
-                  ? qsTr("Library")
-                  : root.readerController.title
-                    + (root.readerController.author.length > 0
-                       ? qsTr("  \u00b7  ") + root.readerController.author
-                       : "")
+            text: root.readerController.title
+                  + (root.readerController.author.length > 0
+                     ? qsTr("  \u00b7  ") + root.readerController.author : "")
             color: Theme.chromeMutedTextColor
             font.family: Theme.uiFontFamily
             font.pixelSize: Theme.bodyFontSize
@@ -155,15 +186,9 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
         }
 
-        Rectangle {
-            visible: !root.compactMode
-                     && !root.showingLibrary
-                     && root.readerWorkspace.hasDocument
-            Layout.preferredWidth: 1
-            Layout.preferredHeight: 24
-            Layout.leftMargin: Theme.spaceXs
-            Layout.rightMargin: Theme.spaceXs
-            color: Theme.chromeBorderColor
+        Item {
+            visible: root.showingLibrary
+            Layout.fillWidth: true
         }
 
         SZHIconButton {
@@ -191,8 +216,6 @@ Rectangle {
         }
 
         SZHIconButton {
-            id: annotationsButton
-
             visible: !root.showingLibrary && root.readerWorkspace.hasDocument
             symbol: "\u2261"
             toolTip: qsTr("Reading marks")
@@ -204,21 +227,18 @@ Rectangle {
         }
 
         SZHIconButton {
-            visible: !root.compactMode
-                     && !root.showingLibrary
+            visible: !root.compactMode && !root.showingLibrary
                      && root.readerWorkspace.hasDocument
             symbol: "-"
             toolTip: root.readerWorkspace.showingPdf
-                         ? qsTr("Zoom out")
-                         : qsTr("Decrease font size")
+                         ? qsTr("Zoom out") : qsTr("Decrease font size")
             onChrome: true
             enabled: root.readerWorkspace.canDecreaseScale
             onClicked: root.readerWorkspace.decreaseScale()
         }
 
         Label {
-            visible: !root.compactMode
-                     && !root.showingLibrary
+            visible: !root.compactMode && !root.showingLibrary
                      && root.readerWorkspace.hasDocument
             text: root.readerWorkspace.scaleLabel
             color: Theme.chromeMutedTextColor
@@ -230,21 +250,18 @@ Rectangle {
         }
 
         SZHIconButton {
-            visible: !root.compactMode
-                     && !root.showingLibrary
+            visible: !root.compactMode && !root.showingLibrary
                      && root.readerWorkspace.hasDocument
             symbol: "+"
             toolTip: root.readerWorkspace.showingPdf
-                         ? qsTr("Zoom in")
-                         : qsTr("Increase font size")
+                         ? qsTr("Zoom in") : qsTr("Increase font size")
             onChrome: true
             enabled: root.readerWorkspace.canIncreaseScale
             onClicked: root.readerWorkspace.increaseScale()
         }
 
         SZHIconButton {
-            visible: !root.compactMode
-                     && !root.showingLibrary
+            visible: !root.compactMode && !root.showingLibrary
                      && root.readerWorkspace.showingPdf
             symbol: "\u2922"
             toolTip: qsTr("Fit page to width")
@@ -255,8 +272,7 @@ Rectangle {
         SZHIconButton {
             id: chapterButton
 
-            visible: !root.compactMode
-                     && !root.showingLibrary
+            visible: !root.compactMode && !root.showingLibrary
                      && root.readerWorkspace.hasChapters
             symbol: "\u2630"
             toolTip: qsTr("Chapters")
@@ -264,16 +280,6 @@ Rectangle {
             selected: root.readerWorkspace.sidebarOpen
                       && root.readerWorkspace.sidebarTab === "contents"
             onClicked: root.toggleChapterNavigation()
-        }
-
-        SZHIconButton {
-            visible: !root.compactMode && !root.showingLibrary
-            symbol: "\u2699"
-            symbolPixelSize: Theme.bodyLargeFontSize
-            toolTip: qsTr("Reading settings")
-            onChrome: true
-            selected: readingSettings.opened
-            onClicked: root.toggleReadingSettings()
         }
 
         SZHIconButton {
@@ -296,49 +302,6 @@ Rectangle {
             onChrome: true
             onClicked: root.focusModeRequested()
         }
-
-        SZHIconButton {
-            visible: root.showingLibrary
-            symbol: "\u2315"
-            symbolPixelSize: Theme.bodyLargeFontSize
-            toolTip: qsTr("Search library (Ctrl+Shift+F)")
-            onChrome: true
-            onClicked: root.librarySearchRequested()
-        }
-
-        SZHIconButton {
-            visible: root.showingLibrary
-            symbol: "\u2261"
-            toolTip: qsTr("Notes center")
-            onChrome: true
-            onClicked: root.notesCenterRequested()
-        }
-
-        SZHIconButton {
-            symbol: root.darkMode ? "\u2600" : "\u263e"
-            symbolPixelSize: Theme.bodyLargeFontSize
-            toolTip: root.darkMode
-                     ? qsTr("Use white theme (Ctrl+Shift+D)")
-                     : qsTr("Use black theme (Ctrl+Shift+D)")
-            onChrome: true
-            onClicked: root.darkModeToggled(!root.darkMode)
-        }
-
-        SZHIconButton {
-            id: applicationMenuButton
-
-            symbol: "\u22ee"
-            symbolPixelSize: Theme.titleFontSize
-            toolTip: qsTr("Application menu")
-            onChrome: true
-            selected: applicationMenu.opened
-            onClicked: {
-                const wasOpen = applicationMenu.opened
-                root.closeReaderPopups()
-                if (!wasOpen)
-                    applicationMenu.open()
-            }
-        }
     }
 
     Rectangle {
@@ -353,13 +316,13 @@ Rectangle {
         id: readingSettings
 
         parent: root
-        x: Math.max(Theme.spaceMd, root.width - width - Theme.spaceLg)
+        x: Theme.spaceMd
         y: root.height + Theme.spaceXs
         settingsStore: root.settingsStore
         localizationController: root.localizationController
         diagnosticService: root.diagnosticService
         readerWorkspace: root.readerWorkspace
-        textSettingsAvailable: root.readerWorkspace.showingText
+        textSettingsAvailable: !root.showingLibrary && root.readerWorkspace.showingText
         onBackupRequested: root.backupProfileRequested()
         onRestoreRequested: root.restoreProfileRequested()
     }
@@ -392,30 +355,28 @@ Rectangle {
                          Math.min(root.width - width - Theme.spaceMd,
                                   buttonPosition.x + overflowButton.width - width))
         }
-        onOpenRequested: {
-            root.closeReaderPopups()
-            root.openRequested()
-        }
         onChaptersRequested: root.toggleChapterNavigation()
-        onSettingsRequested: root.toggleReadingSettings()
     }
 
     ApplicationMenuPopup {
         id: applicationMenu
 
         parent: root
-        x: Math.max(Theme.spaceMd, root.width - width - Theme.spaceLg)
+        x: Theme.spaceMd
         y: root.height + Theme.spaceXs
-        diagnosticService: root.diagnosticService
-        onBackupRequested: root.backupProfileRequested()
-        onRestoreRequested: root.restoreProfileRequested()
+        syncService: root.syncService
+        showingLibrary: root.showingLibrary
+        libraryHasBooks: root.libraryModel.totalCount > 0
+        selectionMode: root.libraryModel.selectionMode
+        onOpenRequested: root.openRequested()
+        onLibraryRequested: root.libraryRequested()
+        onLibrarySearchRequested: root.librarySearchRequested()
+        onNotesCenterRequested: root.notesCenterRequested()
+        onSelectionModeRequested: root.selectionModeRequested()
+        onCreateCollectionRequested: root.createCollectionRequested()
+        onChooseFolderRequested: root.chooseFolderRequested()
+        onSyncDetailsRequested: root.syncDetailsRequested()
+        onSettingsRequested: root.toggleReadingSettings()
         onAboutRequested: root.aboutRequested()
-        onAboutToShow: {
-            const buttonPosition = applicationMenuButton.mapToItem(root, 0, 0)
-            x = Math.max(Theme.spaceMd,
-                         Math.min(root.width - width - Theme.spaceMd,
-                                  buttonPosition.x + applicationMenuButton.width - width))
-        }
     }
-
 }

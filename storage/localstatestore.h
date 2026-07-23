@@ -148,7 +148,7 @@ private:
     mutable QSettings m_settings;
     ProfileDatabase m_profileDatabase;
     QString m_colorTheme = QStringLiteral("light");
-    QString m_language = QStringLiteral("system");
+    QString m_language = QStringLiteral("ru");
     QString m_readingFont = QStringLiteral("serif");
     int m_textFontSize = 18;
     qreal m_lineHeight = 1.5;

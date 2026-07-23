@@ -28,6 +28,10 @@ Item {
     property color fallbackColor: Theme.accentColor
     property bool selectionMode: false
     property bool keyboardCurrent: false
+    readonly property bool highlighted: cardMouseArea.containsMouse
+                                        || root.activeFocus
+                                        || root.keyboardCurrent
+                                        || root.selected
 
     signal openRequested(url sourceUrl)
     signal relinkRequested(url sourceUrl)
@@ -68,7 +72,7 @@ Item {
     Accessible.selected: root.selected || root.keyboardCurrent
     Accessible.onPressAction: root.activate()
     opacity: fileAvailable ? 1 : 0.72
-    scale: cardMouseArea.containsMouse ? 1.008 : 1
+    scale: cardMouseArea.containsMouse ? 1.016 : 1
     Drag.active: bookDragHandler.active && !root.selectionMode
     Drag.source: root
     Drag.keys: ["szhbooks-book"]
@@ -102,17 +106,10 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.margins: 1
-        color: cardMouseArea.containsMouse ? Theme.surfaceMutedColor : Theme.surfaceColor
+        color: Theme.surfaceColor
         radius: Theme.radiusMd
-        border.color: root.activeFocus || root.keyboardCurrent || root.selected
-                      ? Theme.focusColor : Theme.borderColor
-        border.width: root.activeFocus || root.keyboardCurrent || root.selected ? 2 : 1
-
-        Behavior on color {
-            ColorAnimation {
-                duration: Theme.motionFast
-            }
-        }
+        border.color: root.highlighted ? Theme.interactionColor : "transparent"
+        border.width: root.highlighted ? 2 : 0
     }
 
     MouseArea {
@@ -125,12 +122,9 @@ Item {
             root.focusRequested(root.index)
             if (root.selectionMode || (mouse.modifiers & Qt.ControlModifier)) {
                 root.selectionToggled(root.sourceUrl)
-            }
-        }
-        onDoubleClicked: {
-            root.focusRequested(root.index)
-            if (!root.selectionMode)
+            } else {
                 root.activate()
+            }
         }
     }
 
@@ -144,12 +138,12 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: Theme.spaceSm
+        anchors.margins: Theme.spaceXs
         spacing: Theme.spaceXs
 
         LibraryBookCover {
             Layout.fillWidth: true
-            Layout.preferredHeight: 158
+            Layout.preferredHeight: Theme.libraryCoverHeight
             title: root.title
             formatName: root.formatName
             coverUrl: root.coverUrl
@@ -171,23 +165,14 @@ Item {
         Label {
             Layout.fillWidth: true
             text: root.cloudPlaceholder
-                  ? qsTr("Online-only  \u00b7  Downloads when opened")
+                  ? qsTr("Online-only")
                   : root.fileAvailable
-                    ? ([root.author,
-                        root.series.length > 0
-                          ? root.series + (root.seriesNumber > 0 ? " #" + root.seriesNumber : "")
-                          : "",
-                        root.publicationYear > 0 ? String(root.publicationYear) : ""]
-                     .filter(value => value.length > 0).join(qsTr("  \u00b7  ")))
+                    ? (root.author.length > 0 ? root.author : root.formatName)
                     : qsTr("File unavailable")
             color: root.fileAvailable ? Theme.mutedTextColor : Theme.dangerColor
             font.family: Theme.uiFontFamily
             font.pixelSize: Theme.captionFontSize
             elide: Text.ElideRight
-        }
-
-        Item {
-            Layout.fillHeight: true
         }
 
         RowLayout {
@@ -222,7 +207,7 @@ Item {
     SZHIconButton {
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.margins: Theme.spaceSm
+        anchors.margins: Theme.spaceXs
         z: 2
         visible: !root.selectionMode
                  && (cardMouseArea.containsMouse

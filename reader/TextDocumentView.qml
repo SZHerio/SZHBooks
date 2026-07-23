@@ -24,7 +24,9 @@ Item {
     property int pendingTextPosition: -1
     property bool positionRestorePending: false
     property int positionRestoreAttempts: 0
+    property bool positionRestoreScheduled: false
     property int paginationAttempts: 0
+    property bool paginationScheduled: false
     property var pageOffsets: [0]
     property int currentPageIndex: 0
     property real pageWheelAccumulator: 0
@@ -181,10 +183,32 @@ Item {
         if (root.pagedMode) {
             textFlickable.contentY = 0
             root.paginationAttempts = 0
-            paginationTimer.restart()
+            root.schedulePagination()
         } else {
-            positionRestoreTimer.restart()
+            root.schedulePositionRestore()
         }
+    }
+
+    function schedulePositionRestore() {
+        if (root.positionRestoreScheduled) {
+            return
+        }
+        root.positionRestoreScheduled = true
+        Qt.callLater(function() {
+            root.positionRestoreScheduled = false
+            root.applyPendingPosition()
+        })
+    }
+
+    function schedulePagination() {
+        if (root.paginationScheduled) {
+            return
+        }
+        root.paginationScheduled = true
+        Qt.callLater(function() {
+            root.paginationScheduled = false
+            root.rebuildPagination()
+        })
     }
 
     function goToTextPosition(position) {
@@ -239,7 +263,7 @@ Item {
                 && (readerText.contentHeight <= 0
                     || (root.maximumContentY <= 0 && root.positionRestoreAttempts < 4))) {
             root.positionRestoreAttempts += 1
-            positionRestoreTimer.restart()
+            root.schedulePositionRestore()
             return
         }
 
@@ -264,7 +288,7 @@ Item {
                 || root.pageTextHeight <= 1) {
             if (root.paginationAttempts < 6) {
                 root.paginationAttempts += 1
-                paginationTimer.restart()
+                root.schedulePagination()
             }
             return
         }
@@ -374,7 +398,7 @@ Item {
                                                        root.currentTextPosition)
     onMaximumContentYChanged: {
         if (root.positionRestorePending && !root.pagedMode) {
-            positionRestoreTimer.restart()
+            root.schedulePositionRestore()
         }
     }
     onPageTextHeightChanged: {
@@ -403,20 +427,6 @@ Item {
         }
     }
 
-    Timer {
-        id: positionRestoreTimer
-
-        interval: 50
-        onTriggered: root.applyPendingPosition()
-    }
-
-    Timer {
-        id: paginationTimer
-
-        interval: 40
-        onTriggered: root.rebuildPagination()
-    }
-
     Rectangle {
         anchors.fill: parent
         color: Theme.windowColor
@@ -425,6 +435,7 @@ Item {
     Flickable {
         id: textFlickable
 
+        objectName: "textDocumentFlickable"
         anchors.fill: parent
         clip: true
         contentWidth: width
@@ -432,6 +443,7 @@ Item {
         flickableDirection: Flickable.VerticalFlick
         interactive: !root.pagedMode
         boundsBehavior: Flickable.StopAtBounds
+        boundsMovement: Flickable.StopAtBounds
         ScrollBar.vertical: SZHScrollBar {
             policy: root.pagedMode ? ScrollBar.AlwaysOff : ScrollBar.AsNeeded
         }
@@ -496,7 +508,7 @@ Item {
                         onWidthChanged: Qt.callLater(root.applyTextFormatting)
                         onContentHeightChanged: {
                             if (root.pagedMode) {
-                                paginationTimer.restart()
+                                root.schedulePagination()
                             }
                         }
                     }

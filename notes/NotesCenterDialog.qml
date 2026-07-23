@@ -221,6 +221,7 @@ Dialog {
                     spacing: Theme.space2xs
                     model: root.notesModel
                     boundsBehavior: Flickable.StopAtBounds
+                    boundsMovement: Flickable.StopAtBounds
 
                     ScrollBar.vertical: SZHScrollBar {}
 

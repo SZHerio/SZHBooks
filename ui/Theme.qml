@@ -34,6 +34,10 @@ QtObject {
     readonly property color borderColor: darkMode ? "#303030" : "#dedede"
     readonly property color strongBorderColor: darkMode ? "#4a4a4a" : "#b7b7b7"
 
+    // Hover, press and selection intentionally share one stable color.
+    readonly property color interactionColor: darkMode ? "#dedede" : "#303030"
+    readonly property color interactionTextColor: darkMode ? "#0b0b0b" : "#ffffff"
+
     readonly property color accentColor: darkMode ? "#ffffff" : "#111111"
     readonly property color accentHoverColor: darkMode ? "#efefef" : "#2a2a2a"
     readonly property color accentPressedColor: darkMode ? "#d4d4d4" : "#000000"
@@ -51,8 +55,8 @@ QtObject {
     readonly property color currentSearchTextColor: darkMode ? "#080808" : "#ffffff"
 
     readonly property color chromeColor: darkMode ? "#000000" : "#ffffff"
-    readonly property color chromeHoverColor: darkMode ? "#1c1c1c" : "#f0f0f0"
-    readonly property color chromePressedColor: darkMode ? "#2b2b2b" : "#e2e2e2"
+    readonly property color chromeHoverColor: interactionColor
+    readonly property color chromePressedColor: interactionColor
     readonly property color chromeTextColor: darkMode ? "#ffffff" : "#000000"
     readonly property color chromeMutedTextColor: darkMode ? "#b6b6b6" : "#555555"
     readonly property color chromeBorderColor: darkMode ? "#2e2e2e" : "#e0e0e0"
@@ -72,6 +76,8 @@ QtObject {
     readonly property int compactControlHeight: 32
     readonly property int controlHeight: 36
     readonly property int toolbarHeight: 58
+    readonly property int libraryToolbarHeight: 52
+    readonly property int libraryCoverHeight: 252
     readonly property int statusBarHeight: 36
     readonly property int readerPageMaxWidth: 820
     readonly property int readerPagePadding: 52

@@ -6,10 +6,15 @@ Button {
 
     property string variant: "primary"
     property string symbol: ""
+    readonly property bool interactionActive: enabled && (down || hovered)
+    readonly property bool textTruncated: textLabel.truncated
 
     readonly property color resolvedForegroundColor: {
         if (!enabled) {
             return variant === "chrome" ? Theme.chromeMutedTextColor : Theme.disabledTextColor
+        }
+        if (interactionActive) {
+            return Theme.interactionTextColor
         }
         if (variant === "primary") {
             return Theme.primaryActionTextColor
@@ -25,23 +30,15 @@ Button {
             if (!enabled) {
                 return Theme.accentSoftColor
             }
-            return down ? Theme.primaryActionPressedColor
-                        : hovered ? Theme.primaryActionHoverColor
-                                  : Theme.primaryActionColor
+            return interactionActive ? Theme.interactionColor : Theme.primaryActionColor
         }
         if (variant === "chrome") {
-            return down ? Theme.chromePressedColor
-                        : hovered ? Theme.chromeHoverColor
-                                  : "transparent"
+            return interactionActive ? Theme.interactionColor : "transparent"
         }
         if (variant === "secondary") {
-            return down ? Theme.accentSoftColor
-                        : hovered ? Theme.surfaceMutedColor
-                                  : Theme.surfaceColor
+            return interactionActive ? Theme.interactionColor : Theme.surfaceColor
         }
-        return down ? Theme.accentSoftColor
-                    : hovered ? Theme.surfaceMutedColor
-                              : "transparent"
+        return interactionActive ? Theme.interactionColor : "transparent"
     }
 
     readonly property color resolvedBorderColor: activeFocus
@@ -82,6 +79,8 @@ Button {
         }
 
         Text {
+            id: textLabel
+
             anchors.verticalCenter: parent.verticalCenter
             width: Math.min(implicitWidth,
                             Math.max(0,
@@ -102,10 +101,5 @@ Button {
         border.color: control.resolvedBorderColor
         border.width: control.activeFocus ? 2 : control.variant === "secondary" ? 1 : 0
 
-        Behavior on color {
-            ColorAnimation {
-                duration: Theme.motionFast
-            }
-        }
     }
 }

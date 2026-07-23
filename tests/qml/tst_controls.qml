@@ -303,6 +303,16 @@ TestCase {
     }
 
     Component {
+        id: applicationMenuComponent
+
+        ApplicationMenuPopup {
+            syncService: mockSyncService
+            showingLibrary: true
+            libraryHasBooks: true
+        }
+    }
+
+    Component {
         id: createCollectionComponent
 
         CreateCollectionDialog {
@@ -498,6 +508,52 @@ TestCase {
         compare(clickCount, 1)
     }
 
+    function test_buttonInteractionColorStaysStable() {
+        const previousTheme = Theme.colorTheme
+        const button = createTemporaryObject(buttonComponent, stage)
+        verify(button)
+        button.variant = "secondary"
+
+        const themes = ["light", "dark"]
+        for (let index = 0; index < themes.length; ++index) {
+            Theme.colorTheme = themes[index]
+            mouseMove(button, button.width / 2, button.height / 2)
+            compare(button.resolvedBackgroundColor, Theme.interactionColor)
+            mousePress(button, button.width / 2, button.height / 2)
+            compare(button.resolvedBackgroundColor, Theme.interactionColor)
+            mouseRelease(button, button.width / 2, button.height / 2)
+        }
+        Theme.colorTheme = previousTheme
+    }
+
+    function test_applicationMenuKeepsPrimaryActionsReadable() {
+        mockSyncService.configured = false
+        const menu = createTemporaryObject(applicationMenuComponent, stage)
+        verify(menu)
+
+        let openCount = 0
+        menu.openRequested.connect(function() { openCount += 1 })
+        menu.open()
+        tryCompare(menu, "opened", true)
+
+        const addButton = findChild(menu, "applicationMenuAddBook")
+        const folderButton = findChild(menu, "applicationMenuOneDriveFolder")
+        const settingsButton = findChild(menu, "applicationMenuSettings")
+        verify(addButton)
+        verify(folderButton)
+        verify(settingsButton)
+        verify(!addButton.textTruncated)
+        verify(!folderButton.textTruncated)
+        verify(!settingsButton.textTruncated)
+        folderButton.text = "Папка библиотеки OneDrive"
+        wait(0)
+        verify(!folderButton.textTruncated)
+
+        addButton.clicked()
+        compare(openCount, 1)
+        tryCompare(menu, "opened", false)
+    }
+
     function test_segmentAndSliderUseKeyboard() {
         const segmented = createTemporaryObject(segmentedComponent, stage)
         verify(segmented)
@@ -584,31 +640,17 @@ TestCase {
         compare(openedUrl, "file:///C:/Books/novel.txt")
     }
 
-    function test_libraryBookRequiresDoubleClickWithMouse() {
-        const singleClickDelegate = createTemporaryObject(bookDelegateComponent, stage)
-        verify(singleClickDelegate)
+    function test_libraryBookOpensWithSingleClick() {
+        const delegate = createTemporaryObject(bookDelegateComponent, stage)
+        verify(delegate)
 
         let openCount = 0
         let focusCount = 0
-        singleClickDelegate.openRequested.connect(function() { openCount += 1 })
-        singleClickDelegate.focusRequested.connect(function() { focusCount += 1 })
-        mouseClick(singleClickDelegate,
-                   singleClickDelegate.width / 2,
-                   singleClickDelegate.height / 2)
-        compare(openCount, 0)
-        compare(focusCount, 1)
-
-        const doubleClickDelegate = createTemporaryObject(bookDelegateComponent, stage)
-        verify(doubleClickDelegate)
-        doubleClickDelegate.x = 220
-        doubleClickDelegate.openRequested.connect(function() { openCount += 1 })
-        doubleClickDelegate.focusRequested.connect(function() { focusCount += 1 })
-        focusCount = 0
-        mouseDoubleClickSequence(doubleClickDelegate,
-                                 doubleClickDelegate.width / 2,
-                                 doubleClickDelegate.height / 2)
+        delegate.openRequested.connect(function() { openCount += 1 })
+        delegate.focusRequested.connect(function() { focusCount += 1 })
+        mouseClick(delegate, delegate.width / 2, delegate.height / 2)
         compare(openCount, 1)
-        verify(focusCount >= 1)
+        compare(focusCount, 1)
     }
 
     function test_metadataDialogEditsSingleBook() {
@@ -634,7 +676,13 @@ TestCase {
     function test_textReaderPaginatesAndKeepsSemanticPosition() {
         const reader = createTemporaryObject(pagedTextViewComponent, stage)
         verify(reader)
-        tryVerify(function() { return reader.pageCount > 2 }, 5000)
+        const flickable = findChild(reader, "textDocumentFlickable")
+        verify(flickable)
+        compare(flickable.boundsBehavior, Flickable.StopAtBounds)
+        compare(flickable.boundsMovement, Flickable.StopAtBounds)
+        tryVerify(function() { return reader.pageCount > 2 }, 5000,
+                  "Pagination did not settle; pageCount=" + reader.pageCount
+                  + ", size=" + reader.width + "x" + reader.height)
         compare(reader.currentPage, 0)
 
         reader.goToProgress(0.55)
@@ -892,6 +940,7 @@ TestCase {
                 [Theme.mutedTextColor, Theme.windowColor],
                 [Theme.primaryActionTextColor, Theme.primaryActionColor],
                 [Theme.accentTextColor, Theme.accentColor],
+                [Theme.interactionTextColor, Theme.interactionColor],
                 [Theme.chromeTextColor, Theme.chromeColor],
                 [Theme.chromeMutedTextColor, Theme.chromeColor],
                 [Theme.currentSearchTextColor, Theme.currentSearchMatchColor],

@@ -7,9 +7,7 @@ Popup {
 
     required property var readerWorkspace
 
-    signal openRequested
     signal chaptersRequested
-    signal settingsRequested
 
     width: Math.min(284,
                     Math.max(248,
@@ -87,14 +85,6 @@ Popup {
         }
 
         SZHButton {
-            Layout.fillWidth: true
-            variant: "ghost"
-            symbol: "+"
-            text: qsTr("Open book")
-            onClicked: root.openRequested()
-        }
-
-        SZHButton {
             visible: root.readerWorkspace.hasChapters
             Layout.fillWidth: true
             variant: "ghost"
@@ -103,13 +93,6 @@ Popup {
             onClicked: root.chaptersRequested()
         }
 
-        SZHButton {
-            Layout.fillWidth: true
-            variant: "ghost"
-            symbol: "\u2699"
-            text: qsTr("Reading settings")
-            onClicked: root.settingsRequested()
-        }
     }
 
     enter: Transition {

@@ -27,7 +27,9 @@ constexpr int maximumScrollSpeed = 200;
 constexpr int scrollSpeedStep = 10;
 constexpr int legacyNormalWheelScrollLines = 6;
 const QString defaultColorTheme = QStringLiteral("light");
-const QString defaultLanguage = QStringLiteral("system");
+const QString defaultLanguage = QStringLiteral("ru");
+const QString russianDefaultMigrationKey =
+    QStringLiteral("appearance/russianDefaultApplied");
 const QString defaultReadingFont = QStringLiteral("serif");
 const QString defaultTextAlignment = QStringLiteral("justify");
 
@@ -197,6 +199,11 @@ void LocalStateStore::loadCachedState()
     const QString languageKey = QStringLiteral("appearance/language");
     const QString storedLanguage = m_settings.value(languageKey, defaultLanguage).toString();
     m_language = normalizedLanguage(storedLanguage);
+    if (!m_settings.value(russianDefaultMigrationKey, false).toBool()) {
+        m_language = defaultLanguage;
+        m_settings.setValue(languageKey, m_language);
+        m_settings.setValue(russianDefaultMigrationKey, true);
+    }
     if (storedLanguage != m_language) {
         m_settings.setValue(languageKey, m_language);
     }

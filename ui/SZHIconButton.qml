@@ -9,27 +9,20 @@ Button {
     property bool onChrome: false
     property bool selected: false
     property int symbolPixelSize: Theme.iconFontSize
+    readonly property bool interactionActive: enabled && (selected || down || hovered)
 
     readonly property color foregroundColor: !enabled
                                                  ? onChrome
                                                    ? Theme.chromeMutedTextColor
                                                    : Theme.disabledTextColor
-                                                 : selected
-                                                   ? onChrome
-                                                     ? Theme.chromeTextColor
-                                                     : Theme.accentColor
+                                                 : interactionActive
+                                                   ? Theme.interactionTextColor
                                                    : onChrome
                                                      ? Theme.chromeTextColor
                                                      : Theme.textColor
     readonly property color backgroundColor: {
-        if (selected) {
-            return onChrome ? Theme.chromePressedColor : Theme.accentSoftColor
-        }
-        if (down) {
-            return onChrome ? Theme.chromePressedColor : Theme.accentSoftColor
-        }
-        if (hovered) {
-            return onChrome ? Theme.chromeHoverColor : Theme.surfaceMutedColor
+        if (interactionActive) {
+            return Theme.interactionColor
         }
         return "transparent"
     }
@@ -63,10 +56,5 @@ Button {
         border.color: control.activeFocus ? Theme.focusColor : "transparent"
         border.width: control.activeFocus ? 2 : 0
 
-        Behavior on color {
-            ColorAnimation {
-                duration: Theme.motionFast
-            }
-        }
     }
 }

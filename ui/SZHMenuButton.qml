@@ -9,6 +9,7 @@ Button {
     property var options: []
     property string value: ""
     property string labelPrefix: ""
+    readonly property bool interactionActive: enabled && (down || hovered)
 
     signal valueSelected(string value)
 
@@ -42,7 +43,8 @@ Button {
             width: Math.max(0, parent.width - menuArrow.width - parent.spacing)
             anchors.verticalCenter: parent.verticalCenter
             text: control.displayText
-            color: Theme.textColor
+            color: control.interactionActive
+                   ? Theme.interactionTextColor : Theme.textColor
             font.family: Theme.uiFontFamily
             font.pixelSize: Theme.captionFontSize
             font.weight: Font.Medium
@@ -55,18 +57,16 @@ Button {
 
             anchors.verticalCenter: parent.verticalCenter
             text: "\u25be"
-            color: Theme.mutedTextColor
+            color: control.interactionActive
+                   ? Theme.interactionTextColor : Theme.mutedTextColor
             font.family: Theme.uiFontFamily
             font.pixelSize: Theme.captionFontSize
         }
     }
 
     background: Rectangle {
-        color: control.down
-               ? Theme.accentSoftColor
-               : control.hovered
-                 ? Theme.surfaceMutedColor
-                 : Theme.surfaceColor
+        color: control.interactionActive
+               ? Theme.interactionColor : Theme.surfaceColor
         radius: Theme.radiusMd
         border.color: control.activeFocus ? Theme.focusColor : Theme.borderColor
         border.width: control.activeFocus ? 2 : 1
@@ -118,7 +118,9 @@ Button {
                         Text {
                             width: Theme.iconFontSize
                             text: control.value === optionButton.modelData.value ? "\u2713" : ""
-                            color: Theme.textColor
+                            color: optionButton.down || optionButton.hovered
+                                   || control.value === optionButton.modelData.value
+                                   ? Theme.interactionTextColor : Theme.textColor
                             font.family: Theme.uiFontFamily
                             font.pixelSize: Theme.bodyFontSize
                             horizontalAlignment: Text.AlignHCenter
@@ -127,7 +129,9 @@ Button {
                         Text {
                             width: Math.max(0, parent.width - Theme.iconFontSize - parent.spacing)
                             text: optionButton.modelData.label
-                            color: Theme.textColor
+                            color: optionButton.down || optionButton.hovered
+                                   || control.value === optionButton.modelData.value
+                                   ? Theme.interactionTextColor : Theme.textColor
                             font.family: Theme.uiFontFamily
                             font.pixelSize: Theme.bodyFontSize
                             elide: Text.ElideRight
@@ -135,11 +139,9 @@ Button {
                     }
 
                     background: Rectangle {
-                        color: optionButton.down
-                               ? Theme.accentSoftColor
-                               : optionButton.hovered
-                                 ? Theme.surfaceMutedColor
-                                 : "transparent"
+                        color: optionButton.down || optionButton.hovered
+                               || control.value === optionButton.modelData.value
+                               ? Theme.interactionColor : "transparent"
                         radius: Theme.radiusSm
                         border.color: optionButton.activeFocus ? Theme.focusColor : "transparent"
                         border.width: optionButton.activeFocus ? 2 : 0

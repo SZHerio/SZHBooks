@@ -122,6 +122,7 @@ Rectangle {
                     visible: root.readerWorkspace.hasChapters
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
+                    boundsMovement: Flickable.StopAtBounds
                     currentIndex: root.readerWorkspace.currentChapterIndex
                     model: root.readerWorkspace.chapters
                     ScrollBar.vertical: SZHScrollBar {
@@ -235,6 +236,7 @@ Rectangle {
                     Layout.fillHeight: true
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
+                    boundsMovement: Flickable.StopAtBounds
                     spacing: Theme.space2xs
                     model: root.annotationStore.bookmarks
                     ScrollBar.vertical: SZHScrollBar {
@@ -430,6 +432,7 @@ Rectangle {
                     Layout.fillHeight: true
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
+                    boundsMovement: Flickable.StopAtBounds
                     spacing: Theme.space2xs
                     model: root.annotationStore.highlights
                     ScrollBar.vertical: SZHScrollBar {

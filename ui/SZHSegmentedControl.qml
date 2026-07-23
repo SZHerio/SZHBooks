@@ -49,7 +49,8 @@ Rectangle {
 
                 contentItem: Text {
                     text: optionButton.modelData.label
-                    color: optionButton.checked ? Theme.textColor : Theme.mutedTextColor
+                    color: optionButton.checked || optionButton.hovered || optionButton.down
+                           ? Theme.interactionTextColor : Theme.mutedTextColor
                     font.family: Theme.uiFontFamily
                     font.pixelSize: Theme.captionFontSize
                     font.weight: optionButton.checked ? Font.DemiBold : Font.Normal
@@ -59,24 +60,13 @@ Rectangle {
                 }
 
                 background: Rectangle {
-                    color: optionButton.checked
-                           ? Theme.surfaceColor
-                           : optionButton.hovered
-                             ? Theme.accentSoftColor
-                             : "transparent"
+                    color: optionButton.checked || optionButton.hovered || optionButton.down
+                           ? Theme.interactionColor : "transparent"
                     radius: Theme.radiusSm
                     border.color: optionButton.activeFocus
                                   ? Theme.focusColor
-                                  : optionButton.checked
-                                    ? Theme.strongBorderColor
-                                    : "transparent"
-                    border.width: optionButton.activeFocus ? 2 : optionButton.checked ? 1 : 0
-
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: Theme.motionFast
-                        }
-                    }
+                                  : "transparent"
+                    border.width: optionButton.activeFocus ? 2 : 0
                 }
             }
         }
